@@ -1,0 +1,11 @@
+.vscode
+node_modules
+.eslintignore
+.eslint
+.gitignore
+.travis.yml
+index.js
+package-lock.json
+rollup.config.js
+yarn*
+.rpt2_cache
