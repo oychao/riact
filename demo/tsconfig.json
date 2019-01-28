@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "declaration": true,
+    "jsx": "react",
+    "lib": ["dom", "es6", "es2017"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "outDir": "./dist/",
+    "paths": {
+      "comps/*": ["src/components/*"],
+      "store/*": ["src/store/*"]
+    },
+    "sourceMap": true,
+    "target": "es6"
+  },
+  "include": ["./src/**/*"]
+}

@@ -1,5 +1,5 @@
 {
-  "name": "demo0",
+  "name": "react",
   "version": "1.0.0",
   "main": "./bin/index.js",
   "typings": "./bin/index.d.ts",
