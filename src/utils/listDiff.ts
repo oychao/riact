@@ -1,3 +1,6 @@
+const ACTION_REMOVE = 'REMOVE';
+const ACTION_INSERT = 'INSERT';
+
 const keyIdxMapFac = function(list: Array<common.TObject>, key: string): Map<string, number> {
   const result: Map<string, number> = new Map<string, number>();
   for (let i = 0; i < list.length; i++) {
@@ -6,21 +9,21 @@ const keyIdxMapFac = function(list: Array<common.TObject>, key: string): Map<str
   return result;
 };
 
-const pushRemoveAction = function(actions: Array<common.TListDiffAction>, index: number): void {
-  actions.push({
-    action: 'REMOVE',
+const makeRemoveAction = function(index: number): common.TListDiffAction {
+  return {
+    action: ACTION_REMOVE,
     payload: index
-  });
+  };
 };
 
-const pushInsertAction = function(actions: Array<common.TListDiffAction>, index: number, item: common.TObject): void {
-  actions.push({
-    action: 'INSERT',
+const makeInsertAction = function(index: number, item: common.TObject): common.TListDiffAction {
+  return {
+    action: ACTION_INSERT,
     payload: {
       index,
       item
     }
-  });
+  };
 };
 
 const listDiff = function(oldList: Array<common.TObject>, newList: Array<common.TObject>, key: string): Array<common.TListDiffAction> {
@@ -40,7 +43,7 @@ const listDiff = function(oldList: Array<common.TObject>, newList: Array<common.
     if (newKeyIdxMap.has(item[key])) {
       reservedOldList.push(item);
     } else {
-      pushRemoveAction(actions, i);
+      actions.push(makeRemoveAction(i));
     }
   }
   
@@ -52,8 +55,7 @@ const listDiff = function(oldList: Array<common.TObject>, newList: Array<common.
     const nextOldItem = reservedOldList[j + 1];
     
     if (!oldItem || !oldKeyIdxMap.has(newItem[key])) {
-      pushInsertAction(actions, i, newItem);
-      i++;
+      actions.push(makeInsertAction(i++, newItem));
       continue;
     }
     
@@ -62,17 +64,17 @@ const listDiff = function(oldList: Array<common.TObject>, newList: Array<common.
       i++;
     } else {
       if (nextOldItem && nextOldItem[key] === newItem[key]) {
-        pushRemoveAction(actions, i);
+        actions
+        actions.push(makeRemoveAction(i));
         j++;
       } else {
-        pushInsertAction(actions, i, newItem);
-        i++;
+        actions.push(makeInsertAction(i++, newItem));
       }
     }
   }
   
   while(j < reservedOldList.length) {
-    pushRemoveAction(actions, j);
+    actions.push(makeRemoveAction(j));
     j++;
   }
   

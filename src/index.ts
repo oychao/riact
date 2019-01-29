@@ -33,7 +33,7 @@ class React implements DomUpdate {
   public setCompToDom(dom: HTMLElement, comp: Component) {
     this.domCompMap.set(dom, comp);
   }
-
+  
   public patchQueue: Array<common.TPatch>;
   public updateDom: () => void;
   public pushPatch: () => common.TPatch;

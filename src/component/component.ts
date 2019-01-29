@@ -15,7 +15,7 @@ class Component {
     this.render = render;
     this.stateHooks = [];
     this.effectHooks = [];
-
+    
     this.props = props;
     this.propsPrev = null;
   }
