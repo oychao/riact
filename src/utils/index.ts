@@ -46,6 +46,25 @@ export const isEqualObject = function(object: common.TLvl1JSON, other: common.TL
   return false;
 };
 
+export const pick = function(object: common.TObject, keys: string | Array<string>): common.TObject {
+  keys = isString(keys) ? (keys as string).split(' ') : keys;
+  return (keys as Array<string>).reduce((acc: common.TObject, key: string): common.TObject  => {
+    if (Object.prototype.hasOwnProperty.call(object, key)) {
+      acc[key] = object[key];
+    }
+    return acc;
+  }, {});
+};
+
+export const omit = function(object: common.TObject, keys: string | Array<string>): common.TObject {
+  const result = Object.assign({}, object);
+  keys = isString(keys) ? (keys as string).split(' ') : keys;
+  (keys as Array<string>).forEach((key: string): void => {
+    delete result[key];
+  });
+  return result;
+}
+
 export const warning = function(condition: boolean, message: string): void {
   if (!condition) {
     throw new Error(message);
