@@ -2,8 +2,8 @@ import './declarations';
 
 import Component from './component/component';
 
-import DomUpdate from './core/dom';
-import _ from './utils/index';
+import DomUpdate from './core/virtualDom/dom';
+import _ from './utils/utils';
 
 class React implements DomUpdate {
   public static createElement(tagType: string, attributes: any, ...children: Array<JSX.Element>): JSX.Element {

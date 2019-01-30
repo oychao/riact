@@ -1,5 +1,4 @@
-const ACTION_REMOVE = 'REMOVE';
-const ACTION_INSERT = 'INSERT';
+import { makeRemoveAction, makeInsertAction } from './makeAction';
 
 const keyIdxMapFac = function(list: Array<common.TObject>, key: string): Map<string, number> {
   const result: Map<string, number> = new Map<string, number>();
@@ -7,23 +6,6 @@ const keyIdxMapFac = function(list: Array<common.TObject>, key: string): Map<str
     result.set(list[i][key], i);
   }
   return result;
-};
-
-const makeRemoveAction = function(index: number): common.TListDiffAction {
-  return {
-    action: ACTION_REMOVE,
-    payload: index
-  };
-};
-
-const makeInsertAction = function(index: number, item: common.TObject): common.TListDiffAction {
-  return {
-    action: ACTION_INSERT,
-    payload: {
-      index,
-      item
-    }
-  };
 };
 
 const listDiff = function(oldList: Array<common.TObject>, newList: Array<common.TObject>, key: string): Array<common.TListDiffAction> {
@@ -68,7 +50,7 @@ const listDiff = function(oldList: Array<common.TObject>, newList: Array<common.
         actions.push(makeRemoveAction(i));
         j++;
       } else {
-        actions.push(makeInsertAction(i++, newItem));
+        actions.push(makeInsertAction(i++, oldItem));
       }
     }
   }
