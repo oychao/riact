@@ -14,7 +14,7 @@ declare namespace common {
     [key: string]: string
   };
   export interface IComponent {
-
+    render: common.TFuncComponent;
   }
 }
 
@@ -25,7 +25,7 @@ declare namespace JSX {
     key?: string,
     children?: Array<Element>,
     el?: HTMLElement | common.IComponent,
-    parentEl?: HTMLElement | common.IComponent,
-    parentComp?: common.IComponent
+    parentComp?: common.IComponent,
+    parentNode?: Element
   }
 }

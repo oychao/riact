@@ -1,28 +1,36 @@
+import * as _ from '../utils/index';
+import Context from '../core/Context';
+import VirtualDomMixin from '../core/virtualDom/index';
+
 type TStateHook = Array<any>;
 type TEffectHook = (value: any) => void;
 
-declare class IComponent {
-
-}
-
-export class Component implements common.IComponent {
-  private readonly render: common.TFuncComponent;
+export default class Component implements VirtualDomMixin {
   private readonly stateHooks: Array<TStateHook>;
   private readonly effectHooks: Array<TEffectHook>;
   
-  private propsPrev: any;
-  private props: any;
-  private vdom: JSX.Element;
-  private parentDomNode: HTMLElement;
+  private propsPrev: common.TObject;
+  private props: common.TObject;
   
-  constructor(props: any, render: common.TFuncComponent) {
-    this.render = render;
+  constructor(props: common.TObject) {
     this.stateHooks = [];
     this.effectHooks = [];
     
     this.props = props;
     this.propsPrev = null;
+    
+    this.virtualDom = this.render(this.props);
+    this.createDomElements(this.virtualDom);
   }
+  
+  public context: Context;
+  public rootDom: HTMLElement;
+  public virtualDom: JSX.Element;
+  public componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
+  public setContext: (context: Context) => void;
+  public getComponent: (render: common.TFuncComponent) => typeof Component
+  public createDomElements: (vnode: JSX.Element) => HTMLElement;
+  public render: common.TFuncComponent;
 }
 
-export default Component;
+_.applyMixins(Component, [VirtualDomMixin]);

@@ -2,38 +2,60 @@ import './declarations';
 
 import * as _ from './utils/index';
 
-import Component from './component/component';
-import UpdateDomMixin from './core/virtualDom/index';
+import Context from './core/Context';
+import Component from './component/Component';
+import VirtualDomMixin from './core/virtualDom/index';
+import componentFac from './component/factory';
 
-class React implements UpdateDomMixin {
+class React extends Context implements VirtualDomMixin {
   public static createElement(tagType: string, attributes: any, ...children: Array<JSX.Element>): JSX.Element {
-    return {
+    const vNode = {
       tagType,
       attributes,
       children
     };
+    const flattenedChildren = _.flatten(children);
+    for (const child of flattenedChildren) {
+      if (_.isPlainObject(child)) {
+        child.parentNode = vNode
+      }
+    }
+    return vNode;
   }
   public static render(vDom: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
     return new React(vDom, rootDom);
   }
   
-  private readonly rootDom: HTMLElement;
+  public componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
+  
   constructor(vDom: JSX.Element, rootDom: HTMLElement) {
+    super();
+    this.componentDeclarationMap = new Map<common.TFuncComponent, typeof Component>();
     this.rootDom = rootDom;
     this.rootDom.appendChild(this.createDomElements(vDom));
-
+    
     this.virtualDom = vDom;
-    this.patchQueue = [];
   }
   
+  public getComponent(render: common.TFuncComponent): typeof Component {
+    if (this.componentDeclarationMap.has(render)) {
+      return this.componentDeclarationMap.get(render) ;
+    } else {
+      const TargetComponent: typeof Component = componentFac(render);
+      this.componentDeclarationMap.set(render, TargetComponent);
+      return TargetComponent;
+    }
+  }
+  
+  public readonly context: React = this;
+  public readonly rootDom: HTMLElement;
   public virtualDom: JSX.Element;
-  public patchQueue: Array<common.TPatch>;
-  public updateDom: () => void;
-  public pushPatch: () => common.TPatch;
+  public setContext: (context: React) => void;
   public createDomElements: (vnode: JSX.Element) => HTMLElement;
+  public render: common.TFuncComponent = null;
 }
 
-_.applyMixins(React, [UpdateDomMixin]);
+_.applyMixins(React, [Context, VirtualDomMixin]);
 
 export default React;
