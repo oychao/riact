@@ -1,4 +1,4 @@
-import { makeRemoveAction, makeInsertAction } from './domUtil';
+import { makeRemoveAction, makeInsertAction } from './domUtils';
 
 const keyIdxMapFac = function(list: Array<JSX.Element>, key: string): Map<string, number> {
   const result: Map<string, number> = new Map<string, number>();
@@ -8,8 +8,8 @@ const keyIdxMapFac = function(list: Array<JSX.Element>, key: string): Map<string
   return result;
 };
 
-const listKeyedDiff = function(oldList: Array<JSX.Element>, newList: Array<JSX.Element>, key: string): Array<common.TListDiffAction> {
-  const actions: Array<common.TListDiffAction> = [];
+const listKeyedDiff = function(oldList: Array<JSX.Element>, newList: Array<JSX.Element>, key: string): Array<common.TPatch> {
+  const actions: Array<common.TPatch> = [];
   
   const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(oldList, key);
   const newKeyIdxMap: Map<string, number> = keyIdxMapFac(newList, key);

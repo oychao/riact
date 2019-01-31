@@ -1,11 +1,11 @@
 declare namespace common {
   export type TFuncComponent = (props: any) => Element;
   export type TPatch = {
-    action: 'CREATE' | 'UPDATE' | 'REMOVE',
-    payload: {
-      attrs: any,
-      el?: HTMLElement
-    }
+    action: 'INSERT' | 'REMOVE' | 'UPDATE_PROPS' | 'REPLACE',
+    payload: any
+  };
+  export type TPatchTree = {
+    [key: string]: TPatch
   };
   export type TObject = {
     [key: string]: any
@@ -13,10 +13,6 @@ declare namespace common {
   export type TLvl1JSON = {
     [key: string]: string
   };
-  export type TListDiffAction = {
-    action: 'INSERT' | 'REMOVE' | 'UPDATE_PROPS' | 'REPLACE',
-    payload: any
-  }
 }
 
 declare namespace JSX {

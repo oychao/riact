@@ -1,9 +1,9 @@
 import * as _ from '../../utils/index';
 
-import { makeReplaceAction } from './domUtil';
+import { makeReplaceAction } from './domUtils';
 
-const diffFreeList = function(oldList: Array<JSX.Element>, newList: Array<JSX.Element>): Array<common.TListDiffAction> {
-  const actions: Array<common.TListDiffAction> = [];
+const diffFreeList = function(oldList: Array<JSX.Element>, newList: Array<JSX.Element>): Array<common.TPatch> {
+  const actions: Array<common.TPatch> = [];
   
   _.warning(oldList.length === newList.length, 'calculating invalid free list difference, length unequaled');
   
@@ -11,10 +11,11 @@ const diffFreeList = function(oldList: Array<JSX.Element>, newList: Array<JSX.El
     const oldItem: JSX.Element = oldList[i];
     const newItem: JSX.Element = newList[i];
     
-    if (oldItem.tagType ! == newItem.tagType) {
-      actions.push(makeReplaceAction(i, newItem));
-    }
-
+    // if (oldItem.tagType ! == newItem.tagType) {
+    //   actions.push(makeReplaceAction(i, newItem));
+    // } else {
+    // }
+    
     // to be done
   }
   

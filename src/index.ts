@@ -1,9 +1,10 @@
 import './declarations';
 
-import Component from './component/component';
-
-import UpdateDom from './core/virtualDom/index';
 import * as _ from './utils/index';
+import * as domUtils from './core/virtualDom/domUtils';
+
+import Component from './component/component';
+import UpdateDom from './core/virtualDom/index';
 
 class React implements UpdateDom {
   public static createElement(tagType: string, attributes: any, ...children: Array<JSX.Element>): JSX.Element {
@@ -19,7 +20,7 @@ class React implements UpdateDom {
     } else {
       // tag
     }
-    root.innerHTML = 'hello world';
+    root.appendChild(domUtils.createDomElements(comp));
   }
   
   private readonly domCompMap: WeakMap<HTMLElement, Component>;

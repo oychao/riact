@@ -27,6 +27,10 @@ export const isString = function(object: any): boolean {
   return typeof object === 'string';
 };
 
+export const isNumber = function(object: any): boolean {
+  return typeof object === 'number';
+};
+
 export const isEqualObject = function(object: common.TLvl1JSON, other: common.TLvl1JSON): boolean {
   if (isPlainObject(object) && isPlainObject(other)) {
     const entries1: Array<[string, string]> = Object.entries(object);
@@ -64,6 +68,12 @@ export const omit = function(object: common.TObject, keys: string | Array<string
   });
   return result;
 }
+
+export const flatten = function(arr: Array<any>): Array<any> {
+  return arr.reduce((acc: Array<any>, sub: any): Array<any> => {
+    return acc.concat(isArray(sub) ? flatten(sub) : sub);
+  }, []);
+};
 
 export const warning = function(condition: boolean, message: string): void {
   if (!condition) {
