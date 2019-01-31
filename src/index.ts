@@ -2,10 +2,10 @@ import './declarations';
 
 import Component from './component/component';
 
-import DomUpdate from './core/virtualDom/dom';
+import UpdateDom from './core/virtualDom/index';
 import * as _ from './utils/index';
 
-class React implements DomUpdate {
+class React implements UpdateDom {
   public static createElement(tagType: string, attributes: any, ...children: Array<JSX.Element>): JSX.Element {
     return {
       tagType,
@@ -39,6 +39,6 @@ class React implements DomUpdate {
   public pushPatch: () => common.TPatch;
 }
 
-_.applyMixins(React, [DomUpdate]);
+_.applyMixins(React, [UpdateDom]);
 
 export default React;
