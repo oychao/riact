@@ -5,6 +5,7 @@ export default {
   output: [
     {
       file: 'bin/index.js',
+      exports: 'named',
       format: 'cjs'
     }
   ],

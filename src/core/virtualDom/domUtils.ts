@@ -1,6 +1,14 @@
 import * as _ from '../../utils/index';
 import { ACTION_REMOVE, ACTION_INSERT, ACTION_REPLACE, ACTION_UPDATE_PROPS } from '../../constants/index';
 
+export const keyIdxMapFac = function(list: Array<JSX.Element>, key: string): Map<string, number> {
+  const result: Map<string, number> = new Map<string, number>();
+  for (let i = 0; i < list.length; i++) {
+    result.set(list[i].key, i);
+  }
+  return result;
+};
+
 export const makeRemoveAction = function(index: number): common.TPatch {
   return {
     action: ACTION_REMOVE,
@@ -8,7 +16,7 @@ export const makeRemoveAction = function(index: number): common.TPatch {
   };
 };
 
-export const makeInsertAction = function(index: number, item: common.TObject): common.TPatch {
+export const makeInsertAction = function(index: number, item: JSX.Element): common.TPatch {
   return {
     action: ACTION_INSERT,
     payload: {
@@ -18,7 +26,7 @@ export const makeInsertAction = function(index: number, item: common.TObject): c
   };
 };
 
-export const makeReplaceAction = function(index: number, item: common.TObject): common.TPatch {
+export const makeReplaceAction = function(index: number, item: JSX.Child): common.TPatch {
   return {
     action: ACTION_REPLACE,
     payload: {

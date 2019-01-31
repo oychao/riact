@@ -13,6 +13,12 @@ export const applyMixins = function (derivedCtor: any, baseCtors: Array<any>): v
   });
 }
 
+export const warning = function(condition: boolean, message: string): void {
+  if (!condition) {
+    throw new Error(message);
+  }
+};
+
 export const isArray = Array.isArray;
 
 export const isNull = function(object: any): boolean {
@@ -79,8 +85,14 @@ export const flatten = function(arr: Array<any>): Array<any> {
   }, []);
 };
 
-export const warning = function(condition: boolean, message: string): void {
-  if (!condition) {
-    throw new Error(message);
+export const dfsWalk = function(node: common.TObject, key: string, handler: common.TFunction, context: common.TObject = null): void {
+  if (!handler.call(context, node)) {
+    return undefined;
+  }
+  const children: Array<common.TObject> = node[key] as Array<common.TObject>;
+  if (children && isArray(children)) {
+    for (const child of children) {
+      dfsWalk(child, key, handler, context);
+    }
   }
 };
