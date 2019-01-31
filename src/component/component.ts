@@ -1,7 +1,11 @@
 type TStateHook = Array<any>;
 type TEffectHook = (value: any) => void;
 
-class Component {
+declare class IComponent {
+
+}
+
+export class Component implements common.IComponent {
   private readonly render: common.TFuncComponent;
   private readonly stateHooks: Array<TStateHook>;
   private readonly effectHooks: Array<TEffectHook>;

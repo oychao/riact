@@ -4,14 +4,14 @@ import App from './src/components/app';
 
 import './index.less';
 
-React.render(
+console.log(React.render(
   <App color="red">
     {
       [1,2,3].map(i => <div className="test" key={i}>{i}</div>)
     }
   </App>,
   document.querySelector('#app')
-);
+));
 
 
 // var h = require('virtual-dom/h');

@@ -13,13 +13,19 @@ declare namespace common {
   export type TStrValObject = {
     [key: string]: string
   };
+  export interface IComponent {
+
+  }
 }
 
 declare namespace JSX {
   export interface Element {
     tagType: string | common.TFuncComponent,
     attributes: any,
-    key?: string
-    children?: Array<Element>
+    key?: string,
+    children?: Array<Element>,
+    el?: HTMLElement | common.IComponent,
+    parentEl?: HTMLElement | common.IComponent,
+    parentComp?: common.IComponent
   }
 }

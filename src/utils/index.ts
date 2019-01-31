@@ -1,7 +1,7 @@
 export const latentSet = function(target: any, name: string, value: any): void {
-  Object.assign(target, name, {
+  Object.defineProperty(target, name, {
     value,
-    enumarable: false
+    enumerable: false
   });
 };
 

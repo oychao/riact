@@ -1,12 +1,11 @@
 import './declarations';
 
 import * as _ from './utils/index';
-import * as domUtils from './core/virtualDom/domUtils';
 
 import Component from './component/component';
-import UpdateDom from './core/virtualDom/index';
+import UpdateDomMixin from './core/virtualDom/index';
 
-class React implements UpdateDom {
+class React implements UpdateDomMixin {
   public static createElement(tagType: string, attributes: any, ...children: Array<JSX.Element>): JSX.Element {
     return {
       tagType,
@@ -14,32 +13,27 @@ class React implements UpdateDom {
       children
     };
   }
-  public static render(comp: JSX.Element, root: HTMLElement) {
-    if (typeof comp.tagType === 'function') {
-      // component
-    } else {
-      // tag
-    }
-    root.appendChild(domUtils.createDomElements(comp));
+  public static render(vDom: JSX.Element, rootDom: HTMLElement) {
+    rootDom.innerHTML = '';
+    return new React(vDom, rootDom);
   }
   
-  private readonly domCompMap: WeakMap<HTMLElement, Component>;
   private readonly rootDom: HTMLElement;
-  constructor(rootDom: HTMLElement) {}
-  
-  public getCompByDom(dom: HTMLElement): Component {
-    return this.domCompMap.get(dom);
+  constructor(vDom: JSX.Element, rootDom: HTMLElement) {
+    this.rootDom = rootDom;
+    this.rootDom.appendChild(this.createDomElements(vDom));
+
+    this.virtualDom = vDom;
+    this.patchQueue = [];
   }
   
-  public setCompToDom(dom: HTMLElement, comp: Component) {
-    this.domCompMap.set(dom, comp);
-  }
-  
+  public virtualDom: JSX.Element;
   public patchQueue: Array<common.TPatch>;
   public updateDom: () => void;
   public pushPatch: () => common.TPatch;
+  public createDomElements: (vnode: JSX.Element) => HTMLElement;
 }
 
-_.applyMixins(React, [UpdateDom]);
+_.applyMixins(React, [UpdateDomMixin]);
 
 export default React;
