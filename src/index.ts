@@ -31,10 +31,12 @@ class React extends Context implements VirtualDomMixin {
   
   constructor(vDom: JSX.Element, rootDom: HTMLElement) {
     super();
+    _.warning(!_.isNull(vDom), 'empty virtual dom');
     this.componentDeclarationMap = new Map<common.TFuncComponent, typeof Component>();
     this.rootDom = rootDom;
-    this.rootDom.appendChild(this.createDomElements(vDom));
-    
+    const child: HTMLElement | Component = this.createDomElements(vDom);
+    const childDom: HTMLElement = _.isFunction(vDom.tagType) ? (child as Component).rootDom : (child as HTMLElement);
+    this.rootDom.appendChild(childDom);
     this.virtualDom = vDom;
   }
   
@@ -48,11 +50,11 @@ class React extends Context implements VirtualDomMixin {
     }
   }
   
-  public readonly context: React = this;
+  public readonly context: Context = this;
   public readonly rootDom: HTMLElement;
   public virtualDom: JSX.Element;
   public setContext: (context: React) => void;
-  public createDomElements: (vnode: JSX.Element) => HTMLElement;
+  public createDomElements: (vnode: JSX.Element) => HTMLElement | Component;
   public render: common.TFuncComponent = null;
 }
 

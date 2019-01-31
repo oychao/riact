@@ -20,7 +20,7 @@ export default class Component implements VirtualDomMixin {
     this.propsPrev = null;
     
     this.virtualDom = this.render(this.props);
-    this.createDomElements(this.virtualDom);
+    this.rootDom = this.createDomElements(this.virtualDom);
   }
   
   public context: Context;

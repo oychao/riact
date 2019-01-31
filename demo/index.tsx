@@ -9,6 +9,11 @@ console.log(React.render(
     {
       [1,2,3].map(i => <div className="test" key={i}>{i}</div>)
     }
+    <ul>
+      <li>Gibraltar</li>
+      <li>Martinique</li>
+      <li>Laos</li>
+    </ul>
   </App>,
   document.querySelector('#app')
 ));

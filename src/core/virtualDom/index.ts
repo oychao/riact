@@ -11,43 +11,47 @@ export default class VirtualDomMixin implements common.IComponent {
   public rootDom: HTMLElement;
   public virtualDom: JSX.Element;
   
-  public createDomElements(vnode: JSX.Element): HTMLElement | Component {
+  public createDomElements(vNode: JSX.Element): HTMLElement | Component {
     let node: HTMLElement | Component = null;
     
-    const { tagType, attributes } = vnode as JSX.Element;
+    const { tagType, attributes } = vNode as JSX.Element;
     if (_.isFunction(tagType)) {
       const compRender: common.TFuncComponent = (tagType as common.TFuncComponent);
       const TargetComponent: typeof Component = this.context.getComponent(compRender);
       node = new TargetComponent(attributes);
     } else {
-      node = document.createElement(vnode.tagType as string);
-      for (const key in vnode.attributes) {
-        if (vnode.attributes.hasOwnProperty(key)) {
-          const value = vnode.attributes[key];
+      node = document.createElement(vNode.tagType as string);
+      for (const key in vNode.attributes) {
+        if (vNode.attributes.hasOwnProperty(key)) {
+          const value = vNode.attributes[key];
           node.setAttribute(key, value);
         }
       }
     }
-    vnode.el = node;
-    if (!vnode.parentComp) {
-      vnode.parentComp = this;
+    vNode.el = node;
+    if (!vNode.parentComp) {
+      vNode.parentComp = this;
     }
     
-    if (_.isArray(vnode.children)) {
-      const children: Array<JSX.Element | string | common.TFuncComponent> = _.flatten(vnode.children);
+    const domRoot: HTMLElement = _.isFunction(tagType) ? (node as Component).rootDom : node as HTMLElement;
+    
+    if (_.isArray(vNode.children)) {
+      const children: Array<JSX.Element | string> = _.flatten(vNode.children);
       for (const vChild of children) {
         if (_.isPlainObject(vChild)) {
-          const child: HTMLElement = this.createDomElements(vChild as JSX.Element) as HTMLElement;
-          (node as HTMLElement).appendChild(child);
+          const { tagType: childTagType } = vChild as JSX.Element;
+          const child: HTMLElement | Component = this.createDomElements(vChild as JSX.Element);
+          const childDomRoot: HTMLElement = _.isFunction(childTagType) ? (child as Component).rootDom : child as HTMLElement;
+          domRoot.appendChild(childDomRoot);
         } else if (_.isString(vChild) || _.isNumber(vChild)) {
-          (node as HTMLElement).textContent = vChild as string;
+          domRoot.textContent = vChild as string;
         }
       }
     }
     
     return node;
   };
-
+  
   public setContext(context: Context): void {
     this.context = context;
   }
