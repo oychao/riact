@@ -1,5 +1,5 @@
 declare namespace common {
-  export type TFuncComponent = (props: any) => Element;
+  export type TFuncComponent = (props: any) => JSX.Element;
   export type TPatch = {
     action: 'INSERT' | 'REMOVE' | 'UPDATE_PROPS' | 'REPLACE',
     payload: any
@@ -10,14 +10,14 @@ declare namespace common {
   export type TObject = {
     [key: string]: any
   };
-  export type TLvl1JSON = {
+  export type TStrValObject = {
     [key: string]: string
   };
 }
 
 declare namespace JSX {
   export interface Element {
-    tagType: string,
+    tagType: string | common.TFuncComponent,
     attributes: any,
     key?: string
     children?: Array<Element>

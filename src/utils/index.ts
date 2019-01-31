@@ -31,7 +31,11 @@ export const isNumber = function(object: any): boolean {
   return typeof object === 'number';
 };
 
-export const isEqualObject = function(object: common.TLvl1JSON, other: common.TLvl1JSON): boolean {
+export const isFunction = function(object: any): boolean {
+  return typeof object === 'function';
+};
+
+export const isEqualObject = function(object: common.TStrValObject, other: common.TStrValObject): boolean {
   if (isPlainObject(object) && isPlainObject(other)) {
     const entries1: Array<[string, string]> = Object.entries(object);
     const entries2: Array<[string, string]> = Object.entries(other);

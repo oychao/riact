@@ -1,15 +1,15 @@
 import React from 'react';
 
-// import App from './src/components/app';
+import App from './src/components/app';
 
 import './index.less';
 
 React.render(
-  <div color="red">
+  <App color="red">
     {
       [1,2,3].map(i => <div className="test" key={i}>{i}</div>)
     }
-  </div>,
+  </App>,
   document.querySelector('#app')
 );
 
