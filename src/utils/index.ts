@@ -21,6 +21,10 @@ export const warning = function(condition: boolean, message: string): void {
 
 export const isArray = Array.isArray;
 
+export const isUndefined = function(object: any): boolean {
+  return object === undefined;
+};
+
 export const isNull = function(object: any): boolean {
   return object === null;
 };

@@ -3,16 +3,43 @@ import './declarations';
 import * as _ from './utils/index';
 
 import Context from './core/Context';
-import Component from './component/Component';
+import Component from './core/component/Component';
 import VirtualDomMixin from './core/virtualDom/index';
-import componentFac from './component/factory';
+import componentFac from './core/component/factory';
+import { TAG_TYPE_BASIC_VALUE, TAG_TYPE_LIST, TAG_TYPE_EMPTY } from './constants/index';
+import VirtualNode from './core/VirtualNode';
+
+const normalizeVirtualNode = function(node: VirtualNode): void {
+  for (let i = 0; i < node.children.length; i++) {
+    const child: any = node.children[i];
+    let normalizedNode: VirtualNode = child;
+    if (_.isArray(child)) {
+      for (let j = 0; j < child.length; j++) {
+        const element: VirtualNode = child[j];
+        normalizeVirtualNode(element as VirtualNode);
+      }
+      normalizedNode = new VirtualNode();
+      normalizedNode.tagType = TAG_TYPE_LIST,
+      normalizedNode.value = child as Array<VirtualNode>;
+    } else if (_.isString(child) || _.isNumber(child)) {
+      normalizedNode = new VirtualNode();
+      normalizedNode.tagType = TAG_TYPE_BASIC_VALUE;
+      normalizedNode.value = child;
+    } else if (_.isNull(child) || _.isUndefined(child)) {
+      normalizedNode = new VirtualNode();
+      normalizedNode.tagType = TAG_TYPE_EMPTY;
+      normalizedNode.value = child;
+    }
+    node.children[i] = normalizedNode;
+  }
+};
 
 class React extends Context implements VirtualDomMixin {
-  public static createElement(tagType: string, attrs: any, ...children: Array<JSX.Child>): JSX.Element {
-    const vNode: JSX.Element = {
-      tagType,
-      children
-    };
+  
+  public static createElement(tagType: string, attrs: any, ...children: Array<VirtualNode>): VirtualNode {
+    const vNode: VirtualNode = new VirtualNode();
+    vNode.tagType = tagType;
+    vNode.children = children;
     
     if (_.isPlainObject(attrs)) {
       vNode.attributes = {};
@@ -28,23 +55,25 @@ class React extends Context implements VirtualDomMixin {
       });
     }
     
-    const flattenedChildren = _.flatten(children);
-    for (const child of flattenedChildren) {
-      if (_.isPlainObject(child)) {
-        child.parentNode = vNode
-      }
-    }
+    normalizeVirtualNode(vNode);
+    
+    // const flattenedChildren = _.flatten(children);
+    // for (const child of flattenedChildren) {
+    //   if (_.isPlainObject(child)) {
+    //     child.parentNode = vNode
+    //   }
+    // }
     return vNode;
   }
   
   public static render(vDom: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
-    return new React(vDom, rootDom);
+    return new React(vDom as VirtualNode, rootDom);
   }
   
   private componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
   
-  constructor(vDom: JSX.Element, rootDom: HTMLElement) {
+  constructor(vDom: VirtualNode, rootDom: HTMLElement) {
     super();
     _.warning(!_.isNull(vDom), 'empty virtual dom');
     _.warning(rootDom instanceof HTMLElement, 'invalid root dom element');
@@ -53,11 +82,10 @@ class React extends Context implements VirtualDomMixin {
     const child: HTMLElement | Component = this.createDomElements(vDom);
     const childDom: HTMLElement = _.isFunction(vDom.tagType) ? (child as Component).rootDom : (child as HTMLElement);
     this.rootDom.appendChild(childDom);
-    this.virtualDom = {
-      tagType: null,
-      children: [vDom],
-      el: rootDom
-    };
+    this.virtualDom = new VirtualNode();
+    this.virtualDom.tagType = null;
+    this.virtualDom.children = [ vDom ];
+    this.virtualDom.el = rootDom;
     vDom.parentNode = this.virtualDom;
   }
   
@@ -73,13 +101,13 @@ class React extends Context implements VirtualDomMixin {
   
   public readonly context: Context = this;
   public readonly rootDom: HTMLElement;
-  public virtualDom: JSX.Element;
+  public virtualDom: VirtualNode;
   public render: common.TFuncComponent = null;
   public setContext: (context: Context) => void;
-  public createDomElements: (vnode: JSX.Element) => HTMLElement | Component;
-  public diffListKeyed: (oldList: Array<JSX.Element>, newList: Array<JSX.Element>, key: string) => Array<common.TPatch>;
-  public diffFreeList: (oldList: Array<JSX.Element>, newList: Array<JSX.Element>) => Array<common.TPatch>;
-  public treeDiff: (newVDom: JSX.Element) => common.TPatch;
+  public createDomElements: (vnode: VirtualNode) => HTMLElement | Component;
+  public diffListKeyed: (oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string) => Array<common.TPatch>;
+  public diffFreeList: (oldList: Array<VirtualNode>, newList: Array<VirtualNode>) => Array<common.TPatch>;
+  public treeDiff: (newVDom: VirtualNode) => common.TPatch;
   public reconcile: () => void;
 }
 

@@ -1,26 +1,34 @@
 import * as _ from '../../utils/index';
-import { keyIdxMapFac, makeRemoveAction, makeInsertAction, makeReplaceAction, makeUpdatePropsAction } from './domUtils';
+import {
+  keyIdxMapFac,
+  makeRemoveAction,
+  makeInsertAction,
+  makeReplaceAction,
+  makeUpdatePropsAction,
+  flatternListNode
+} from './domUtils';
 import { ACTION_REPLACE } from 'src/constants/index';
 import Context from '../../core/Context';
-import Component from '../../component/component';
+import Component from '../component/component';
+import VirtualNode from '../VirtualNode';
 
 export default class VirtualDomMixin implements common.IComponent {
   public context: Context;
   public rootDom: HTMLElement;
-  public virtualDom: JSX.Element;
+  public virtualDom: VirtualNode;
   
   public setContext(context: Context): void {
     this.context = context;
   }
   
-  public createDomElements(vNode: JSX.Element): HTMLElement | Component {
+  public createDomElements(vNode: VirtualNode): HTMLElement | Component {
     let node: HTMLElement | Component = null;
     
     if (_.isNull(vNode)) {
       return null;
     }
     
-    const { tagType, attributes } = vNode as JSX.Element;
+    const { tagType, attributes } = vNode as VirtualNode;
     if (_.isFunction(tagType)) {
       const compRender: common.TFuncComponent = (tagType as common.TFuncComponent);
       const TargetComponent: typeof Component = this.context.getComponent(compRender);
@@ -43,16 +51,16 @@ export default class VirtualDomMixin implements common.IComponent {
     const domRoot: HTMLElement = _.isFunction(tagType) ? (node as Component).rootDom : node as HTMLElement;
     
     if (_.isArray(vNode.children)) {
-      const children: Array<JSX.Child> = _.flatten(vNode.children);
+      const children: Array<VirtualNode> = flatternListNode(vNode.children);
       for (const vChild of children) {
-        if (_.isPlainObject(vChild)) {
-          const { tagType: childTagType } = vChild as JSX.Element;
-          (vChild as JSX.Element).parentNode = vNode;
-          const child: HTMLElement | Component = this.createDomElements(vChild as JSX.Element);
+        if (vChild.isBasicValueNode()) {
+          domRoot.textContent = vChild.value;
+        } else if (!vChild.isEmptyNode()) {
+          const { tagType: childTagType } = vChild as VirtualNode;
+          (vChild as VirtualNode).parentNode = vNode;
+          const child: HTMLElement | Component = this.createDomElements(vChild as VirtualNode);
           const childDomRoot: HTMLElement = _.isFunction(childTagType) ? (child as Component).rootDom : child as HTMLElement;
           domRoot.appendChild(childDomRoot);
-        } else if (_.isString(vChild) || _.isNumber(vChild)) {
-          domRoot.textContent = vChild as string;
         }
       }
     }
@@ -60,13 +68,13 @@ export default class VirtualDomMixin implements common.IComponent {
     return node;
   };
   
-  public diffListKeyed(oldList: Array<JSX.Element>, newList: Array<JSX.Element>, key: string): Array<common.TPatch> {
+  public diffListKeyed(oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string): Array<common.TPatch> {
     const actions: Array<common.TPatch> = [];
     
     const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(oldList, key);
     const newKeyIdxMap: Map<string, number> = keyIdxMapFac(newList, key);
     
-    const reservedOldList: Array<JSX.Element> = [];
+    const reservedOldList: Array<VirtualNode> = [];
     
     let i;
     let j;
@@ -115,14 +123,14 @@ export default class VirtualDomMixin implements common.IComponent {
     return actions;
   };
   
-  public diffFreeList (oldList: Array<JSX.Child>, newList: Array<JSX.Child>): Array<common.TPatch> {
+  public diffFreeList (oldList: Array<VirtualNode>, newList: Array<VirtualNode>): Array<common.TPatch> {
     const actions: Array<common.TPatch> = [];
     
     _.warning(oldList.length === newList.length, 'calculating invalid free list difference, length unequaled');
     
     for (let i = 0; i < oldList.length; i++) {
-      const oldItem: JSX.Child = oldList[i];
-      const newItem: JSX.Child = newList[i];
+      const oldItem: VirtualNode = oldList[i];
+      const newItem: VirtualNode = newList[i];
       
       // if (oldItem.tagType ! == newItem.tagType) {
       //   actions.push(makeReplaceAction(i, newItem));
@@ -135,7 +143,8 @@ export default class VirtualDomMixin implements common.IComponent {
     return actions;
   };
   
-  public treeDiff (oldVDom: JSX.Child, newVDom: JSX.Child, index: number = 0): common.TPatch {
+  public treeDiff (oldVDom: VirtualNode, newVDom: VirtualNode, index: number = 0): common.TPatch {
+    let patch: common.TPatch = null;
     if (_.isNull(oldVDom) && _.isNull(newVDom)) {
       return null;
     }
@@ -155,8 +164,8 @@ export default class VirtualDomMixin implements common.IComponent {
         return null;
       }
     } else {
-      const { tagType: oldTagType, attributes: oldAttributes, children: oldChildren } = oldVDom as JSX.Element;
-      const { tagType: newTagType, attributes: newAttributes, children: newChildren } = newVDom as JSX.Element;
+      const { tagType: oldTagType, attributes: oldAttributes, children: oldChildren } = oldVDom as VirtualNode;
+      const { tagType: newTagType, attributes: newAttributes, children: newChildren } = newVDom as VirtualNode;
       if (oldTagType !== newTagType) {
         return makeReplaceAction(index, newVDom);
       } else if (!_.isEqualObject(oldAttributes, newAttributes)) {
@@ -168,17 +177,13 @@ export default class VirtualDomMixin implements common.IComponent {
   }
   
   public reconcile(): void {
-    _.dfsWalk(this.virtualDom, 'children', (node: JSX.Element): boolean => {
+    _.dfsWalk(this.virtualDom, 'children', (node: VirtualNode): boolean => {
       if (node.patch.action === ACTION_REPLACE) {
         if (_.isString(node.patch.payload)) {
           // update textContent
         } else {
-          const item: JSX.Child = ((node.patch.payload) as { index: number, item: JSX.Child }).item;
-          let ancestor: JSX.Element = node.parentNode;
-          while (!(ancestor.el instanceof HTMLElement)) {
-            ancestor = ancestor.parentNode;
-          }
-          node.el = this.createDomElements(item as JSX.Element);
+          const item: VirtualNode = ((node.patch.payload) as { index: number, item: VirtualNode }).item;
+          node.el = this.createDomElements(item as VirtualNode);
         }
         return false;
       }

@@ -1,12 +1,29 @@
 import * as _ from '../../utils/index';
-import { ACTION_REMOVE, ACTION_INSERT, ACTION_REPLACE, ACTION_UPDATE_PROPS } from '../../constants/index';
+import {
+  ACTION_REMOVE,
+  ACTION_INSERT,
+  ACTION_REPLACE,
+  ACTION_UPDATE_PROPS,
+  TAG_TYPE_BASIC_VALUE,
+  TAG_TYPE_LIST 
+} from '../../constants/index';
+import VirtualNode from '../VirtualNode';
 
-export const keyIdxMapFac = function(list: Array<JSX.Element>, key: string): Map<string, number> {
+export const keyIdxMapFac = function(list: Array<VirtualNode>, key: string): Map<string, number> {
   const result: Map<string, number> = new Map<string, number>();
   for (let i = 0; i < list.length; i++) {
     result.set(list[i].key, i);
   }
   return result;
+};
+
+export const flatternListNode = function(list: Array<VirtualNode>): Array<VirtualNode> {
+  if (!_.isArray(list)) {
+    return;
+  }
+  return list.reduce((acc: Array<VirtualNode>, child: VirtualNode): Array<VirtualNode> => {
+    return acc.concat(child.isListNode() ? flatternListNode(child.value as Array<VirtualNode>) : child);
+  }, []);
 };
 
 export const makeRemoveAction = function(index: number): common.TPatch {
@@ -16,7 +33,7 @@ export const makeRemoveAction = function(index: number): common.TPatch {
   };
 };
 
-export const makeInsertAction = function(index: number, item: JSX.Element): common.TPatch {
+export const makeInsertAction = function(index: number, item: VirtualNode): common.TPatch {
   return {
     action: ACTION_INSERT,
     payload: {
@@ -26,7 +43,7 @@ export const makeInsertAction = function(index: number, item: JSX.Element): comm
   };
 };
 
-export const makeReplaceAction = function(index: number, item: JSX.Child): common.TPatch {
+export const makeReplaceAction = function(index: number, item: VirtualNode): common.TPatch {
   return {
     action: ACTION_REPLACE,
     payload: {

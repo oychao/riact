@@ -24,12 +24,26 @@ console.log(React.render(
 // var patch = require('virtual-dom/patch');
 // var createElement = require('virtual-dom/create-element');
 
+// const React =  {
+//   createElement: h
+// };
+
 // // 1: Create a function that declares what the DOM should look like
 // function render(count)  {
 //   if (count === 0) {
-//     return h('div', {
-//       style: {}
-//     }, [h('h1', { key: 'h1' }, 'h1'), h('h2', { key: 'h2-1' }, 'h2-1'), h('h3', {  key: 'h3' }, 'h3'), h('h4', { key: 'h4' }, 'h4')]);
+//     return (
+//       <div>
+//         <ul>
+//           <li>hilitag@par.kh</li>
+//           <li>at@pi.ee</li>
+//           <li>bog@akeditpu.sd</li>
+//           <li>efgu@les.sa</li>
+//         </ul>
+//       </div>
+//     );
+//     // return h('div', {
+//     //   style: {}
+//     // }, [h('h1', { key: 'h1' }, 'h1'), h('h2', { key: 'h2-1' }, 'h2-1'), h('h3', {  key: 'h3' }, 'h3'), h('h4', { key: 'h4' }, 'h4')]);
 //   } else {
 //     return h('div', {
 //       style: {}
@@ -37,12 +51,11 @@ console.log(React.render(
 //   }
 // }
 
-// debugger;
-
 // // 2: Initialise the document
 // var count = 0;      // We need some app data. Here we just store a count.
 
 // var tree = render(count);               // We need an initial tree
+// console.log(tree);
 // var rootNode = createElement(tree);     // Create an initial root DOM node ...
 // document.body.appendChild(rootNode);    // ... and it should be in the document
 

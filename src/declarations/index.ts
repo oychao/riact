@@ -4,7 +4,7 @@ declare namespace common {
     action: Symbol,
     payload: number | {
       index: number,
-      item: JSX.Child
+      item: JSX.Element
     } | TStrValObject
   };
   export type TPatchTree = {
@@ -26,16 +26,17 @@ declare namespace common {
 }
 
 declare namespace JSX {
-  export type Child = Element | string;
   export interface Element {
     tagType: string | common.TFuncComponent,
     attributes?: common.TObject,
     key?: string,
-    children?: Array<Element | string>,
+    value?: any,
+    children?: Array<Element>,
     el?: HTMLElement | common.IComponent,
     events?: common.TFuncValObject,
     parentComp?: common.IComponent,
     parentNode?: Element,
-    patch?: common.TPatch
+    patch?: common.TPatch,
+    reserved?: any
   }
 }

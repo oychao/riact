@@ -1,6 +1,7 @@
-import * as _ from '../utils/index';
-import Context from '../core/Context';
-import VirtualDomMixin from '../core/virtualDom/index';
+import * as _ from '../../utils/index';
+import Context from '../../core/Context';
+import VirtualDomMixin from '../../core/virtualDom/index';
+import VirtualNode from '../VirtualNode';
 
 export default class Component implements VirtualDomMixin {
   private readonly stateHooks: Array<any>;
@@ -20,7 +21,7 @@ export default class Component implements VirtualDomMixin {
   public update(): void {
     Context.setCurrentInstance(this);
     this.stateHookIndex = 0;
-    this.virtualDom = this.render(this.props);
+    this.virtualDom = this.render(this.props) as VirtualNode;
     this.rootDom = this.createDomElements(this.virtualDom);
     Context.clearCurrentInstance();
   }
@@ -40,15 +41,15 @@ export default class Component implements VirtualDomMixin {
   
   public context: Context;
   public rootDom: HTMLElement;
-  public virtualDom: JSX.Element;
+  public virtualDom: VirtualNode;
   public componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
   public render: common.TFuncComponent;
   public setContext: (context: Context) => void;
   public getComponent: (render: common.TFuncComponent) => typeof Component
-  public createDomElements: (vnode: JSX.Element) => HTMLElement;
-  public diffListKeyed: (oldList: Array<JSX.Element>, newList: Array<JSX.Element>, key: string) => Array<common.TPatch>;
-  public diffFreeList: (oldList: Array<JSX.Element>, newList: Array<JSX.Element>) => Array<common.TPatch>;
-  public treeDiff: (newVDom: JSX.Element) => common.TPatch;
+  public createDomElements: (vnode: VirtualNode) => HTMLElement;
+  public diffListKeyed: (oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string) => Array<common.TPatch>;
+  public diffFreeList: (oldList: Array<VirtualNode>, newList: Array<VirtualNode>) => Array<common.TPatch>;
+  public treeDiff: (newVDom: VirtualNode) => common.TPatch;
   public reconcile: () => void;
 }
 

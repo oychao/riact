@@ -1,4 +1,4 @@
-import * as _ from '../utils/index';
+import * as _ from '../../utils/index';
 import Component from './Component';
 
 const componentFac = function (render: common.TFuncComponent): typeof Component {
