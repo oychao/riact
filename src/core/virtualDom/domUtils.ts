@@ -4,8 +4,8 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  TAG_TYPE_BASIC_VALUE,
-  TAG_TYPE_LIST 
+  NODE_TYPE_BASIC_VALUE,
+  NODE_TYPE_LIST 
 } from '../../constants/index';
 import VirtualNode from '../VirtualNode';
 
@@ -22,7 +22,7 @@ export const flatternListNode = function(list: Array<VirtualNode>): Array<Virtua
     return;
   }
   return list.reduce((acc: Array<VirtualNode>, child: VirtualNode): Array<VirtualNode> => {
-    return acc.concat(child.isListNode() ? flatternListNode(child.value as Array<VirtualNode>) : child);
+    return acc.concat(child.isListNode() ? flatternListNode(child.children as Array<VirtualNode>) : child);
   }, []);
 };
 
@@ -43,17 +43,14 @@ export const makeInsertAction = function(index: number, item: VirtualNode): comm
   };
 };
 
-export const makeReplaceAction = function(index: number, item: VirtualNode): common.TPatch {
+export const makeReplaceAction = function(item: VirtualNode): common.TPatch {
   return {
     action: ACTION_REPLACE,
-    payload: {
-      index,
-      item
-    }
+    payload: item
   };
 };
 
-export const makeUpdatePropsAction = function(index: number, props: common.TStrValObject): common.TPatch {
+export const makeUpdatePropsAction = function(props: common.TStrValObject): common.TPatch {
   return {
     action: ACTION_UPDATE_PROPS,
     payload: props

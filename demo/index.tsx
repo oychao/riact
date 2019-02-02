@@ -6,14 +6,7 @@ import './index.less';
 
 console.log(React.render(
   <App color="red">
-    {
-      [1,2,3].map(i => <div className="test" key={i}>{i}</div>)
-    }
-    <ul>
-      <li>Gibraltar</li>
-      <li>Martinique</li>
-      <li>Laos</li>
-    </ul>
+    <h1>app</h1>
   </App>,
   document.querySelector('#app')
 ));

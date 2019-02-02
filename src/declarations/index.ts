@@ -2,10 +2,10 @@ declare namespace common {
   export type TFuncComponent = (props: any) => JSX.Element;
   export type TPatch = {
     action: Symbol,
-    payload: number | {
+    payload: number | TStrValObject | JSX.Element | {
       index: number,
       item: JSX.Element
-    } | TStrValObject
+    }
   };
   export type TPatchTree = {
     [key: string]: TPatch
@@ -32,9 +32,8 @@ declare namespace JSX {
     key?: string,
     value?: any,
     children?: Array<Element>,
-    el?: HTMLElement | common.IComponent,
+    el?: Node | common.IComponent,
     events?: common.TFuncValObject,
-    parentComp?: common.IComponent,
     parentNode?: Element,
     patch?: common.TPatch,
     reserved?: any
