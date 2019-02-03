@@ -1,60 +1,58 @@
 import * as _ from '../../utils/index';
 import Context from '../../core/Context';
-import VirtualDomMixin from '../../core/virtualDom/index';
 import VirtualNode from '../VirtualNode';
+import StaticContext from '../StaticContext';
 
-export default class Component implements VirtualDomMixin {
+export default class Component implements common.IComponent {
   private readonly stateHooks: Array<any>;
+  
   private initialized: boolean;
   private stateHookIndex: number;
-  private props: common.TObject;
   
-  constructor(props: common.TObject, stateNode: VirtualNode) {
+  constructor(context: Context, virtualNode: VirtualNode) {
+    this.context = context;
     this.stateHooks = [];
     this.initialized = false;
-    this.stateNode = stateNode;
-    this.props = props;
-    
+    this.virtualNode = virtualNode;
+    this.virtualNode.children[0] = VirtualNode.createEmptyNode();
+    this.virtualNode.children[0].parentNode = this.virtualNode;
     this.update();
+    // this.reconcile();
     this.initialized = true;
   }
   
   public update(): void {
-    Context.setCurrentInstance(this);
+    StaticContext.setCurrentInstance(this);
     this.stateHookIndex = 0;
-    this.virtualDom = this.render(this.props) as VirtualNode;
-    // mount sub virtual dom tree to global virtual dom tree
-    this.virtualDom.parentNode = this.stateNode;
-    this.stateNode.children.push(this.virtualDom);
-    Context.clearCurrentInstance();
+    const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
+    // // mount sub virtual dom tree to global virtual dom tree
+    newVirtualDom.parentNode = this.virtualNode;
+    VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
+    this.virtualNode.children[0].reconcile();
+    StaticContext.clearCurrentInstance();
   }
+  
   
   public useStateHook<T>(state: T): [ T, (newState: T) => void ] {
     let stateValue: T = state;
     const { stateHooks, stateHookIndex, initialized }: Component = this;
-    if (!initialized) {
-      stateHooks.push(state);
-    } else {
+    if (initialized) {
       stateValue = stateHooks[stateHookIndex];
+    } else {
+      stateHooks.push(state);
     }
+    this.stateHookIndex++;
     return [ stateValue, (newState: T): void => {
-      stateHooks[this.stateHookIndex++] = newState;
+      stateHooks[stateHookIndex] = newState;
+      this.update();
+      this.virtualNode.reconcile();
     } ];
   }
   
-  public context: Context;
-  public readonly stateNode: VirtualNode;
-  public virtualDom: VirtualNode;
-  public componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
-  public render: common.TFuncComponent;
-  public setContext: (context: Context) => void;
-  public setStateNode: (stateNode: VirtualNode) => void;
-  public getComponent: (render: common.TFuncComponent) => typeof Component
-  public renderDomElements: (domRoot: VirtualNode, vnode: VirtualNode) => VirtualNode;
-  public diffListKeyed: (oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string) => Array<common.TPatch>;
-  public diffFreeList: (oldList: Array<VirtualNode>, newList: Array<VirtualNode>) => Array<common.TPatch>;
-  public diffTree: (newVDom: VirtualNode) => common.TPatch;
-  public reconcile: () => void;
+  public virtualNode: VirtualNode;
+  public readonly context: Context;
+  public readonly render: common.TFuncComponent;
+  public getContext(): Context {
+    return this.context;
+  }
 }
-
-_.applyMixins(Component, [VirtualDomMixin]);

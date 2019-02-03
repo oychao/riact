@@ -1,26 +1,34 @@
 import Component from './component/Component';
+import componentFac from './component/factory';
 
-abstract class Context {
-  public abstract getComponent(render: common.TFuncComponent): typeof Component;
-  
-  // store currently rendering component instance in global environment
-  private static currentInstance: Component;
-  public static setCurrentInstance (comp: Component): void {
-    Context.currentInstance = comp;
-  }
-  public static clearCurrentInstance(): void {
-    Context.currentInstance = null;
-  }
-  public static useState<T>(state: T): [ T, (newState: T) => void ] {
-    return Context.currentInstance.useStateHook(state);
+abstract class Context implements common.IContext {
+
+  constructor() {
+    this.componentDeclarationMap = new Map<common.TFuncComponent, typeof Component>();
   }
   
-  public static dirtyComponentStack: Array<Component> = [];
-  public static pushDirtyComponent(comp: Component): void {
+  // register component declaration
+  private componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
+  public getComponent(render: common.TFuncComponent): typeof Component {
+    if (this.componentDeclarationMap.has(render)) {
+      return this.componentDeclarationMap.get(render) ;
+    } else {
+      const TargetComponent: typeof Component = componentFac(render);
+      this.componentDeclarationMap.set(render, TargetComponent);
+      return TargetComponent;
+    }
+  }
+
+  // dirty components stack
+  private dirtyComponentStack: Array<Component> = [];
+  public pushDirtyComponent(comp: Component): void {
     this.dirtyComponentStack.push(comp);
   }
-  public static popDirtyComponent(): Component {
+  public popDirtyComponent(): Component {
     return this.dirtyComponentStack.pop();
+  }
+  public hasDirtyComponent(): boolean {
+    return this.dirtyComponentStack.length > 0;
   }
 }
 

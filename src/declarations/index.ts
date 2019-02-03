@@ -20,8 +20,12 @@ declare namespace common {
   export type TFuncValObject = {
     [key: string]: TFunction
   };
+  export interface IContext {}
   export interface IComponent {
+    virtualNode: JSX.Element;
+    context: IContext;
     render: common.TFuncComponent;
+    getContext(): IContext;
   }
 }
 
@@ -29,13 +33,13 @@ declare namespace JSX {
   export interface Element {
     tagType: string | common.TFuncComponent,
     attributes?: common.TObject,
-    key?: string,
-    value?: any,
     children?: Array<Element>,
     el?: Node | common.IComponent,
     events?: common.TFuncValObject,
+    key?: string,
     parentNode?: Element,
     patch?: common.TPatch,
-    reserved?: any
+    reserved?: any,
+    value?: any,
   }
 }
