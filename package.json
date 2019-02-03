@@ -1,0 +1,39 @@
+{
+  "name": "react",
+  "version": "1.0.0",
+  "main": "./bin/index.js",
+  "typings": "./bin/index.d.ts",
+  "author": {
+    "name": "your name",
+    "email": "your@email.com"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/your/package/address",
+  "keywords": [],
+  "description": "A npm package",
+  "files": [
+    "LICENSE.md",
+    "README.md",
+    "bin/"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "mocha --require babel-register test/**/*.spec.js",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "mocha-sinon": "^2.1.0",
+    "rollup": "^0.62.0",
+    "rollup-plugin-typescript2": "^0.15.1",
+    "sinon": "^6.1.3",
+    "typescript": "^2.9.2"
+  },
+  "dependencies": {}
+}
