@@ -302,7 +302,7 @@ class VirtualNode implements JSX.Element {
           for (const child of node.children) {
             _.dfsWalk(child, 'children', (offspring: VirtualNode): boolean => {
               offspring.renderDom();
-              return true;
+              return !offspring.isComponentNode();
             });
           }
         }
