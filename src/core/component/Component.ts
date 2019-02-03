@@ -16,6 +16,7 @@ export default class Component implements common.IComponent {
     this.virtualNode = virtualNode;
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
+    this.virtualNode.el = this;
     this.update();
     // this.reconcile();
     this.initialized = true;
@@ -45,7 +46,7 @@ export default class Component implements common.IComponent {
     return [ stateValue, (newState: T): void => {
       stateHooks[stateHookIndex] = newState;
       this.update();
-      this.virtualNode.reconcile();
+      this.virtualNode.children[0].reconcile();
     } ];
   }
   

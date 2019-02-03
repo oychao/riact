@@ -115,7 +115,9 @@ class VirtualNode implements JSX.Element {
         oldVDom.patch = makeUpdatePropsAction(newAttributes);
       }
       
-      VirtualNode.diffFreeList(oldChildren, newChildren);
+      if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
+        VirtualNode.diffFreeList(oldChildren, newChildren);
+      }
     }
   }
   
@@ -132,10 +134,6 @@ class VirtualNode implements JSX.Element {
   public value?: any;
   
   constructor() {}
-  
-  setEl(el: Node | common.IComponent) {
-    this.el = el;
-  }
   
   public isEmptyNode(): boolean {
     return this.tagType === NODE_TYPE_EMPTY;
@@ -247,6 +245,7 @@ class VirtualNode implements JSX.Element {
       this.attributes.children = children;
       this.children = [];
       node = new TargetComponent(context, this);
+      return this;
     } else if (this.isTextNode()) {
       node = document.createTextNode(this.value) as Text;
     } else if (this.isEmptyNode()) {
@@ -280,6 +279,11 @@ class VirtualNode implements JSX.Element {
   public unmountFromDom(): void {
     if (this.isTaggedDomNode() || this.isTextNode()) {
       this.getDomParentNode().removeChild(this.el as Node);
+    } else if (this.isComponentNode()) {
+      const domChildren: Array<Node> = this.getDomChildren();
+      for (const domChild of domChildren) {
+        domChild.parentNode.removeChild(domChild);
+      }
     }
   }
   
