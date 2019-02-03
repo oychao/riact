@@ -36,6 +36,7 @@ declare namespace JSX {
     children?: Array<Element>,
     el?: Node | common.IComponent,
     events?: common.TFuncValObject,
+    index?: number;
     key?: string,
     parentNode?: Element,
     patch?: common.TPatch,

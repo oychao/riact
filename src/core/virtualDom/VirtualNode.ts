@@ -1,14 +1,13 @@
 import * as _ from '../../utils/index';
 import {
-  NODE_TYPE_BASIC_VALUE,
+  NODE_TYPE_TEXT,
   NODE_TYPE_LIST,
   NODE_TYPE_EMPTY,
-  NODE_TYPE_ROOT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
   ACTION_REORDER,
   ACTION_REMOVE
-} from "src/constants/index";
+} from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
 import {
@@ -102,7 +101,7 @@ class VirtualNode implements JSX.Element {
     
     if (!oldVDom.sameTypeWith(newVDom) || oldVDom.isEmptyNode() || newVDom.isEmptyNode()) {
       oldVDom.patch = makeReplaceAction(newVDom);
-    } else if (oldVDom.isBasicValueNode() && newVDom.isBasicValueNode()) {
+    } else if (oldVDom.isTextNode() && newVDom.isTextNode()) {
       if (oldVDom.value !== newVDom.value) {
         oldVDom.patch = makeReplaceAction(newVDom);
       }
@@ -122,14 +121,15 @@ class VirtualNode implements JSX.Element {
   
   public tagType: string | common.TFuncComponent;
   public attributes?: common.TObject;
-  public key?: string;
-  public value?: any;
   public children?: Array<VirtualNode>;
   public el?: Node | common.IComponent;
   public events?: common.TFuncValObject;
+  public index?: number;
+  public key?: string;
   public parentNode?: VirtualNode;
   public patch?: common.TPatch;
   public reserved?: any;
+  public value?: any;
   
   constructor() {}
   
@@ -137,14 +137,11 @@ class VirtualNode implements JSX.Element {
     this.el = el;
   }
   
-  public isRootNode(): boolean {
-    return this.tagType === NODE_TYPE_ROOT;
-  }
   public isEmptyNode(): boolean {
     return this.tagType === NODE_TYPE_EMPTY;
   }
-  public isBasicValueNode(): boolean {
-    return this.tagType === NODE_TYPE_BASIC_VALUE;
+  public isTextNode(): boolean {
+    return this.tagType === NODE_TYPE_TEXT;
   }
   public isListNode(): boolean {
     return this.tagType === NODE_TYPE_LIST;
@@ -152,12 +149,12 @@ class VirtualNode implements JSX.Element {
   public isComponentNode(): boolean {
     return _.isFunction(this.tagType);
   }
-  public isDomNode(): boolean {
-    return !this.isEmptyNode() && !this.isComponentNode() && !this.isBasicValueNode() && !this.isListNode();
+  public isTaggedDomNode(): boolean {
+    return !this.isEmptyNode() && !this.isComponentNode() && !this.isTextNode() && !this.isListNode();
   }
   
   public sameTypeWith(that: VirtualNode): boolean {
-    if (!this.isDomNode() && !that.isDomNode()) {
+    if (!this.isTaggedDomNode() && !that.isTaggedDomNode()) {
       return this.tagType === that.tagType;
     }
     return true;
@@ -165,7 +162,7 @@ class VirtualNode implements JSX.Element {
   
   public getDomParentNode(): Node {
     let ancestor: VirtualNode = this.parentNode;
-    while (ancestor && !ancestor.isDomNode()) {
+    while (ancestor && !ancestor.isTaggedDomNode()) {
       ancestor = ancestor.parentNode;
     }
     return ancestor.el as Node;
@@ -173,14 +170,14 @@ class VirtualNode implements JSX.Element {
   
   public getParentCompNode(): Component {
     let ancestor: VirtualNode = this.parentNode;
-    while (ancestor && !ancestor.isComponentNode() && !ancestor.isRootNode()) {
+    while (ancestor && !ancestor.isComponentNode()) {
       ancestor = ancestor.parentNode;
     }
     return ancestor.el as Component;
   }
   
   public getDomChildren(): Array<Node> {
-    if (this.isDomNode() || this.isBasicValueNode()) {
+    if (this.isTaggedDomNode() || this.isTextNode()) {
       return [this.el as Node];
     } else if (this.isEmptyNode()) {
       return [];
@@ -188,7 +185,7 @@ class VirtualNode implements JSX.Element {
     const htmlDoms: Array<Node> = [];
     _.dfsWalk(this, 'children', (child: VirtualNode): boolean => {
       let subNodes: Array<Node> = [];
-      if (child.isDomNode() || child.isBasicValueNode()) {
+      if (child.isTaggedDomNode() || child.isTextNode()) {
         htmlDoms.push(child.el as Node);
         return false;
       }
@@ -198,6 +195,45 @@ class VirtualNode implements JSX.Element {
       return true;
     });
     return htmlDoms;
+  }
+  
+  public getNextSibling(): VirtualNode {
+    const { parentNode }: VirtualNode = this;
+    return parentNode.children && _.isArray(parentNode.children) ? parentNode.children[this.index + 1] : null;
+  }
+  public getMostLeftDomNodeInSubTree(): VirtualNode {
+    const { children }: VirtualNode = this;
+    if (!_.isArray(children) || !children.length) {
+      return null;
+    }
+    for (const child of children) {
+      if (child.isComponentNode()) {
+        return child.getMostLeftDomNodeInSubTree();
+      } else if (child.isTaggedDomNode() || child.isTextNode()) {
+        return child;
+      } else {
+        return null;
+      }
+    }
+  }
+  public getNextDomSibling(): Node {
+    let targetNode: VirtualNode = null;
+    let currentNode: VirtualNode = this;
+    do {
+      const nextSibling: VirtualNode = currentNode.getNextSibling();
+      if (nextSibling) {
+        if (nextSibling.isTaggedDomNode() || nextSibling.isTextNode()) {
+          targetNode = nextSibling;
+          break;
+        }
+        targetNode = nextSibling.getMostLeftDomNodeInSubTree();
+        if (targetNode) {
+          break;
+        }
+      }
+      currentNode = currentNode.parentNode;
+    } while (!currentNode.isTaggedDomNode())
+    return targetNode && targetNode.el as Node;
   }
   
   public renderDom(): VirtualNode {
@@ -211,11 +247,11 @@ class VirtualNode implements JSX.Element {
       this.attributes.children = children;
       this.children = [];
       node = new TargetComponent(context, this);
-    } else if (this.isBasicValueNode()) {
+    } else if (this.isTextNode()) {
       node = document.createTextNode(this.value) as Text;
     } else if (this.isEmptyNode()) {
       return this;
-    } else if (this.isDomNode()) {
+    } else if (this.isTaggedDomNode()) {
       node = document.createElement(this.tagType as string);
       for (const key in attributes) {
         if (attributes.hasOwnProperty(key)) {
@@ -231,13 +267,18 @@ class VirtualNode implements JSX.Element {
   }
   
   public mountToDom(): void {
-    if (this.isDomNode() || this.isBasicValueNode()) {
-      this.getDomParentNode().appendChild(this.el as Node);
+    if (this.isTaggedDomNode() || this.isTextNode()) {
+      const nextDomSibling: Node = this.getNextDomSibling();
+      if (nextDomSibling) {
+        this.getDomParentNode().insertBefore(this.el as Node, nextDomSibling);
+      } else {
+        this.getDomParentNode().appendChild(this.el as Node);
+      }
     }
   }
-
+  
   public unmountFromDom(): void {
-    if (this.isDomNode() || this.isBasicValueNode()) {
+    if (this.isTaggedDomNode() || this.isTextNode()) {
       this.getDomParentNode().removeChild(this.el as Node);
     }
   }

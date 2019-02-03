@@ -6,7 +6,7 @@ import './index.less';
 
 console.log(React.render(
   <App color="red">
-    <h1>app</h1>
+    <h3>app</h3>
   </App>,
   document.querySelector('#app')
 ));

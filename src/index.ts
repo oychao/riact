@@ -3,7 +3,11 @@ import './declarations';
 import * as _ from './utils/index';
 
 import Context from './core/context/Context';
-import { NODE_TYPE_BASIC_VALUE, NODE_TYPE_LIST, NODE_TYPE_EMPTY, NODE_TYPE_ROOT } from './constants/index';
+import {
+  NODE_TYPE_TEXT,
+  NODE_TYPE_LIST,
+  NODE_TYPE_EMPTY
+} from './constants/index';
 import VirtualNode from './core/virtualDom/VirtualNode';
 import StaticContext from './core/context/StaticContext';
 
@@ -11,10 +15,12 @@ const normalizeVirtualNode = function(node: VirtualNode): void {
   for (let i = 0; i < node.children.length; i++) {
     const child: any = node.children[i];
     if (child instanceof VirtualNode) {
+      child.index = i;
       continue;
     }
     
-    const normalizedNode: VirtualNode = new VirtualNode();;
+    const normalizedNode: VirtualNode = new VirtualNode();
+    normalizedNode.index = i;
     if (_.isArray(child)) {
       normalizedNode.tagType = NODE_TYPE_LIST,
       normalizedNode.children = child as Array<VirtualNode>;
@@ -23,7 +29,7 @@ const normalizeVirtualNode = function(node: VirtualNode): void {
         subChild.parentNode = normalizedNode;
       }
     } else if (_.isString(child) || _.isNumber(child)) {
-      normalizedNode.tagType = NODE_TYPE_BASIC_VALUE;
+      normalizedNode.tagType = NODE_TYPE_TEXT;
       normalizedNode.value = child;
     } else if (_.isNull(child) || _.isUndefined(child)) {
       normalizedNode.tagType = NODE_TYPE_EMPTY;
@@ -78,7 +84,7 @@ export default class React extends Context implements common.IComponent {
     this.virtualNode = virtualNode;
     
     const rootNode: VirtualNode = new VirtualNode();
-    rootNode.tagType = NODE_TYPE_ROOT;
+    rootNode.tagType = rootDom.tagName;
     rootNode.el = rootDom;
     
     this.virtualNode = new VirtualNode();

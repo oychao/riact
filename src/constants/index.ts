@@ -1,6 +1,5 @@
-export const NODE_TYPE_ROOT: string = 'NODE_TYPE_ROOT';
 export const NODE_TYPE_EMPTY: string = 'NODE_TYPE_EMPTY';
-export const NODE_TYPE_BASIC_VALUE: string = 'NODE_TYPE_BASIC_VALUE';
+export const NODE_TYPE_TEXT: string = 'NODE_TYPE_TEXT';
 export const NODE_TYPE_LIST: string = 'NODE_TYPE_LIST';
 
 export const ACTION_REMOVE: Symbol = Symbol.for('ACTION_REMOVE');

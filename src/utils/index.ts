@@ -89,14 +89,15 @@ export const flatten = function(arr: Array<any>): Array<any> {
   }, []);
 };
 
-export const dfsWalk = function(node: common.TObject, key: string, handler: common.TFunction, parentNode: common.TObject = null): void {
-  if (!handler.call(null, node, parentNode)) {
+export const dfsWalk = function(node: common.TObject, key: string, handler: common.TFunction, index: number = 0, parentNode: common.TObject = null): void {
+  if (!handler.call(null, node, index, parentNode)) {
     return;
   }
   const children: Array<common.TObject> = node[key] as Array<common.TObject>;
   if (children && isArray(children)) {
-    for (const child of children) {
-      dfsWalk(child, key, handler, node);
+    for (let i = 0; i < children.length; i++) {
+      const child: common.TObject = children[i];
+      dfsWalk(child, key, handler, i, node);
     }
   }
 };
