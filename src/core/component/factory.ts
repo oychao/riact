@@ -1,7 +1,7 @@
 import * as _ from '../../utils/index';
 import Component from './Component';
-import VirtualNode from '../VirtualNode';
-import Context from '../Context';
+import VirtualNode from '../virtualDom/VirtualNode';
+import Context from '../context/Context';
 
 const componentFac = function (render: common.TFuncComponent): typeof Component {
   class RenderRelayComponent extends Component {

@@ -1,5 +1,5 @@
-import Component from './component/Component';
-import componentFac from './component/factory';
+import Component from '../component/Component';
+import componentFac from '../component/factory';
 
 abstract class Context implements common.IContext {
 

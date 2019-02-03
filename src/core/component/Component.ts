@@ -1,7 +1,7 @@
 import * as _ from '../../utils/index';
-import Context from '../../core/Context';
-import VirtualNode from '../VirtualNode';
-import StaticContext from '../StaticContext';
+import Context from '../context/Context';
+import VirtualNode from '../virtualDom/VirtualNode';
+import StaticContext from '../context/StaticContext';
 
 export default class Component implements common.IComponent {
   private readonly stateHooks: Array<any>;

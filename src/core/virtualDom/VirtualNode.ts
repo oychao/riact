@@ -1,4 +1,4 @@
-import * as _ from '../utils/index';
+import * as _ from '../../utils/index';
 import {
   NODE_TYPE_BASIC_VALUE,
   NODE_TYPE_LIST,
@@ -9,15 +9,15 @@ import {
   ACTION_REORDER,
   ACTION_REMOVE
 } from "src/constants/index";
-import Component from './component/Component';
-import Context from './Context';
+import Component from '../component/Component';
+import Context from '../context/Context';
 import {
   keyIdxMapFac,
   makeReplaceAction,
   makeUpdatePropsAction,
   makeRemoveAction,
   makeInsertAction
-} from './virtualDom/domUtils';
+} from './domUtils';
 
 class VirtualNode implements JSX.Element {
   

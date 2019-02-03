@@ -2,10 +2,10 @@ import './declarations';
 
 import * as _ from './utils/index';
 
-import Context from './core/Context';
+import Context from './core/context/Context';
 import { NODE_TYPE_BASIC_VALUE, NODE_TYPE_LIST, NODE_TYPE_EMPTY, NODE_TYPE_ROOT } from './constants/index';
-import VirtualNode from './core/VirtualNode';
-import StaticContext from './core/StaticContext';
+import VirtualNode from './core/virtualDom/VirtualNode';
+import StaticContext from './core/context/StaticContext';
 
 const normalizeVirtualNode = function(node: VirtualNode): void {
   for (let i = 0; i < node.children.length; i++) {
