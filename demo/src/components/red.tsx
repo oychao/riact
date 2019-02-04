@@ -1,9 +1,8 @@
 import React from 'react';
 
 const Red = function(props) {
-  console.log(props);
   return (
-    <h4 class="app-red">{props.val}</h4>
+    <h4 class="app-red">{props.val.value}</h4>
   );
 };
 

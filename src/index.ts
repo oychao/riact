@@ -54,7 +54,9 @@ export default class React extends Context implements common.IComponent {
         if (_.isString(value)) {
           vNode.attributes[key] = value as string;
         } else if (_.isPlainObject(value)) {
-          // maybe style object
+          if (vNode.isComponentNode()) {
+            vNode.attributes[key] = value;
+          }
         } else if (_.isFunction(value)) {
           vNode.events[key] = value as common.TFunction;
         }

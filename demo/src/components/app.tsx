@@ -12,7 +12,7 @@ const App = function(props: common.TStrValObject) {
   return (
     <div color={props.color}>
       <h1>{title + ' ' + count}</h1>
-      {count % 2 === 1 ? <Red val="haha"></Red> : 'haha'}
+      {count % 2 === 1 ? <Red val={{ value: 'gaga' }}></Red> : <h4>haha</h4>}
       {props.children[0]}
     </div>
   );
