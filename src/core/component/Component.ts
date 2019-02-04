@@ -16,6 +16,7 @@ export default class Component implements common.IComponent {
     this.virtualNode = virtualNode;
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
+    this.virtualNode.el = this;
     this.update();
     // this.reconcile();
     this.initialized = true;
@@ -25,7 +26,7 @@ export default class Component implements common.IComponent {
     StaticContext.setCurrentInstance(this);
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
-    // // mount sub virtual dom tree to global virtual dom tree
+    // mount sub virtual dom tree to global virtual dom tree
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
     this.virtualNode.children[0].reconcile();
@@ -43,9 +44,12 @@ export default class Component implements common.IComponent {
     }
     this.stateHookIndex++;
     return [ stateValue, (newState: T): void => {
+      if (_.isNull(this.virtualNode)) {
+        return;
+      }
       stateHooks[stateHookIndex] = newState;
       this.update();
-      this.virtualNode.reconcile();
+      this.virtualNode.children[0].reconcile();
     } ];
   }
   

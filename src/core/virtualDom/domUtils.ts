@@ -4,14 +4,15 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  NODE_TYPE_EMPTY
+  NODE_TYPE_EMPTY,
+  ACTION_REORDER
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
 export const keyIdxMapFac = function(list: Array<VirtualNode>, key: string): Map<string, number> {
   const result: Map<string, number> = new Map<string, number>();
   for (let i = 0; i < list.length; i++) {
-    result.set(list[i].key, i);
+    result.set(list[i][key], i);
   }
   return result;
 };
@@ -28,7 +29,9 @@ export const flatternListNode = function(list: Array<VirtualNode>): Array<Virtua
 export const makeRemoveAction = function(index: number): common.TPatch {
   return {
     action: ACTION_REMOVE,
-    payload: index
+    payload: {
+      index
+    }
   };
 };
 
@@ -39,19 +42,29 @@ export const makeInsertAction = function(index: number, item: VirtualNode): comm
       index,
       item
     }
-  };
+  } as common.TPatch;
 };
 
 export const makeReplaceAction = function(item: VirtualNode): common.TPatch {
   return {
     action: ACTION_REPLACE,
     payload: item
+  } as common.TPatch;
+};
+
+export const makeUpdatePropsAction = function(attributes: common.TObject, events: common.TFuncValObject): common.TPatch {
+  return {
+    action: ACTION_UPDATE_PROPS,
+    payload: {
+      attributes,
+      events
+    }
   };
 };
 
-export const makeUpdatePropsAction = function(props: common.TStrValObject): common.TPatch {
+export const makeReorderAction = function(patches: Array<common.TPatch>): common.TPatch {
   return {
-    action: ACTION_UPDATE_PROPS,
-    payload: props
+    action: ACTION_REORDER,
+    payload: patches
   };
 };

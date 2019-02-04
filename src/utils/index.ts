@@ -45,7 +45,7 @@ export const isFunction = function(object: any): boolean {
   return typeof object === 'function';
 };
 
-export const isEqualObject = function(object: common.TStrValObject, other: common.TStrValObject): boolean {
+export const isEqualObject = function(object: common.TObject, other: common.TObject): boolean {
   if (isPlainObject(object) && isPlainObject(other)) {
     const entries1: Array<[string, string]> = Object.entries(object);
     const entries2: Array<[string, string]> = Object.entries(other);
@@ -54,7 +54,7 @@ export const isEqualObject = function(object: common.TStrValObject, other: commo
     }
     for (let i = 0; i < entries1.length; i++) {
       const [k1, v1]: [string, string] = entries1[i];
-      const [k2, v2]: [string, string] = entries1[i];
+      const [k2, v2]: [string, string] = entries2[i];
       if (k1 !== k2 || v1 !== v2) {
         return false;
       }

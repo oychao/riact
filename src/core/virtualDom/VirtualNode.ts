@@ -6,7 +6,10 @@ import {
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
   ACTION_REORDER,
-  ACTION_REMOVE
+  ACTION_REMOVE,
+  CLASS_NAME,
+  STYLE_NAME,
+  ACTION_INSERT,
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -15,7 +18,8 @@ import {
   makeReplaceAction,
   makeUpdatePropsAction,
   makeRemoveAction,
-  makeInsertAction
+  makeInsertAction,
+  makeReorderAction
 } from './domUtils';
 
 class VirtualNode implements JSX.Element {
@@ -27,7 +31,11 @@ class VirtualNode implements JSX.Element {
     return node;
   }
   
-  private static diffListKeyed(oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string): Array<common.TPatch> {
+  private static shouldUpdateNode(oldNode: VirtualNode, newNode: VirtualNode): boolean {
+    return !_.isEqualObject(oldNode.attributes, newNode.attributes) || !_.isEqualObject(oldNode.events, newNode.events);
+  }
+  
+  private static diffKeyedList(oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string = 'key'): Array<common.TPatch> {
     const actions: Array<common.TPatch> = [];
     
     const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(oldList, key);
@@ -44,7 +52,7 @@ class VirtualNode implements JSX.Element {
       if (newKeyIdxMap.has(item.key)) {
         reservedOldList.push(item);
       } else {
-        actions.push(makeRemoveAction(i));
+        actions.push(makeRemoveAction(i - actions.length));
       }
     }
     
@@ -65,11 +73,13 @@ class VirtualNode implements JSX.Element {
         i++;
       } else {
         if (nextOldItem && nextOldItem.key === newItem.key) {
-          actions
           actions.push(makeRemoveAction(i));
           j++;
         } else {
           actions.push(makeInsertAction(i++, oldItem));
+          if (VirtualNode.shouldUpdateNode(oldItem, newItem)) {
+            oldItem.patch = makeUpdatePropsAction(newItem.attributes, newItem.events);
+          }
         }
       }
     }
@@ -106,16 +116,29 @@ class VirtualNode implements JSX.Element {
         oldVDom.patch = makeReplaceAction(newVDom);
       }
     } else {
-      const { tagType: oldTagType, attributes: oldAttributes, children: oldChildren } = oldVDom as VirtualNode;
-      const { tagType: newTagType, attributes: newAttributes, children: newChildren } = newVDom as VirtualNode;
+      const {
+        tagType: oldTagType,
+        attributes: oldAttributes,
+        children: oldChildren,
+        events: oldEvents
+      } = oldVDom as VirtualNode;
+      const {
+        tagType: newTagType,
+        attributes: newAttributes,
+        children: newChildren,
+        events: newEvents
+      } = newVDom as VirtualNode;
       if (oldTagType !== newTagType) {
         oldVDom.patch = makeReplaceAction(newVDom);
         return;
-      } else if (!_.isEqualObject(oldAttributes, newAttributes)) {
-        oldVDom.patch = makeUpdatePropsAction(newAttributes);
+      } else if (!_.isEqualObject(oldAttributes, newAttributes) || !_.isEqualObject(oldEvents, newEvents)) {
+        oldVDom.patch = makeUpdatePropsAction(newAttributes, newEvents);
       }
-      
-      VirtualNode.diffFreeList(oldChildren, newChildren);
+      if (oldVDom.isListNode() && newVDom.isListNode()) {
+        oldVDom.patch = makeReorderAction(VirtualNode.diffKeyedList(oldChildren, newChildren));
+      } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
+        VirtualNode.diffFreeList(oldChildren, newChildren);
+      }
     }
   }
   
@@ -124,18 +147,15 @@ class VirtualNode implements JSX.Element {
   public children?: Array<VirtualNode>;
   public el?: Node | common.IComponent;
   public events?: common.TFuncValObject;
-  public index?: number;
   public key?: string;
+  public nextSibling?: VirtualNode;
   public parentNode?: VirtualNode;
   public patch?: common.TPatch;
+  public ref?: common.TRef;
   public reserved?: any;
   public value?: any;
   
   constructor() {}
-  
-  setEl(el: Node | common.IComponent) {
-    this.el = el;
-  }
   
   public isEmptyNode(): boolean {
     return this.tagType === NODE_TYPE_EMPTY;
@@ -197,10 +217,6 @@ class VirtualNode implements JSX.Element {
     return htmlDoms;
   }
   
-  public getNextSibling(): VirtualNode {
-    const { parentNode }: VirtualNode = this;
-    return parentNode.children && _.isArray(parentNode.children) ? parentNode.children[this.index + 1] : null;
-  }
   public getMostLeftDomNodeInSubTree(): VirtualNode {
     const { children }: VirtualNode = this;
     if (!_.isArray(children) || !children.length) {
@@ -220,7 +236,7 @@ class VirtualNode implements JSX.Element {
     let targetNode: VirtualNode = null;
     let currentNode: VirtualNode = this;
     do {
-      const nextSibling: VirtualNode = currentNode.getNextSibling();
+      const { nextSibling }: VirtualNode = currentNode;
       if (nextSibling) {
         if (nextSibling.isTaggedDomNode() || nextSibling.isTextNode()) {
           targetNode = nextSibling;
@@ -237,33 +253,71 @@ class VirtualNode implements JSX.Element {
   }
   
   public renderDom(): VirtualNode {
-    let node: Text | HTMLElement | Component = null;
+    let el: Text | HTMLElement | Component = null;
     
-    const { tagType, attributes, children } = this;
+    const { tagType, attributes, children, events } = this;
     if (this.isComponentNode()) {
       const compRender: common.TFuncComponent = (tagType as common.TFuncComponent);
       const context: Context = this.getParentCompNode().getContext();
       const TargetComponent: typeof Component = context.getComponent(compRender);
       this.attributes.children = children;
       this.children = [];
-      node = new TargetComponent(context, this);
+      el = new TargetComponent(context, this);
+      return this;
     } else if (this.isTextNode()) {
-      node = document.createTextNode(this.value) as Text;
+      el = document.createTextNode(this.value) as Text;
     } else if (this.isEmptyNode()) {
       return this;
     } else if (this.isTaggedDomNode()) {
-      node = document.createElement(this.tagType as string);
+      el = document.createElement(this.tagType as string);
+      if (_.isPlainObject(this.ref)) {
+        this.ref.current = el;
+      }
       for (const key in attributes) {
         if (attributes.hasOwnProperty(key)) {
-          const value = attributes[key];
-          node.setAttribute(key, value);
+          const value: any = attributes[key];
+          if (key === CLASS_NAME) {
+            if (_.isString(value)) {
+              el.className = value;
+            } else if (_.isArray(value)) {
+              value.forEach((cls: string): void => {
+                (el as HTMLElement).classList.add(cls);
+              });
+            }
+          } else if (key === STYLE_NAME) {
+            for (const styleKey in value) {
+              if (value.hasOwnProperty(styleKey)) {
+                const styleVal: string = value[styleKey];
+                (el as HTMLElement).style[styleKey] = styleVal;
+              }
+            }
+          } else {
+            el.setAttribute(key, value);
+          }
+        }
+      }
+      for (const key in events) {
+        if (events.hasOwnProperty(key)) {
+          const eventHandler: common.TFunction = events[key];
+          if (_.isFunction(eventHandler)) {
+            (el as HTMLElement)[key.toLowerCase()] = eventHandler;
+          }
         }
       }
     }
-    this.el = node;
+    this.el = el;
     this.mountToDom();
     
     return this;
+  }
+  
+  public renderTreeDom(): void {
+    if (_.isArray(this.children)) {
+      _.dfsWalk(this, 'children', (offspring: VirtualNode): boolean => {
+        offspring.renderDom();
+        return !offspring.isComponentNode();
+      });
+    }
   }
   
   public mountToDom(): void {
@@ -280,6 +334,11 @@ class VirtualNode implements JSX.Element {
   public unmountFromDom(): void {
     if (this.isTaggedDomNode() || this.isTextNode()) {
       this.getDomParentNode().removeChild(this.el as Node);
+    } else if (this.isComponentNode()) {
+      const domChildren: Array<Node> = this.getDomChildren();
+      for (const domChild of domChildren) {
+        domChild.parentNode.removeChild(domChild);
+      }
     }
   }
   
@@ -288,7 +347,7 @@ class VirtualNode implements JSX.Element {
       if (!node.patch) {
         return true;
       }
-      const { action, payload }: common.TPatch = node.patch;
+      const { action, payload }: common.TPatch = node.patch as common.TPatch;
       if (action === ACTION_REPLACE) {
         node.unmountFromDom();
         node.loadData(payload as VirtualNode);
@@ -296,16 +355,61 @@ class VirtualNode implements JSX.Element {
         delete node.patch;
         if (!node.isComponentNode() && _.isArray(node.children)) {
           for (const child of node.children) {
-            _.dfsWalk(child, 'children', (offspring: VirtualNode): boolean => {
-              offspring.renderDom();
-              return true;
-            });
+            child.renderTreeDom();
           }
         }
         return false;
       } else if (action === ACTION_UPDATE_PROPS) {
+        const isDomNode: boolean = node.isTaggedDomNode();
+        const isCompNode: boolean = node.isComponentNode();
+        if (isDomNode || isCompNode) {
+          const { attributes, events }: common.TPatchUpdatePropsPayload = node.patch.payload as common.TPatchUpdatePropsPayload;
+          for (const key in attributes as common.TObject) {
+            if (attributes.hasOwnProperty(key)) {
+              const value: any = (attributes as common.TObject)[key];
+              node.attributes[key] = value;
+              if (isDomNode) {
+                (node.el as HTMLElement).setAttribute(key, value);
+              }
+            }
+          }
+          if (isCompNode) {
+            (node.el as Component).update();
+          } else if (isDomNode) {
+            for (const key in events) {
+              if (events.hasOwnProperty(key)) {
+                const eventHandler: common.TFunction = events[key];
+                (node.el as HTMLElement)[key.toLowerCase()] = eventHandler;
+              }
+            }
+          }
+        }
       } else if (action === ACTION_REORDER) {
-      } else if (action === ACTION_REMOVE) {
+        for (const patch of payload as Array<common.TPatch>) {
+          const { action: reorderAction, payload: reorderPayload }: common.TPatch = patch;
+          if (reorderAction === ACTION_REMOVE) {
+            const { index }: common.TPatchRemovePayload = reorderPayload as common.TPatchRemovePayload;
+            const [ toBeRemoved ] = node.children.splice((reorderPayload as common.TPatchRemovePayload).index, 1);
+            const prevSibling: VirtualNode = node.children[index - 1];
+            if (prevSibling) {
+              prevSibling.nextSibling = toBeRemoved.nextSibling;
+            }
+            toBeRemoved.unmountFromDom();
+          } else if (reorderAction === ACTION_INSERT) {
+            const { index, item }: common.TPatchInsertPayload = reorderPayload as common.TPatchInsertPayload;
+            (item as VirtualNode).parentNode = node;
+            const prevSibling: VirtualNode = node.children[index - 1];
+            const nextSibling: VirtualNode = node.children[index];
+            if (prevSibling instanceof VirtualNode) {
+              prevSibling.nextSibling = item as VirtualNode;
+            }
+            if (nextSibling instanceof VirtualNode) {
+              (item as VirtualNode).nextSibling = nextSibling;
+            }
+            node.children.splice(index, 0, item as VirtualNode);
+            (item as VirtualNode).renderTreeDom();
+          }
+        }
       }
       delete node.patch;
       return true;
@@ -313,6 +417,9 @@ class VirtualNode implements JSX.Element {
   }
   
   public loadData(that: VirtualNode): void {
+    if (this.isComponentNode()) {
+      (this.el as Component).virtualNode = null;
+    }
     this.tagType = that.tagType;
     this.attributes = that.attributes;
     this.children = that.children;
@@ -327,7 +434,7 @@ class VirtualNode implements JSX.Element {
     } else {
       delete this.reserved;
     }
-    if (that.value) {
+    if (!_.isUndefined(that.value) && !_.isNull(that.value)) {
       this.value = that.value;
     } else {
       delete this.value;
