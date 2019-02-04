@@ -44,6 +44,9 @@ export default class Component implements common.IComponent {
     }
     this.stateHookIndex++;
     return [ stateValue, (newState: T): void => {
+      if (_.isNull(this.virtualNode)) {
+        return;
+      }
       stateHooks[stateHookIndex] = newState;
       this.update();
       this.virtualNode.children[0].reconcile();

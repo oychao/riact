@@ -417,6 +417,9 @@ class VirtualNode implements JSX.Element {
   }
   
   public loadData(that: VirtualNode): void {
+    if (this.isComponentNode()) {
+      (this.el as Component).virtualNode = null;
+    }
     this.tagType = that.tagType;
     this.attributes = that.attributes;
     this.children = that.children;
