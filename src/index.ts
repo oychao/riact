@@ -8,22 +8,30 @@ import {
   NODE_TYPE_LIST,
   NODE_TYPE_EMPTY,
   CLASS_NAME_PRESERVED,
-  CLASS_NAME,
-  STYLE_NAME
+  STYLE_NAME,
+  REF_NAME,
+  KEY_NAME
 } from './constants/index';
 import VirtualNode from './core/virtualDom/VirtualNode';
 import StaticContext from './core/context/StaticContext';
 
 const normalizeVirtualNode = function(node: VirtualNode): void {
+  let prevSibling: VirtualNode = null;
   for (let i = 0; i < node.children.length; i++) {
     const child: any = node.children[i];
     if (child instanceof VirtualNode) {
-      child.index = i;
+      if (prevSibling) {
+        prevSibling.nextSibling = child;
+      }
+      prevSibling = child;
       continue;
     }
     
     const normalizedNode: VirtualNode = new VirtualNode();
-    normalizedNode.index = i;
+    if (prevSibling) {
+      prevSibling.nextSibling = normalizedNode;
+    }
+    prevSibling = normalizedNode;
     if (_.isArray(child)) {
       normalizedNode.tagType = NODE_TYPE_LIST,
       normalizedNode.children = child as Array<VirtualNode>;
@@ -45,42 +53,51 @@ const normalizeVirtualNode = function(node: VirtualNode): void {
 
 export default class React extends Context implements common.IComponent {
   
+  public static createRef(): common.TRef {
+    return {
+      current: null
+    };
+  }
+  
   public static createElement(tagType: string, attrs: any, ...children: Array<VirtualNode>): VirtualNode {
     const vNode: VirtualNode = new VirtualNode();
     vNode.tagType = tagType;
     vNode.children = children;
     
-    if (_.isPlainObject(attrs)) {
-      vNode.attributes = {};
-      vNode.events = {};
-      Object.entries(attrs).forEach(([key, value]: [string, string | common.TStrValObject | common.TFunction]): void => {
-        if (key === CLASS_NAME_PRESERVED) {
-          return;
-        } else if (key === CLASS_NAME) {
+    attrs = attrs || {};
+    vNode.attributes = {};
+    vNode.events = {};
+    Object.entries(attrs).forEach(([key, value]: [string, string | common.TStrValObject | common.TFunction | common.TRef]): void => {
+      if (key === CLASS_NAME_PRESERVED) {
+        return;
+      } else if (key === STYLE_NAME) {
+        if (_.isPlainObject(value)) {
           vNode.attributes[key] = value;
-          return;
         }
-        if (key === STYLE_NAME) {
-          if (_.isPlainObject(value)) {
-            vNode.attributes[key] = value;
-          }
-          return;
+        return;
+      } else if (key === KEY_NAME) {
+        vNode.key = value as string;
+        return;
+      }
+      
+      if (key === REF_NAME) {
+        vNode.ref = value as common.TRef;
+      }
+      
+      if (_.isString(value)) {
+        vNode.attributes[key] = value as string;
+      } else if (_.isPlainObject(value) || _.isArray(value)) {
+        if (vNode.isComponentNode()) {
+          vNode.attributes[key] = value;
         }
-        if (_.isString(value)) {
-          vNode.attributes[key] = value as string;
-        } else if (_.isPlainObject(value) || _.isArray(value)) {
-          if (vNode.isComponentNode()) {
-            vNode.attributes[key] = value;
-          }
-        } else if (_.isFunction(value)) {
-          if (vNode.isComponentNode()) {
-            vNode.attributes[key] = value;
-          } else {
-            vNode.events[key] = value as common.TFunction;
-          }
+      } else if (_.isFunction(value)) {
+        if (vNode.isComponentNode()) {
+          vNode.attributes[key] = value;
+        } else {
+          vNode.events[key] = value as common.TFunction;
         }
-      });
-    }
+      }
+    });
     
     normalizeVirtualNode(vNode);
     
@@ -134,3 +151,4 @@ export default class React extends Context implements common.IComponent {
 
 export const createElement = React.createElement;
 export const useState = StaticContext.useState;
+export const createRef = React.createRef;

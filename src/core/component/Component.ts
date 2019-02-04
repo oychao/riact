@@ -26,7 +26,7 @@ export default class Component implements common.IComponent {
     StaticContext.setCurrentInstance(this);
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
-    // // mount sub virtual dom tree to global virtual dom tree
+    // mount sub virtual dom tree to global virtual dom tree
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
     this.virtualNode.children[0].reconcile();

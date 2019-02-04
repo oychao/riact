@@ -2,6 +2,7 @@
   "compilerOptions": {
     "sourceMap": true,
     "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
     "module": "esnext",
     "target": "es6",
     "baseUrl": ".",

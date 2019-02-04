@@ -1,23 +1,42 @@
 import React, { useState } from 'react';
 
-import Red from './red';
+import Count from './count';
+import Field from './field';
+import List from './list';
 
 const App = function(props: common.TStrValObject): JSX.Element {
-  const [ title, setTitle ] = useState('Count');
+  const [ routeIndex, setRouteIndex ] = useState(0);
   const [ count, setCount ] = useState(1);
-  if (count % 2 === 0) {
-    setTimeout(() => {
-      // setTitle(`${title} ${count}`);
-      setCount(count + 1);
-    }, 1e3);
-  }
-  
+
+  const RouteComponents: Array<JSX.Element> = [
+    <List></List>,
+    <Count stateCount={[ count, setCount ]} ></Count>,
+    <Field></Field>,
+  ];
+
   return (
     <div color={props.color}>
-      <h1>Hello World</h1>
-      <h2 style={{ color: 'purple' }}>{title + ' ' + count}</h2>
-      {count % 2 === 1 ? <Red stateCount={[ count, setCount ]}></Red> : null}
-      {props.children}
+      <h1>Hello My-React</h1>
+      <div>
+        <a href="javascript:;" onClick={(e: Event) => {
+          setRouteIndex(0);
+          e.preventDefault();
+        }}>List</a>
+        &nbsp;
+        <a href="javascript:;" onClick={(e: Event) => {
+          setRouteIndex(1);
+          e.preventDefault();
+        }}>Count</a>
+        &nbsp;
+        <a href="javascript:;" onClick={(e: Event) => {
+          setRouteIndex(2);
+          e.preventDefault();
+        }}>Field</a>
+      </div>
+      <hr/>
+      <div>
+        {RouteComponents[routeIndex]}
+      </div>
     </div>
   );
 };
