@@ -8,7 +8,8 @@ import {
   ACTION_REORDER,
   ACTION_REMOVE,
   CLASS_NAME,
-  STYLE_NAME
+  STYLE_NAME,
+  EVENT_NAME_PREFIX
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -239,7 +240,7 @@ class VirtualNode implements JSX.Element {
   public renderDom(): VirtualNode {
     let node: Text | HTMLElement | Component = null;
     
-    const { tagType, attributes, children } = this;
+    const { tagType, attributes, children, events } = this;
     if (this.isComponentNode()) {
       const compRender: common.TFuncComponent = (tagType as common.TFuncComponent);
       const context: Context = this.getParentCompNode().getContext();
@@ -274,6 +275,14 @@ class VirtualNode implements JSX.Element {
             }
           } else {
             node.setAttribute(key, value);
+          }
+        }
+      }
+      for (const key in events) {
+        if (events.hasOwnProperty(key)) {
+          const eventHanlder: common.TFunction = events[key];
+          if (_.isFunction(eventHanlder)) {
+            node.addEventListener(key.slice(2).toLowerCase(), eventHanlder);
           }
         }
       }

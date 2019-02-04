@@ -2,6 +2,8 @@ export const CLASS_NAME_PRESERVED: string = 'class';
 export const CLASS_NAME: string = 'className';
 export const STYLE_NAME: string = 'style';
 
+export const EVENT_NAME_PREFIX: string = 'on';
+
 export const NODE_TYPE_EMPTY: string = 'NODE_TYPE_EMPTY';
 export const NODE_TYPE_TEXT: string = 'NODE_TYPE_TEXT';
 export const NODE_TYPE_LIST: string = 'NODE_TYPE_LIST';

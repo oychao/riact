@@ -73,7 +73,11 @@ export default class React extends Context implements common.IComponent {
             vNode.attributes[key] = value;
           }
         } else if (_.isFunction(value)) {
-          vNode.events[key] = value as common.TFunction;
+          if (vNode.isComponentNode()) {
+            vNode.attributes[key] = value;
+          } else {
+            vNode.events[key] = value as common.TFunction;
+          }
         }
       });
     }
