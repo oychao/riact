@@ -6,7 +6,9 @@ import {
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
   ACTION_REORDER,
-  ACTION_REMOVE
+  ACTION_REMOVE,
+  CLASS_NAME,
+  STYLE_NAME
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -254,8 +256,25 @@ class VirtualNode implements JSX.Element {
       node = document.createElement(this.tagType as string);
       for (const key in attributes) {
         if (attributes.hasOwnProperty(key)) {
-          const value = attributes[key];
-          node.setAttribute(key, value);
+          const value: any = attributes[key];
+          if (key === CLASS_NAME) {
+            if (_.isString(value)) {
+              node.className = value;
+            } else if (_.isArray(value)) {
+              value.forEach((cls: string): void => {
+                (node as HTMLElement).classList.add(cls);
+              });
+            }
+          } else if (key === STYLE_NAME) {
+            for (const styleKey in value) {
+              if (value.hasOwnProperty(styleKey)) {
+                const styleVal: string = value[styleKey];
+                (node as HTMLElement).style[styleKey as unknown as number] = styleVal;
+              }
+            }
+          } else {
+            node.setAttribute(key, value);
+          }
         }
       }
     }

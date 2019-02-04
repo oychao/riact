@@ -2,7 +2,7 @@ import React from 'react';
 
 const Red = function(props) {
   return (
-    <h4 class="app-red">{props.val.value}</h4>
+    <h3 className={['app-red']}>{props.val.value}</h3>
   );
 };
 

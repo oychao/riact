@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Red from './red';
 
 const App = function(props: common.TStrValObject) {
-  const [ title, setTitle ] = useState('Hello World');
+  const [ title, setTitle ] = useState('Count');
   const [ count, setCount ] = useState(1);
   setTimeout(() => {
     // setTitle(`${title} ${count}`);
@@ -11,9 +11,10 @@ const App = function(props: common.TStrValObject) {
   }, 1e3);
   return (
     <div color={props.color}>
-      <h1>{title + ' ' + count}</h1>
-      {count % 2 === 1 ? <Red val={{ value: 'gaga' }}></Red> : <h4>haha</h4>}
-      {props.children[0]}
+      <h1>Hello World</h1>
+      <h2 style={{ color: 'purple' }}>{title + ' ' + count}</h2>
+      {count % 2 === 1 ? <Red val={{ value: 'gaga' }}></Red> : null}
+      {props.children}
     </div>
   );
 };

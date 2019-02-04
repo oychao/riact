@@ -6,7 +6,10 @@ import Context from './core/context/Context';
 import {
   NODE_TYPE_TEXT,
   NODE_TYPE_LIST,
-  NODE_TYPE_EMPTY
+  NODE_TYPE_EMPTY,
+  CLASS_NAME_PRESERVED,
+  CLASS_NAME,
+  STYLE_NAME
 } from './constants/index';
 import VirtualNode from './core/virtualDom/VirtualNode';
 import StaticContext from './core/context/StaticContext';
@@ -51,9 +54,21 @@ export default class React extends Context implements common.IComponent {
       vNode.attributes = {};
       vNode.events = {};
       Object.entries(attrs).forEach(([key, value]: [string, string | common.TStrValObject | common.TFunction]): void => {
+        if (key === CLASS_NAME_PRESERVED) {
+          return;
+        } else if (key === CLASS_NAME) {
+          vNode.attributes[key] = value;
+          return;
+        }
+        if (key === STYLE_NAME) {
+          if (_.isPlainObject(value)) {
+            vNode.attributes[key] = value;
+          }
+          return;
+        }
         if (_.isString(value)) {
           vNode.attributes[key] = value as string;
-        } else if (_.isPlainObject(value)) {
+        } else if (_.isPlainObject(value) || _.isArray(value)) {
           if (vNode.isComponentNode()) {
             vNode.attributes[key] = value;
           }
