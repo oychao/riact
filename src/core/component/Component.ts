@@ -18,7 +18,6 @@ export default class Component implements common.IComponent {
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
     this.update();
-    // this.reconcile();
     this.initialized = true;
   }
   
@@ -33,7 +32,6 @@ export default class Component implements common.IComponent {
     StaticContext.clearCurrentInstance();
   }
   
-  
   public useStateHook<T>(state: T): [ T, (newState: T) => void ] {
     let stateValue: T = state;
     const { stateHooks, stateHookIndex, initialized }: Component = this;
@@ -47,9 +45,11 @@ export default class Component implements common.IComponent {
       if (_.isNull(this.virtualNode)) {
         return;
       }
-      stateHooks[stateHookIndex] = newState;
-      this.update();
-      this.virtualNode.children[0].reconcile();
+      Promise.resolve().then(() => {
+        stateHooks[stateHookIndex] = newState;
+        this.update();
+        this.virtualNode.children[0].reconcile();
+      });
     } ];
   }
   

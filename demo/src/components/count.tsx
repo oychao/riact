@@ -5,7 +5,6 @@ const Count = function(props: common.TObject): JSX.Element {
   return (
     <div>
       <button onClick={(e: Event): void => {
-        debugger;
         setCount(count - 1);
         e.preventDefault();
       }} className={['app-red']}>-</button>
@@ -13,6 +12,7 @@ const Count = function(props: common.TObject): JSX.Element {
         setCount(count + 1);
         e.preventDefault();
       }} className={['app-red']}>+</button>
+      <br/>
       <span>{count}</span>
     </div>
   );

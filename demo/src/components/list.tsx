@@ -21,11 +21,11 @@ const lb = [{
   name: 'Andre Medina',
   email: 'dohnogudo@rusu.pt'
 }, {
-  name: 'Maggie Haynes',
-  email: 'wetovgar@menbitove.fk'
-}, {
   name: 'Henry Cohen',
   email: 'vemhodhe@riifog.vg'
+}, {
+  name: 'Maggie Haynes',
+  email: 'wetovgar@menbitove.fk'
 }, {
   name: 'Willie Zimmerman',
   email: 'luz@bufepop.ca'
