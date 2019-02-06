@@ -5,7 +5,7 @@ import StaticContext from '../context/StaticContext';
 
 export default class Component implements common.IComponent {
   private readonly stateHooks: Array<any>;
-  
+  private shouldComponentUpdate: (prevProps: common.TObject) => boolean;
   private initialized: boolean;
   private stateHookIndex: number;
   
@@ -17,11 +17,14 @@ export default class Component implements common.IComponent {
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
-    this.update();
+    this.update(null);
     this.initialized = true;
   }
   
-  public update(): void {
+  public update(prevProps: common.TObject): void {
+    if (this.shouldComponentUpdate && !this.shouldComponentUpdate(prevProps)) {
+      return;
+    }
     StaticContext.setCurrentInstance(this);
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
@@ -47,10 +50,14 @@ export default class Component implements common.IComponent {
       }
       Promise.resolve().then(() => {
         stateHooks[stateHookIndex] = newState;
-        this.update();
+        this.update(null);
         this.virtualNode.children[0].reconcile();
       });
     } ];
+  }
+  
+  public unmount() {
+    this.virtualNode = null;
   }
   
   public virtualNode: VirtualNode;

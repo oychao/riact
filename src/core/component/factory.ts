@@ -4,7 +4,8 @@ import VirtualNode from '../virtualDom/VirtualNode';
 import Context from '../context/Context';
 
 const componentFac = function (render: common.TFuncComponent): typeof Component {
-  class RenderRelayComponent extends Component {
+  const ParentComponentDeclaration: typeof Component = (render as common.TObject).clazz || Component;
+  class RenderRelayComponent extends ParentComponentDeclaration {
     public render: common.TFuncComponent;
     constructor(context: Context, virtualNode: VirtualNode) {
       super(context, virtualNode);

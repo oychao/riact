@@ -10,6 +10,9 @@ import {
   CLASS_NAME,
   STYLE_NAME,
   ACTION_INSERT,
+  CLASS_NAME_PRESERVED,
+  KEY_NAME,
+  REF_NAME,
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -22,7 +25,92 @@ import {
   makeReorderAction
 } from './domUtils';
 
+export const normalizeVirtualNode = function(node: VirtualNode): void {
+  let prevSibling: VirtualNode = null;
+  for (let i = 0; i < node.children.length; i++) {
+    const child: any = node.children[i];
+    if (child instanceof VirtualNode) {
+      if (prevSibling) {
+        prevSibling.nextSibling = child;
+      }
+      prevSibling = child;
+      continue;
+    }
+    
+    const normalizedNode: VirtualNode = new VirtualNode();
+    if (prevSibling) {
+      prevSibling.nextSibling = normalizedNode;
+    }
+    prevSibling = normalizedNode;
+    if (_.isArray(child)) {
+      normalizedNode.tagType = NODE_TYPE_LIST,
+      normalizedNode.children = child as Array<VirtualNode>;
+      normalizeVirtualNode(normalizedNode);
+      for (const subChild of normalizedNode.children) {
+        subChild.parentNode = normalizedNode;
+      }
+    } else if (_.isString(child) || _.isNumber(child)) {
+      normalizedNode.tagType = NODE_TYPE_TEXT;
+      normalizedNode.value = child;
+    } else if (_.isNull(child) || _.isUndefined(child)) {
+      normalizedNode.tagType = NODE_TYPE_EMPTY;
+      normalizedNode.value = child;
+    }
+    
+    node.children[i] = normalizedNode;
+  }
+};
+
 class VirtualNode implements JSX.Element {
+  public static createElement(tagType: string, attrs: any, ...children: Array<VirtualNode>): VirtualNode {
+    const vNode: VirtualNode = new VirtualNode();
+    vNode.tagType = tagType;
+    vNode.children = children;
+    
+    attrs = attrs || {};
+    vNode.attributes = {};
+    vNode.events = {};
+    Object.entries(attrs).forEach(([key, value]: [string, string | common.TStrValObject | common.TFunction | common.TRef]): void => {
+      if (key === CLASS_NAME_PRESERVED) {
+        return;
+      } else if (key === STYLE_NAME) {
+        if (_.isPlainObject(value)) {
+          vNode.attributes[key] = value;
+        }
+        return;
+      } else if (key === KEY_NAME) {
+        vNode.key = value as string;
+        return;
+      }
+      
+      if (key === REF_NAME) {
+        vNode.ref = value as common.TRef;
+      }
+      
+      if (_.isString(value)) {
+        vNode.attributes[key] = value as string;
+      } else if (_.isPlainObject(value) || _.isArray(value)) {
+        if (vNode.isComponentNode()) {
+          vNode.attributes[key] = value;
+        }
+      } else if (_.isFunction(value)) {
+        if (vNode.isComponentNode()) {
+          vNode.attributes[key] = value;
+        } else {
+          vNode.events[key] = value as common.TFunction;
+        }
+      }
+    });
+    
+    normalizeVirtualNode(vNode);
+    
+    for (const child of children) {
+      if (_.isPlainObject(child)) {
+        child.parentNode = vNode
+      }
+    }
+    return vNode;
+  }
   
   public static createEmptyNode(): VirtualNode {
     const node: VirtualNode = new VirtualNode();
@@ -156,6 +244,14 @@ class VirtualNode implements JSX.Element {
   public value?: any;
   
   constructor() {}
+  
+  public findAncestor(conditionFunc: common.TFunction): VirtualNode {
+    let ancestor: VirtualNode = this.parentNode;
+    while (ancestor && !conditionFunc(ancestor)) {
+      ancestor = ancestor.parentNode
+    }
+    return ancestor;
+  };
   
   public isEmptyNode(): boolean {
     return this.tagType === NODE_TYPE_EMPTY;
@@ -357,12 +453,15 @@ class VirtualNode implements JSX.Element {
           for (const child of node.children) {
             child.renderTreeDom();
           }
+        } else if (this.isComponentNode()) {
+          (this.el as Component).unmount();
         }
         return false;
       } else if (action === ACTION_UPDATE_PROPS) {
         const isDomNode: boolean = node.isTaggedDomNode();
         const isCompNode: boolean = node.isComponentNode();
         if (isDomNode || isCompNode) {
+          const prevProps: common.TObject = node.attributes;
           const { attributes, events }: common.TPatchUpdatePropsPayload = node.patch.payload as common.TPatchUpdatePropsPayload;
           for (const key in attributes as common.TObject) {
             if (attributes.hasOwnProperty(key)) {
@@ -374,7 +473,7 @@ class VirtualNode implements JSX.Element {
             }
           }
           if (isCompNode) {
-            (node.el as Component).update();
+            (node.el as Component).update(prevProps);
           } else if (isDomNode) {
             for (const key in events) {
               if (events.hasOwnProperty(key)) {
@@ -417,9 +516,6 @@ class VirtualNode implements JSX.Element {
   }
   
   public loadData(that: VirtualNode): void {
-    if (this.isComponentNode()) {
-      (this.el as Component).virtualNode = null;
-    }
     this.tagType = that.tagType;
     this.attributes = that.attributes;
     this.children = that.children;

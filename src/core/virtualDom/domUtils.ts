@@ -5,7 +5,9 @@ import {
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
   NODE_TYPE_EMPTY,
-  ACTION_REORDER
+  ACTION_REORDER,
+  NODE_TYPE_LIST,
+  NODE_TYPE_TEXT
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
@@ -66,5 +68,11 @@ export const makeReorderAction = function(patches: Array<common.TPatch>): common
   return {
     action: ACTION_REORDER,
     payload: patches
+  };
+};
+
+export const createRef = (): common.TRef => {
+  return {
+    current: null
   };
 };

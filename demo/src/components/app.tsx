@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import ThemeContext from '../context/theme';
 import Count from './count';
 import Field from './field';
 import List from './list';
@@ -16,27 +17,29 @@ const App = function(props: common.TStrValObject): JSX.Element {
 
   return (
     <div color={props.color}>
-      <h1>Hello My-React</h1>
-      <div>
-        <a href="javascript:;" onClick={(e: Event) => {
-          setRouteIndex(0);
-          e.preventDefault();
-        }}>List</a>
-        &nbsp;
-        <a href="javascript:;" onClick={(e: Event) => {
-          setRouteIndex(1);
-          e.preventDefault();
-        }}>Count</a>
-        &nbsp;
-        <a href="javascript:;" onClick={(e: Event) => {
-          setRouteIndex(2);
-          e.preventDefault();
-        }}>Field</a>
-      </div>
-      <hr/>
-      <div>
-        {RouteComponents[routeIndex]}
-      </div>
+      <ThemeContext.Provider>
+        <h1>Hello My-React</h1>
+        <div>
+          <a href="javascript:;" onClick={(e: Event) => {
+            setRouteIndex(0);
+            e.preventDefault();
+          }}>List</a>
+          &nbsp;
+          <a href="javascript:;" onClick={(e: Event) => {
+            setRouteIndex(1);
+            e.preventDefault();
+          }}>Count</a>
+          &nbsp;
+          <a href="javascript:;" onClick={(e: Event) => {
+            setRouteIndex(2);
+            e.preventDefault();
+          }}>Field</a>
+        </div>
+        <hr/>
+        <div>
+          {RouteComponents[routeIndex]}
+        </div>
+      </ThemeContext.Provider>
     </div>
   );
 };
