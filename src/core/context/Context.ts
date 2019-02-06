@@ -11,12 +11,11 @@ export interface IContextComponent {
 abstract class Context implements common.IContext {
   public static createContext(initialValue: any): IContextComponent {
     class Provider extends Component {
-      private readonly decendantConsumers: Array<Consumer>;
+      private decendantConsumers: Array<Consumer>;
       private value: any;
       constructor(context: Context, virtualNode: VirtualNode) {
         super(context, virtualNode);
           this.value = initialValue;
-        this.decendantConsumers = [];
       }
       public getValue(): any {
         return this.value;
@@ -32,6 +31,7 @@ abstract class Context implements common.IContext {
       public update(prevProps: common.TObject): void {
         super.update(prevProps);
         if (!Object.is(prevProps, this.virtualNode.attributes)) {
+          this.decendantConsumers = this.decendantConsumers || [];
           for (const decendantConsumer of this.decendantConsumers) {
             decendantConsumer.update(prevProps);
           }
