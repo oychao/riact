@@ -5,7 +5,6 @@ import StaticContext from '../context/StaticContext';
 
 export default class Component implements common.IComponent {
   private readonly stateHooks: Array<any>;
-  private shouldComponentUpdate: (prevProps: common.TObject) => boolean;
   private initialized: boolean;
   private stateHookIndex: number;
   
@@ -17,12 +16,20 @@ export default class Component implements common.IComponent {
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
+    if (this.beforeInitialize) {
+      this.beforeInitialize();
+    }
     this.update(null);
     this.initialized = true;
   }
   
+  protected beforeInitialize(): void {}
+  protected shouldComponentUpdate(prevProps: common.TObject): boolean {
+    return true;
+  }
+  
   public update(prevProps: common.TObject): void {
-    if (this.shouldComponentUpdate && !this.shouldComponentUpdate(prevProps)) {
+    if (!this.shouldComponentUpdate(prevProps)) {
       return;
     }
     StaticContext.setCurrentInstance(this);

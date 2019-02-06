@@ -22,7 +22,8 @@ import {
   makeUpdatePropsAction,
   makeRemoveAction,
   makeInsertAction,
-  makeReorderAction
+  makeReorderAction,
+  loadStyle
 } from './domUtils';
 
 export const normalizeVirtualNode = function(node: VirtualNode): void {
@@ -55,6 +56,8 @@ export const normalizeVirtualNode = function(node: VirtualNode): void {
     } else if (_.isNull(child) || _.isUndefined(child)) {
       normalizedNode.tagType = NODE_TYPE_EMPTY;
       normalizedNode.value = child;
+    } else if (_.isFunction(child)) {
+      normalizedNode.tagType = child;
     }
     
     node.children[i] = normalizedNode;
@@ -381,12 +384,7 @@ class VirtualNode implements JSX.Element {
               });
             }
           } else if (key === STYLE_NAME) {
-            for (const styleKey in value) {
-              if (value.hasOwnProperty(styleKey)) {
-                const styleVal: string = value[styleKey];
-                (el as HTMLElement).style[styleKey] = styleVal;
-              }
-            }
+            loadStyle(el as HTMLElement, value);
           } else {
             el.setAttribute(key, value);
           }
@@ -446,6 +444,9 @@ class VirtualNode implements JSX.Element {
       const { action, payload }: common.TPatch = node.patch as common.TPatch;
       if (action === ACTION_REPLACE) {
         node.unmountFromDom();
+        if (node.isComponentNode()) {
+          (node.el as Component).unmount();
+        }
         node.loadData(payload as VirtualNode);
         node.renderDom();
         delete node.patch;
@@ -453,8 +454,6 @@ class VirtualNode implements JSX.Element {
           for (const child of node.children) {
             child.renderTreeDom();
           }
-        } else if (this.isComponentNode()) {
-          (this.el as Component).unmount();
         }
         return false;
       } else if (action === ACTION_UPDATE_PROPS) {
@@ -468,7 +467,11 @@ class VirtualNode implements JSX.Element {
               const value: any = (attributes as common.TObject)[key];
               node.attributes[key] = value;
               if (isDomNode) {
-                (node.el as HTMLElement).setAttribute(key, value);
+                if (key === STYLE_NAME) {
+                  loadStyle(node.el as HTMLElement, value);
+                } else {
+                  (node.el as HTMLElement).setAttribute(key, value);
+                }
               }
             }
           }

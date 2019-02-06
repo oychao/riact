@@ -8,7 +8,7 @@ import List from './list';
 const App = function(props: common.TStrValObject): JSX.Element {
   const [ routeIndex, setRouteIndex ] = useState(0);
   const [ count, setCount ] = useState(1);
-
+  
   const RouteComponents: Array<JSX.Element> = [
     <List></List>,
     <Count stateCount={[ count, setCount ]} ></Count>,

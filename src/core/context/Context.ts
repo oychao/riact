@@ -13,9 +13,11 @@ abstract class Context implements common.IContext {
     class Provider extends Component {
       private decendantConsumers: Array<Consumer>;
       private value: any;
+      protected beforeInitialize(): void {
+        this.value = initialValue;
+      };
       constructor(context: Context, virtualNode: VirtualNode) {
         super(context, virtualNode);
-          this.value = initialValue;
       }
       public getValue(): any {
         return this.value;
@@ -37,22 +39,24 @@ abstract class Context implements common.IContext {
           }
         }
       }
-      public render = (): JSX.Element => {
-        return this.virtualNode.attributes.children;
-      }
     };
     
     class Consumer extends Component {
-      private readonly ancestorProvider: Provider;
-      private readonly unsubscriber: common.TFunction;
+      private ancestorProvider: Provider;
+      private unsubscriber: common.TFunction;
+      protected beforeInitialize(): void {
+        const ancestorNode: VirtualNode = this.virtualNode.findAncestor((node: VirtualNode): boolean => node instanceof Provider)
+        this.ancestorProvider = ancestorNode ? ancestorNode.el as Component as Provider : null;
+        this.unsubscriber = ancestorNode ? this.ancestorProvider.subscribe(this) : null;
+      };
       constructor(context: Context, virtualNode: VirtualNode) {
         super(context, virtualNode);
-        this.ancestorProvider = this.virtualNode.findAncestor((node: VirtualNode): boolean => node instanceof Provider).el as Component as Provider;
-        this.unsubscriber = this.ancestorProvider.subscribe(this);
       }
       public unmount(): void {
         super.unmount();
-        this.unsubscriber();
+        if (this.unsubscriber) {
+          this.unsubscriber();
+        }
       }
     };
     
@@ -63,11 +67,11 @@ abstract class Context implements common.IContext {
     
     const consumerRender: common.TFuncComponent = function(): JSX.Element {
       const value: any = this.ancestorProvider ? this.ancestorProvider.getValue() : initialValue;
-      return VirtualNode.createElement(this.virtualNode.attributes.children[0], {
-        value
-      });
+      const vNode: JSX.Element = this.virtualNode.attributes.children[0];
+      vNode.attributes = value;
+      return vNode;
     };
-    (consumerRender as common.TObject).clazz = Provider;
+    (consumerRender as common.TObject).clazz = Consumer;
     
     
     const contextComp: IContextComponent = {

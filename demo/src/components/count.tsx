@@ -1,17 +1,19 @@
 import React from 'react';
 
+import Button from './button';
+
 const Count = function(props: common.TObject): JSX.Element {
   const { stateCount: [count, setCount] } = props;
   return (
     <div>
-      <button onClick={(e: Event): void => {
+      <Button onClick={(e: Event): void => {
         setCount(count - 1);
         e.preventDefault();
-      }} className={['app-red']}>-</button>
-      <button onClick={(e: Event): void => {
+      }} className={['app-red']}>-</Button>
+      <Button onClick={(e: Event): void => {
         setCount(count + 1);
         e.preventDefault();
-      }} className={['app-red']}>+</button>
+      }} className={['app-red']}>+</Button>
       <br/>
       <span>{count}</span>
     </div>

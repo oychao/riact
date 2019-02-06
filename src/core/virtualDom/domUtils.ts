@@ -4,10 +4,7 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  NODE_TYPE_EMPTY,
   ACTION_REORDER,
-  NODE_TYPE_LIST,
-  NODE_TYPE_TEXT
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
@@ -75,4 +72,13 @@ export const createRef = (): common.TRef => {
   return {
     current: null
   };
+};
+
+export const loadStyle = (element: HTMLElement, styleObject: common.TObject): void => {
+  for (const styleKey in styleObject) {
+    if (styleObject.hasOwnProperty(styleKey)) {
+      const styleVal: string = styleObject[styleKey];
+      (element as HTMLElement).style[styleKey] = styleVal;
+    }
+  }
 };
