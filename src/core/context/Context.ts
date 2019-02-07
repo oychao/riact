@@ -13,13 +13,14 @@ abstract class Context implements common.IContext {
     class Provider extends Component {
       private decendantConsumers: Array<Consumer>;
       private value: any;
-      protected beforeInitialize(): void {
+      protected beforeInitialize = (): void => {
         this.value = initialValue;
       };
       constructor(context: Context, virtualNode: VirtualNode) {
         super(context, virtualNode);
       }
       public getValue(): any {
+        debugger;
         return this.value;
       }
       public subscribe(consumer: Consumer): common.TFunction {
@@ -44,7 +45,7 @@ abstract class Context implements common.IContext {
     class Consumer extends Component {
       private ancestorProvider: Provider;
       private unsubscriber: common.TFunction;
-      protected beforeInitialize(): void {
+      protected beforeInitialize = (): void => {
         const ancestorNode: VirtualNode = this.virtualNode.findAncestor((node: VirtualNode): boolean => node instanceof Provider)
         this.ancestorProvider = ancestorNode ? ancestorNode.el as Component as Provider : null;
         this.unsubscriber = ancestorNode ? this.ancestorProvider.subscribe(this) : null;

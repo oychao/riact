@@ -8,6 +8,9 @@ export default class Component implements common.IComponent {
   private initialized: boolean;
   private stateHookIndex: number;
   
+  protected beforeInitialize: () => void = null;
+  protected shouldComponentUpdate: (prevProps: common.TObject) => boolean = null;
+  
   constructor(context: Context, virtualNode: VirtualNode) {
     this.context = context;
     this.stateHooks = [];
@@ -23,13 +26,8 @@ export default class Component implements common.IComponent {
     this.initialized = true;
   }
   
-  protected beforeInitialize(): void {}
-  protected shouldComponentUpdate(prevProps: common.TObject): boolean {
-    return true;
-  }
-  
   public update(prevProps: common.TObject): void {
-    if (!this.shouldComponentUpdate(prevProps)) {
+    if (this.shouldComponentUpdate && !this.shouldComponentUpdate(prevProps)) {
       return;
     }
     StaticContext.setCurrentInstance(this);

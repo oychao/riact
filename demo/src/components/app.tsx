@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import ThemeContext from '../context/theme';
+import ThemeContext, { themes } from '../context/theme';
 import Count from './count';
 import Field from './field';
 import List from './list';
@@ -17,7 +17,7 @@ const App = function(props: common.TStrValObject): JSX.Element {
 
   return (
     <div color={props.color}>
-      <ThemeContext.Provider>
+      <ThemeContext.Provider value={themes.light}>
         <h1>Hello My-React</h1>
         <div>
           <a href="javascript:;" onClick={(e: Event) => {

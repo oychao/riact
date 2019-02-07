@@ -6,7 +6,7 @@ const Button = function(props: common.TObject): JSX.Element {
   return (
     <ThemeContext.Consumer>
       {(value: any) => {
-        console.log(value);
+        console.log(value.theme);
         return <button style={value.theme} onClick={props.onClick}>{props.children}</button>;
       }}
     </ThemeContext.Consumer>

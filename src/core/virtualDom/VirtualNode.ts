@@ -183,20 +183,20 @@ class VirtualNode implements JSX.Element {
     return actions;
   }
   
-  private static diffFreeList (oldList: Array<VirtualNode>, newList: Array<VirtualNode>): Array<common.TPatch> {
-    const actions: Array<common.TPatch> = [];
-    
+  private static diffFreeList (oldList: Array<VirtualNode>, newList: Array<VirtualNode>): void {
     _.warning(oldList.length === newList.length, 'calculating invalid free list difference, length unequaled');
     
     for (let i = 0; i < oldList.length; i++) {
       VirtualNode.diffTree(oldList[i], newList[i]);
     }
-    
-    return actions;
   }
   
   public static diffTree (oldVDom: VirtualNode, newVDom: VirtualNode): void {
     if (oldVDom.isEmptyNode() && newVDom.isEmptyNode()) {
+      return;
+    }
+    
+    if (!_.isNull(oldVDom.patch) && !_.isUndefined(oldVDom.patch)) {
       return;
     }
     
@@ -229,6 +229,8 @@ class VirtualNode implements JSX.Element {
         oldVDom.patch = makeReorderAction(VirtualNode.diffKeyedList(oldChildren, newChildren));
       } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
         VirtualNode.diffFreeList(oldChildren, newChildren);
+      } else if (oldVDom.isComponentNode() && newVDom.isComponentNode() && _.isArray(oldAttributes.children)) {
+        VirtualNode.diffFreeList(oldAttributes.children as Array<VirtualNode>, newChildren);
       }
     }
   }
@@ -438,7 +440,7 @@ class VirtualNode implements JSX.Element {
   
   public reconcile(): void {
     _.dfsWalk(this, 'children', (node: VirtualNode): boolean => {
-      if (!node.patch) {
+      if (_.isNull(node.patch) || _.isUndefined(node.patch)) {
         return true;
       }
       const { action, payload }: common.TPatch = node.patch as common.TPatch;
