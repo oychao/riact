@@ -1,0 +1,39 @@
+{
+  "name": "riact",
+  "version": "0.0.1-alpha.1",
+  "main": "./bin/index.js",
+  "typings": "./bin/index.d.ts",
+  "author": {
+    "name": "ouyang-chao",
+    "email": "chao@ouyang.io"
+  },
+  "license": "WTFPL",
+  "repository": "https://github.com/oychao/riact",
+  "keywords": [],
+  "description": "A simplified React-like MVVM framework",
+  "files": [
+    "LICENSE.md",
+    "README.md",
+    "bin/"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "mocha --require babel-register test/**/*.spec.js",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.21",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "mocha-sinon": "^2.1.0",
+    "rollup": "^1.1.2",
+    "rollup-plugin-typescript2": "^0.19.2",
+    "sinon": "^7.2.3",
+    "typescript": "^3.3.1"
+  },
+  "dependencies": {}
+}

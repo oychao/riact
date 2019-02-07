@@ -1,1 +1,3 @@
-# edit your docs here
+# Riact
+
+A simplified React-like MVVM framework.
