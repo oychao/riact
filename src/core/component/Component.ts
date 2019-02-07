@@ -4,6 +4,30 @@ import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 
 export default class Component implements common.IComponent {
+  public static memo(funcComp: common.TFuncComponent): common.TFuncComponent {
+    (funcComp as common.TObject).clazz = class PureComponent extends Component {
+      constructor(context: Context, virtualNode: VirtualNode) {
+        super(context, virtualNode);
+      }
+      
+      public shouldComponentUpdate(prevProps: common.TObject): boolean {
+        const { virtualNode: { attributes: curProps } }: PureComponent = this;
+        if (!prevProps) {
+          return true;
+        }
+        for (const key in curProps) {
+          if (curProps.hasOwnProperty(key)) {
+            if (!prevProps.hasOwnProperty(key) || !Object.is(curProps[key], prevProps[key])) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+    };
+    return funcComp;
+  };
+  
   private readonly stateHooks: Array<any>;
   private initialized: boolean;
   private stateHookIndex: number;
@@ -18,7 +42,7 @@ export default class Component implements common.IComponent {
     this.virtualNode.el = this;
   }
   
-  protected shouldComponentUpdate(prevProps?: common.TObject) {
+  protected shouldComponentUpdate(prevProps?: common.TObject): boolean {
     return true;
   }
   

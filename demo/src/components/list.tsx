@@ -1,4 +1,4 @@
-import React, { useState, createRef } from 'react';
+import React, { useState } from 'react';
 
 const la = [{
   name: 'Andre Medina',
@@ -31,7 +31,7 @@ const lb = [{
   email: 'luz@bufepop.ca'
 }];
 
-const List = function(props: common.TObject): JSX.Element {
+const List = React.memo(function(props: common.TObject): JSX.Element {
   const [ listValue, setListValue ] = useState(la);
 
   setTimeout(() => {
@@ -45,6 +45,6 @@ const List = function(props: common.TObject): JSX.Element {
       </ol>
     </div>
   );
-};
+});
 
 export default List;

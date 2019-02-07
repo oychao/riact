@@ -6,12 +6,14 @@ import * as domUtils from './core/virtualDom/domUtils';
 import Context from './core/context/Context';
 import VirtualNode from './core/virtualDom/VirtualNode';
 import StaticContext from './core/context/StaticContext';
+import Component from './core/component/Component';
 
 export default class React extends Context implements common.IComponent {
   
   public static createContext = Context.createContext;
   public static createElement = VirtualNode.createElement;
   public static createRef = domUtils.createRef;
+  public static memo = Component.memo;
   public static useState = StaticContext.useState;
 
   public static render(virtualNode: JSX.Element, rootDom: HTMLElement) {
@@ -54,7 +56,4 @@ export default class React extends Context implements common.IComponent {
   }
 }
 
-export const createContext = Context.createContext;
-export const createElement = VirtualNode.createElement;
-export const createRef = domUtils.createRef;
 export const useState = StaticContext.useState;
