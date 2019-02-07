@@ -1,4 +1,4 @@
-import React, { useState, createRef } from 'react';
+import React, { useState } from 'riact';
 
 const la = [{
   name: 'Andre Medina',
@@ -21,17 +21,17 @@ const lb = [{
   name: 'Andre Medina',
   email: 'dohnogudo@rusu.pt'
 }, {
-  name: 'Maggie Haynes',
-  email: 'wetovgar@menbitove.fk'
-}, {
   name: 'Henry Cohen',
   email: 'vemhodhe@riifog.vg'
+}, {
+  name: 'Maggie Haynes',
+  email: 'wetovgar@menbitove.fk'
 }, {
   name: 'Willie Zimmerman',
   email: 'luz@bufepop.ca'
 }];
 
-const List = function(props: common.TObject): JSX.Element {
+const List = React.memo(function(props: Riact.TObject): JSX.Element {
   const [ listValue, setListValue ] = useState(la);
 
   setTimeout(() => {
@@ -45,6 +45,6 @@ const List = function(props: common.TObject): JSX.Element {
       </ol>
     </div>
   );
-};
+});
 
 export default List;

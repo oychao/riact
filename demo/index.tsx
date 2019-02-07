@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'riact';
 
 import App from './src/components/app';
 

@@ -45,7 +45,7 @@ export const isFunction = function(object: any): boolean {
   return typeof object === 'function';
 };
 
-export const isEqualObject = function(object: common.TObject, other: common.TObject): boolean {
+export const isEqualObject = function(object: Riact.TObject, other: Riact.TObject): boolean {
   if (isPlainObject(object) && isPlainObject(other)) {
     const entries1: Array<[string, string]> = Object.entries(object);
     const entries2: Array<[string, string]> = Object.entries(other);
@@ -64,9 +64,9 @@ export const isEqualObject = function(object: common.TObject, other: common.TObj
   return false;
 };
 
-export const pick = function(object: common.TObject, keys: string | Array<string>): common.TObject {
+export const pick = function(object: Riact.TObject, keys: string | Array<string>): Riact.TObject {
   keys = isString(keys) ? (keys as string).split(' ') : keys;
-  return (keys as Array<string>).reduce((acc: common.TObject, key: string): common.TObject  => {
+  return (keys as Array<string>).reduce((acc: Riact.TObject, key: string): Riact.TObject  => {
     if (Object.prototype.hasOwnProperty.call(object, key)) {
       acc[key] = object[key];
     }
@@ -74,7 +74,7 @@ export const pick = function(object: common.TObject, keys: string | Array<string
   }, {});
 };
 
-export const omit = function(object: common.TObject, keys: string | Array<string>): common.TObject {
+export const omit = function(object: Riact.TObject, keys: string | Array<string>): Riact.TObject {
   const result = Object.assign({}, object);
   keys = isString(keys) ? (keys as string).split(' ') : keys;
   (keys as Array<string>).forEach((key: string): void => {
@@ -89,14 +89,14 @@ export const flatten = function(arr: Array<any>): Array<any> {
   }, []);
 };
 
-export const dfsWalk = function(node: common.TObject, key: string, handler: common.TFunction, index: number = 0, parentNode: common.TObject = null): void {
+export const dfsWalk = function(node: Riact.TObject, key: string, handler: Riact.TFunction, index: number = 0, parentNode: Riact.TObject = null): void {
   if (!handler.call(null, node, index, parentNode)) {
     return;
   }
-  const children: Array<common.TObject> = node[key] as Array<common.TObject>;
+  const children: Array<Riact.TObject> = node[key] as Array<Riact.TObject>;
   if (children && isArray(children)) {
     for (let i = 0; i < children.length; i++) {
-      const child: common.TObject = children[i];
+      const child: Riact.TObject = children[i];
       dfsWalk(child, key, handler, i, node);
     }
   }

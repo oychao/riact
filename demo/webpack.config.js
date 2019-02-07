@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const TsConfigPathsPlugin = require('awesome-typescript-loader')
-  .TsConfigPathsPlugin;
+const TsConfigPathsPlugin = require('awesome-typescript-loader').TsConfigPathsPlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -48,7 +47,7 @@ const config = {
     open: true
   },
   externals: {
-    // react: 'React',
+    // react: 'riact',
     // 'react-dom': 'ReactDOM'
   },
   plugins: [
@@ -89,11 +88,11 @@ if (process.env.NODE_ENV === 'production') {
   config.optimization = {
     minimize: true,
     minimizer: [
-      new UglifyJsPlugin({
-        cache: true,
-        parallel: true,
-        sourceMap: false
-      })
+      // new UglifyJsPlugin({
+      //   cache: true,
+      //   parallel: true,
+      //   sourceMap: false
+      // })
     ],
     splitChunks: {
       chunks: 'all'

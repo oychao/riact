@@ -3,9 +3,32 @@ import Context from '../context/Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 
-export default class Component implements common.IComponent {
-  private readonly stateHooks: Array<any>;
+export default class Component implements Riact.IComponent {
+  public static memo(funcComp: Riact.TFuncComponent): Riact.TFuncComponent {
+    (funcComp as Riact.TObject).clazz = class PureComponent extends Component {
+      constructor(context: Context, virtualNode: VirtualNode) {
+        super(context, virtualNode);
+      }
+      
+      public shouldComponentUpdate(prevProps: Riact.TObject): boolean {
+        const { virtualNode: { attributes: curProps } }: PureComponent = this;
+        if (!prevProps) {
+          return true;
+        }
+        for (const key in curProps) {
+          if (curProps.hasOwnProperty(key)) {
+            if (!prevProps.hasOwnProperty(key) || !Object.is(curProps[key], prevProps[key])) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+    };
+    return funcComp;
+  };
   
+  private readonly stateHooks: Array<any>;
   private initialized: boolean;
   private stateHookIndex: number;
   
@@ -17,22 +40,26 @@ export default class Component implements common.IComponent {
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
-    this.update();
-    // this.reconcile();
-    this.initialized = true;
   }
   
-  public update(): void {
+  protected shouldComponentUpdate(prevProps?: Riact.TObject): boolean {
+    return true;
+  }
+  
+  public renderDom(prevProps: Riact.TObject): void {
+    if (!this.shouldComponentUpdate(prevProps)) {
+      return;
+    }
     StaticContext.setCurrentInstance(this);
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
+    this.initialized = true;
     // mount sub virtual dom tree to global virtual dom tree
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
     this.virtualNode.children[0].reconcile();
     StaticContext.clearCurrentInstance();
   }
-  
   
   public useStateHook<T>(state: T): [ T, (newState: T) => void ] {
     let stateValue: T = state;
@@ -47,15 +74,21 @@ export default class Component implements common.IComponent {
       if (_.isNull(this.virtualNode)) {
         return;
       }
-      stateHooks[stateHookIndex] = newState;
-      this.update();
-      this.virtualNode.children[0].reconcile();
+      Promise.resolve().then(() => {
+        stateHooks[stateHookIndex] = newState;
+        this.renderDom(null);
+        this.virtualNode.children[0].reconcile();
+      });
     } ];
+  }
+  
+  public unmount() {
+    this.virtualNode = null;
   }
   
   public virtualNode: VirtualNode;
   public readonly context: Context;
-  public readonly render: common.TFuncComponent;
+  public readonly render: Riact.TFuncComponent;
   public getContext(): Context {
     return this.context;
   }

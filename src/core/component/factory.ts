@@ -3,9 +3,10 @@ import Component from './Component';
 import VirtualNode from '../virtualDom/VirtualNode';
 import Context from '../context/Context';
 
-const componentFac = function (render: common.TFuncComponent): typeof Component {
-  class RenderRelayComponent extends Component {
-    public render: common.TFuncComponent;
+const componentFac = function (render: Riact.TFuncComponent): typeof Component {
+  const ParentComponentDeclaration: typeof Component = (render as Riact.TObject).clazz || Component;
+  class RenderRelayComponent extends ParentComponentDeclaration {
+    public render: Riact.TFuncComponent;
     constructor(context: Context, virtualNode: VirtualNode) {
       super(context, virtualNode);
     }

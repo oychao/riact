@@ -1,16 +1,16 @@
 {
-  "name": "react",
-  "version": "1.0.0",
+  "name": "riact",
+  "version": "0.0.1-alpha.1",
   "main": "./bin/index.js",
   "typings": "./bin/index.d.ts",
   "author": {
-    "name": "your name",
-    "email": "your@email.com"
+    "name": "ouyang-chao",
+    "email": "chao@ouyang.io"
   },
-  "license": "MIT",
-  "repository": "https://github.com/your/package/address",
+  "license": "WTFPL",
+  "repository": "https://github.com/oychao/riact",
   "keywords": [],
-  "description": "A npm package",
+  "description": "A simplified React-like MVVM framework",
   "files": [
     "LICENSE.md",
     "README.md",

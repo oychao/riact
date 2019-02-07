@@ -1,3 +1,3 @@
-# my-react
+# Riact
 
-A simple react wheel.
+A simplified React-like MVVM framework.

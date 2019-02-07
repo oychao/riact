@@ -10,6 +10,9 @@ import {
   CLASS_NAME,
   STYLE_NAME,
   ACTION_INSERT,
+  CLASS_NAME_PRESERVED,
+  KEY_NAME,
+  REF_NAME,
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -19,10 +22,98 @@ import {
   makeUpdatePropsAction,
   makeRemoveAction,
   makeInsertAction,
-  makeReorderAction
+  makeReorderAction,
+  loadStyle
 } from './domUtils';
 
+export const normalizeVirtualNode = function(node: VirtualNode): void {
+  let prevSibling: VirtualNode = null;
+  for (let i = 0; i < node.children.length; i++) {
+    const child: any = node.children[i];
+    if (child instanceof VirtualNode) {
+      if (prevSibling) {
+        prevSibling.nextSibling = child;
+      }
+      prevSibling = child;
+      continue;
+    }
+    
+    const normalizedNode: VirtualNode = new VirtualNode();
+    if (prevSibling) {
+      prevSibling.nextSibling = normalizedNode;
+    }
+    prevSibling = normalizedNode;
+    if (_.isArray(child)) {
+      normalizedNode.tagType = NODE_TYPE_LIST,
+      normalizedNode.children = child as Array<VirtualNode>;
+      normalizeVirtualNode(normalizedNode);
+      for (const subChild of normalizedNode.children) {
+        subChild.parentNode = normalizedNode;
+      }
+    } else if (_.isString(child) || _.isNumber(child)) {
+      normalizedNode.tagType = NODE_TYPE_TEXT;
+      normalizedNode.value = child;
+    } else if (_.isNull(child) || _.isUndefined(child)) {
+      normalizedNode.tagType = NODE_TYPE_EMPTY;
+      normalizedNode.value = child;
+    } else if (_.isFunction(child)) {
+      normalizedNode.tagType = child;
+    }
+    
+    node.children[i] = normalizedNode;
+  }
+};
+
 class VirtualNode implements JSX.Element {
+  public static createElement(tagType: string, attrs: any, ...children: Array<VirtualNode>): VirtualNode {
+    const vNode: VirtualNode = new VirtualNode();
+    vNode.tagType = tagType;
+    vNode.children = children;
+    
+    attrs = attrs || {};
+    vNode.attributes = {};
+    vNode.events = {};
+    Object.entries(attrs).forEach(([key, value]: [string, string | Riact.TStrValObject | Riact.TFunction | Riact.TRef]): void => {
+      if (key === CLASS_NAME_PRESERVED) {
+        return;
+      } else if (key === STYLE_NAME) {
+        if (_.isPlainObject(value)) {
+          vNode.attributes[key] = value;
+        }
+        return;
+      } else if (key === KEY_NAME) {
+        vNode.key = value as string;
+        return;
+      }
+      
+      if (key === REF_NAME) {
+        vNode.ref = value as Riact.TRef;
+      }
+      
+      if (_.isString(value)) {
+        vNode.attributes[key] = value as string;
+      } else if (_.isPlainObject(value) || _.isArray(value)) {
+        if (vNode.isComponentNode()) {
+          vNode.attributes[key] = value;
+        }
+      } else if (_.isFunction(value)) {
+        if (vNode.isComponentNode()) {
+          vNode.attributes[key] = value;
+        } else {
+          vNode.events[key] = value as Riact.TFunction;
+        }
+      }
+    });
+    
+    normalizeVirtualNode(vNode);
+    
+    for (const child of children) {
+      if (_.isPlainObject(child)) {
+        child.parentNode = vNode
+      }
+    }
+    return vNode;
+  }
   
   public static createEmptyNode(): VirtualNode {
     const node: VirtualNode = new VirtualNode();
@@ -35,8 +126,8 @@ class VirtualNode implements JSX.Element {
     return !_.isEqualObject(oldNode.attributes, newNode.attributes) || !_.isEqualObject(oldNode.events, newNode.events);
   }
   
-  private static diffKeyedList(oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string = 'key'): Array<common.TPatch> {
-    const actions: Array<common.TPatch> = [];
+  private static diffKeyedList(oldList: Array<VirtualNode>, newList: Array<VirtualNode>, key: string = 'key'): Array<Riact.TPatch> {
+    const actions: Array<Riact.TPatch> = [];
     
     const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(oldList, key);
     const newKeyIdxMap: Map<string, number> = keyIdxMapFac(newList, key);
@@ -92,20 +183,20 @@ class VirtualNode implements JSX.Element {
     return actions;
   }
   
-  private static diffFreeList (oldList: Array<VirtualNode>, newList: Array<VirtualNode>): Array<common.TPatch> {
-    const actions: Array<common.TPatch> = [];
-    
+  private static diffFreeList (oldList: Array<VirtualNode>, newList: Array<VirtualNode>): void {
     _.warning(oldList.length === newList.length, 'calculating invalid free list difference, length unequaled');
     
     for (let i = 0; i < oldList.length; i++) {
       VirtualNode.diffTree(oldList[i], newList[i]);
     }
-    
-    return actions;
   }
   
   public static diffTree (oldVDom: VirtualNode, newVDom: VirtualNode): void {
     if (oldVDom.isEmptyNode() && newVDom.isEmptyNode()) {
+      return;
+    }
+    
+    if (!_.isNull(oldVDom.patch) && !_.isUndefined(oldVDom.patch)) {
       return;
     }
     
@@ -138,24 +229,34 @@ class VirtualNode implements JSX.Element {
         oldVDom.patch = makeReorderAction(VirtualNode.diffKeyedList(oldChildren, newChildren));
       } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
         VirtualNode.diffFreeList(oldChildren, newChildren);
+      } else if (oldVDom.isComponentNode() && newVDom.isComponentNode() && _.isArray(oldAttributes.children)) {
+        VirtualNode.diffFreeList(oldAttributes.children as Array<VirtualNode>, newChildren);
       }
     }
   }
   
-  public tagType: string | common.TFuncComponent;
-  public attributes?: common.TObject;
+  public tagType: string | Riact.TFuncComponent;
+  public attributes?: Riact.TObject;
   public children?: Array<VirtualNode>;
-  public el?: Node | common.IComponent;
-  public events?: common.TFuncValObject;
+  public el?: Node | Riact.IComponent;
+  public events?: Riact.TFuncValObject;
   public key?: string;
   public nextSibling?: VirtualNode;
   public parentNode?: VirtualNode;
-  public patch?: common.TPatch;
-  public ref?: common.TRef;
+  public patch?: Riact.TPatch;
+  public ref?: Riact.TRef;
   public reserved?: any;
   public value?: any;
   
   constructor() {}
+  
+  public findAncestor(conditionFunc: Riact.TFunction): VirtualNode {
+    let ancestor: VirtualNode = this.parentNode;
+    while (ancestor && !conditionFunc(ancestor)) {
+      ancestor = ancestor.parentNode
+    }
+    return ancestor;
+  };
   
   public isEmptyNode(): boolean {
     return this.tagType === NODE_TYPE_EMPTY;
@@ -257,12 +358,13 @@ class VirtualNode implements JSX.Element {
     
     const { tagType, attributes, children, events } = this;
     if (this.isComponentNode()) {
-      const compRender: common.TFuncComponent = (tagType as common.TFuncComponent);
+      const compRender: Riact.TFuncComponent = (tagType as Riact.TFuncComponent);
       const context: Context = this.getParentCompNode().getContext();
       const TargetComponent: typeof Component = context.getComponent(compRender);
       this.attributes.children = children;
       this.children = [];
       el = new TargetComponent(context, this);
+      el.renderDom(null);
       return this;
     } else if (this.isTextNode()) {
       el = document.createTextNode(this.value) as Text;
@@ -285,12 +387,7 @@ class VirtualNode implements JSX.Element {
               });
             }
           } else if (key === STYLE_NAME) {
-            for (const styleKey in value) {
-              if (value.hasOwnProperty(styleKey)) {
-                const styleVal: string = value[styleKey];
-                (el as HTMLElement).style[styleKey] = styleVal;
-              }
-            }
+            loadStyle(el as HTMLElement, value);
           } else {
             el.setAttribute(key, value);
           }
@@ -298,7 +395,7 @@ class VirtualNode implements JSX.Element {
       }
       for (const key in events) {
         if (events.hasOwnProperty(key)) {
-          const eventHandler: common.TFunction = events[key];
+          const eventHandler: Riact.TFunction = events[key];
           if (_.isFunction(eventHandler)) {
             (el as HTMLElement)[key.toLowerCase()] = eventHandler;
           }
@@ -344,12 +441,15 @@ class VirtualNode implements JSX.Element {
   
   public reconcile(): void {
     _.dfsWalk(this, 'children', (node: VirtualNode): boolean => {
-      if (!node.patch) {
+      if (_.isNull(node.patch) || _.isUndefined(node.patch)) {
         return true;
       }
-      const { action, payload }: common.TPatch = node.patch as common.TPatch;
+      const { action, payload }: Riact.TPatch = node.patch as Riact.TPatch;
       if (action === ACTION_REPLACE) {
         node.unmountFromDom();
+        if (node.isComponentNode()) {
+          (node.el as Component).unmount();
+        }
         node.loadData(payload as VirtualNode);
         node.renderDom();
         delete node.patch;
@@ -363,40 +463,45 @@ class VirtualNode implements JSX.Element {
         const isDomNode: boolean = node.isTaggedDomNode();
         const isCompNode: boolean = node.isComponentNode();
         if (isDomNode || isCompNode) {
-          const { attributes, events }: common.TPatchUpdatePropsPayload = node.patch.payload as common.TPatchUpdatePropsPayload;
-          for (const key in attributes as common.TObject) {
+          const prevProps: Riact.TObject = Object.assign({}, node.attributes);
+          const { attributes, events }: Riact.TPatchUpdatePropsPayload = node.patch.payload as Riact.TPatchUpdatePropsPayload;
+          for (const key in attributes as Riact.TObject) {
             if (attributes.hasOwnProperty(key)) {
-              const value: any = (attributes as common.TObject)[key];
+              const value: any = (attributes as Riact.TObject)[key];
               node.attributes[key] = value;
               if (isDomNode) {
-                (node.el as HTMLElement).setAttribute(key, value);
+                if (key === STYLE_NAME) {
+                  loadStyle(node.el as HTMLElement, value);
+                } else {
+                  (node.el as HTMLElement).setAttribute(key, value);
+                }
               }
             }
           }
           if (isCompNode) {
-            (node.el as Component).update();
+            (node.el as Component).renderDom(prevProps);
           } else if (isDomNode) {
             for (const key in events) {
               if (events.hasOwnProperty(key)) {
-                const eventHandler: common.TFunction = events[key];
+                const eventHandler: Riact.TFunction = events[key];
                 (node.el as HTMLElement)[key.toLowerCase()] = eventHandler;
               }
             }
           }
         }
       } else if (action === ACTION_REORDER) {
-        for (const patch of payload as Array<common.TPatch>) {
-          const { action: reorderAction, payload: reorderPayload }: common.TPatch = patch;
+        for (const patch of payload as Array<Riact.TPatch>) {
+          const { action: reorderAction, payload: reorderPayload }: Riact.TPatch = patch;
           if (reorderAction === ACTION_REMOVE) {
-            const { index }: common.TPatchRemovePayload = reorderPayload as common.TPatchRemovePayload;
-            const [ toBeRemoved ] = node.children.splice((reorderPayload as common.TPatchRemovePayload).index, 1);
+            const { index }: Riact.TPatchRemovePayload = reorderPayload as Riact.TPatchRemovePayload;
+            const [ toBeRemoved ] = node.children.splice((reorderPayload as Riact.TPatchRemovePayload).index, 1);
             const prevSibling: VirtualNode = node.children[index - 1];
             if (prevSibling) {
               prevSibling.nextSibling = toBeRemoved.nextSibling;
             }
             toBeRemoved.unmountFromDom();
           } else if (reorderAction === ACTION_INSERT) {
-            const { index, item }: common.TPatchInsertPayload = reorderPayload as common.TPatchInsertPayload;
+            const { index, item }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
             (item as VirtualNode).parentNode = node;
             const prevSibling: VirtualNode = node.children[index - 1];
             const nextSibling: VirtualNode = node.children[index];
@@ -417,9 +522,6 @@ class VirtualNode implements JSX.Element {
   }
   
   public loadData(that: VirtualNode): void {
-    if (this.isComponentNode()) {
-      (this.el as Component).virtualNode = null;
-    }
     this.tagType = that.tagType;
     this.attributes = that.attributes;
     this.children = that.children;

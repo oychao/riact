@@ -4,8 +4,7 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  NODE_TYPE_EMPTY,
-  ACTION_REORDER
+  ACTION_REORDER,
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
@@ -26,7 +25,7 @@ export const flatternListNode = function(list: Array<VirtualNode>): Array<Virtua
   }, []);
 };
 
-export const makeRemoveAction = function(index: number): common.TPatch {
+export const makeRemoveAction = function(index: number): Riact.TPatch {
   return {
     action: ACTION_REMOVE,
     payload: {
@@ -35,24 +34,24 @@ export const makeRemoveAction = function(index: number): common.TPatch {
   };
 };
 
-export const makeInsertAction = function(index: number, item: VirtualNode): common.TPatch {
+export const makeInsertAction = function(index: number, item: VirtualNode): Riact.TPatch {
   return {
     action: ACTION_INSERT,
     payload: {
       index,
       item
     }
-  } as common.TPatch;
+  } as Riact.TPatch;
 };
 
-export const makeReplaceAction = function(item: VirtualNode): common.TPatch {
+export const makeReplaceAction = function(item: VirtualNode): Riact.TPatch {
   return {
     action: ACTION_REPLACE,
     payload: item
-  } as common.TPatch;
+  } as Riact.TPatch;
 };
 
-export const makeUpdatePropsAction = function(attributes: common.TObject, events: common.TFuncValObject): common.TPatch {
+export const makeUpdatePropsAction = function(attributes: Riact.TObject, events: Riact.TFuncValObject): Riact.TPatch {
   return {
     action: ACTION_UPDATE_PROPS,
     payload: {
@@ -62,9 +61,24 @@ export const makeUpdatePropsAction = function(attributes: common.TObject, events
   };
 };
 
-export const makeReorderAction = function(patches: Array<common.TPatch>): common.TPatch {
+export const makeReorderAction = function(patches: Array<Riact.TPatch>): Riact.TPatch {
   return {
     action: ACTION_REORDER,
     payload: patches
   };
+};
+
+export const createRef = (): Riact.TRef => {
+  return {
+    current: null
+  };
+};
+
+export const loadStyle = (element: HTMLElement, styleObject: Riact.TObject): void => {
+  for (const styleKey in styleObject) {
+    if (styleObject.hasOwnProperty(styleKey)) {
+      const styleVal: string = styleObject[styleKey];
+      (element as HTMLElement).style[styleKey] = styleVal;
+    }
+  }
 };

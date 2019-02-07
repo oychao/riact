@@ -1,12 +1,11 @@
-import React, { useState, createRef } from 'react';
+import React, { useState } from 'riact';
 
-const Field = function(props: common.TObject): JSX.Element {
-  const [ refInput ] = useState(createRef());
+const Field = function(props: Riact.TObject): JSX.Element {
+  const [ refInput ] = useState(React.createRef());
   const [ value, setValue ] = useState('');
   return (
     <div>
       <input ref={refInput} onInput={(e: Event): void => {
-        // console.log((refInput.current as HTMLInputElement).value);
         setValue((refInput.current as HTMLInputElement).value);
         e.preventDefault();
       }} value={value} />
