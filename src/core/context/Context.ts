@@ -4,11 +4,11 @@ import VirtualNode from '../virtualDom/VirtualNode';
 import { NODE_TYPE_LIST } from 'src/constants/index';
 
 export interface IContextComponent {
-  Provider: common.TFuncComponent;
-  Consumer: common.TFuncComponent;
+  Provider: Riact.TFuncComponent;
+  Consumer: Riact.TFuncComponent;
 }
 
-abstract class Context implements common.IContext {
+abstract class Context implements Riact.IContext {
   public static createContext(initialValue: any): IContextComponent {
     class Provider extends Component {
       private decendantConsumers: Array<Consumer>;
@@ -21,7 +21,7 @@ abstract class Context implements common.IContext {
       public getValue(): any {
         return this.value;
       }
-      public subscribe(consumer: Consumer): common.TFunction {
+      public subscribe(consumer: Consumer): Riact.TFunction {
         const { decendantConsumers }: Provider = this;
         decendantConsumers.push(consumer);
         return (): void => {
@@ -29,7 +29,7 @@ abstract class Context implements common.IContext {
           decendantConsumers.splice(index, 1);
         };
       }
-      public renderDom(prevProps: common.TObject): void {
+      public renderDom(prevProps: Riact.TObject): void {
         super.renderDom(prevProps);
         this.value = this.virtualNode.attributes.value;
         if (!prevProps || !Object.is(prevProps.value, this.value)) {
@@ -42,7 +42,7 @@ abstract class Context implements common.IContext {
     
     class Consumer extends Component {
       private ancestorProvider: Provider;
-      private unsubscriber: common.TFunction;
+      private unsubscriber: Riact.TFunction;
       constructor(context: Context, virtualNode: VirtualNode) {
         super(context, virtualNode);
         const ancestorNode: VirtualNode = this.virtualNode.findAncestor((node: VirtualNode): boolean => node.el instanceof Provider);
@@ -57,18 +57,18 @@ abstract class Context implements common.IContext {
       }
     };
     
-    const providerRender: common.TFuncComponent = function(): JSX.Element {
+    const providerRender: Riact.TFuncComponent = function(): JSX.Element {
       return VirtualNode.createElement(NODE_TYPE_LIST, null, ...(this as Provider).virtualNode.attributes.children as Array<any>);
     };
-    (providerRender as common.TObject).clazz = Provider;
+    (providerRender as Riact.TObject).clazz = Provider;
     
-    const consumerRender: common.TFuncComponent = function(): JSX.Element {
+    const consumerRender: Riact.TFuncComponent = function(): JSX.Element {
       const value: any = this.ancestorProvider ? this.ancestorProvider.getValue() : initialValue;
       const vNode: JSX.Element = this.virtualNode.attributes.children[0];
       vNode.attributes = value;
       return vNode;
     };
-    (consumerRender as common.TObject).clazz = Consumer;
+    (consumerRender as Riact.TObject).clazz = Consumer;
     
     
     const contextComp: IContextComponent = {
@@ -80,12 +80,12 @@ abstract class Context implements common.IContext {
   }
   
   constructor() {
-    this.componentDeclarationMap = new Map<common.TFuncComponent, typeof Component>();
+    this.componentDeclarationMap = new Map<Riact.TFuncComponent, typeof Component>();
   }
   
   // register component declaration
-  private componentDeclarationMap: Map<common.TFuncComponent, typeof Component>;
-  public getComponent(render: common.TFuncComponent): typeof Component {
+  private componentDeclarationMap: Map<Riact.TFuncComponent, typeof Component>;
+  public getComponent(render: Riact.TFuncComponent): typeof Component {
     if (this.componentDeclarationMap.has(render)) {
       return this.componentDeclarationMap.get(render) ;
     } else {

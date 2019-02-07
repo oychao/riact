@@ -8,7 +8,7 @@ import VirtualNode from './core/virtualDom/VirtualNode';
 import StaticContext from './core/context/StaticContext';
 import Component from './core/component/Component';
 
-export default class React extends Context implements common.IComponent {
+export default class Riact extends Context implements Riact.IComponent {
   
   public static createContext = Context.createContext;
   public static createElement = VirtualNode.createElement;
@@ -18,7 +18,7 @@ export default class React extends Context implements common.IComponent {
 
   public static render(virtualNode: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
-    return new React(virtualNode as VirtualNode, rootDom);
+    return new Riact(virtualNode as VirtualNode, rootDom);
   }
   
   constructor(virtualNode: VirtualNode, rootDom: HTMLElement) {
@@ -51,7 +51,7 @@ export default class React extends Context implements common.IComponent {
   public render(): JSX.Element {
     return this.virtualNode;
   }
-  public getContext(): common.IContext {
+  public getContext(): Riact.IContext {
     return this;
   }
 }

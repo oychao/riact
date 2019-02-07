@@ -1,4 +1,4 @@
-declare namespace common {
+declare namespace Riact {
   export type TFuncComponent = (props: any) => JSX.Element;
   export type TPatch = {
     action: Symbol,
@@ -41,23 +41,23 @@ declare namespace common {
   export interface IComponent {
     virtualNode: JSX.Element;
     context: IContext;
-    render: common.TFuncComponent;
+    render: Riact.TFuncComponent;
     getContext(): IContext;
   }
 }
 
 declare namespace JSX {
   export interface Element {
-    tagType: string | common.TFuncComponent,
-    attributes?: common.TObject,
+    tagType: string | Riact.TFuncComponent,
+    attributes?: Riact.TObject,
     children?: Array<Element>,
-    el?: Node | common.IComponent,
-    events?: common.TFuncValObject,
+    el?: Node | Riact.IComponent,
+    events?: Riact.TFuncValObject,
     key?: string,
     nextSibling?: Element,
     parentNode?: Element,
-    patch?: common.TPatch;
-    ref?: common.TRef;
+    patch?: Riact.TPatch;
+    ref?: Riact.TRef;
     reserved?: any,
     value?: any,
   }

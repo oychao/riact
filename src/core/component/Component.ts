@@ -3,14 +3,14 @@ import Context from '../context/Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 
-export default class Component implements common.IComponent {
-  public static memo(funcComp: common.TFuncComponent): common.TFuncComponent {
-    (funcComp as common.TObject).clazz = class PureComponent extends Component {
+export default class Component implements Riact.IComponent {
+  public static memo(funcComp: Riact.TFuncComponent): Riact.TFuncComponent {
+    (funcComp as Riact.TObject).clazz = class PureComponent extends Component {
       constructor(context: Context, virtualNode: VirtualNode) {
         super(context, virtualNode);
       }
       
-      public shouldComponentUpdate(prevProps: common.TObject): boolean {
+      public shouldComponentUpdate(prevProps: Riact.TObject): boolean {
         const { virtualNode: { attributes: curProps } }: PureComponent = this;
         if (!prevProps) {
           return true;
@@ -42,11 +42,11 @@ export default class Component implements common.IComponent {
     this.virtualNode.el = this;
   }
   
-  protected shouldComponentUpdate(prevProps?: common.TObject): boolean {
+  protected shouldComponentUpdate(prevProps?: Riact.TObject): boolean {
     return true;
   }
   
-  public renderDom(prevProps: common.TObject): void {
+  public renderDom(prevProps: Riact.TObject): void {
     if (!this.shouldComponentUpdate(prevProps)) {
       return;
     }
@@ -88,7 +88,7 @@ export default class Component implements common.IComponent {
   
   public virtualNode: VirtualNode;
   public readonly context: Context;
-  public readonly render: common.TFuncComponent;
+  public readonly render: Riact.TFuncComponent;
   public getContext(): Context {
     return this.context;
   }

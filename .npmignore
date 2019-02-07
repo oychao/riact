@@ -9,3 +9,4 @@ package-lock.json
 rollup.config.js
 yarn*
 .rpt2_cache
+demo

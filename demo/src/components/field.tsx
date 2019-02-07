@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState } from 'riact';
 
-const Field = function(props: common.TObject): JSX.Element {
+const Field = function(props: Riact.TObject): JSX.Element {
   const [ refInput ] = useState(React.createRef());
   const [ value, setValue ] = useState('');
   return (

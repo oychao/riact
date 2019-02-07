@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'riact';
 
 const la = [{
   name: 'Andre Medina',
@@ -31,7 +31,7 @@ const lb = [{
   email: 'luz@bufepop.ca'
 }];
 
-const List = React.memo(function(props: common.TObject): JSX.Element {
+const List = React.memo(function(props: Riact.TObject): JSX.Element {
   const [ listValue, setListValue ] = useState(la);
 
   setTimeout(() => {
