@@ -364,6 +364,7 @@ class VirtualNode implements JSX.Element {
       this.attributes.children = children;
       this.children = [];
       el = new TargetComponent(context, this);
+      el.renderDom(null);
       return this;
     } else if (this.isTextNode()) {
       el = document.createTextNode(this.value) as Text;
@@ -462,7 +463,7 @@ class VirtualNode implements JSX.Element {
         const isDomNode: boolean = node.isTaggedDomNode();
         const isCompNode: boolean = node.isComponentNode();
         if (isDomNode || isCompNode) {
-          const prevProps: common.TObject = node.attributes;
+          const prevProps: common.TObject = Object.assign({}, node.attributes);
           const { attributes, events }: common.TPatchUpdatePropsPayload = node.patch.payload as common.TPatchUpdatePropsPayload;
           for (const key in attributes as common.TObject) {
             if (attributes.hasOwnProperty(key)) {
@@ -478,7 +479,7 @@ class VirtualNode implements JSX.Element {
             }
           }
           if (isCompNode) {
-            (node.el as Component).update(prevProps);
+            (node.el as Component).renderDom(prevProps);
           } else if (isDomNode) {
             for (const key in events) {
               if (events.hasOwnProperty(key)) {

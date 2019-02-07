@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import ThemeContext, { themes } from '../context/theme';
+import Button from './button';
 import Count from './count';
 import Field from './field';
 import List from './list';
@@ -8,6 +9,9 @@ import List from './list';
 const App = function(props: common.TStrValObject): JSX.Element {
   const [ routeIndex, setRouteIndex ] = useState(0);
   const [ count, setCount ] = useState(1);
+  const [ theme, setTheme ] = useState({
+    theme: themes.light
+  });
   
   const RouteComponents: Array<JSX.Element> = [
     <List></List>,
@@ -17,8 +21,16 @@ const App = function(props: common.TStrValObject): JSX.Element {
 
   return (
     <div color={props.color}>
-      <ThemeContext.Provider value={themes.light}>
+      <ThemeContext.Provider value={theme}>
         <h1>Hello My-React</h1>
+        <div>
+          <Button onClick={(e: Event): void => {
+            setTheme({
+              theme: theme.theme === themes.light ? themes.dark : themes.light
+            });
+            e.preventDefault();
+          }}>ToggleTheme</Button>
+        </div>
         <div>
           <a href="javascript:;" onClick={(e: Event) => {
             setRouteIndex(0);

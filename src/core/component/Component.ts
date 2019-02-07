@@ -8,9 +8,6 @@ export default class Component implements common.IComponent {
   private initialized: boolean;
   private stateHookIndex: number;
   
-  protected beforeInitialize: () => void = null;
-  protected shouldComponentUpdate: (prevProps: common.TObject) => boolean = null;
-  
   constructor(context: Context, virtualNode: VirtualNode) {
     this.context = context;
     this.stateHooks = [];
@@ -19,20 +16,20 @@ export default class Component implements common.IComponent {
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
-    if (this.beforeInitialize) {
-      this.beforeInitialize();
-    }
-    this.update(null);
-    this.initialized = true;
   }
   
-  public update(prevProps: common.TObject): void {
-    if (this.shouldComponentUpdate && !this.shouldComponentUpdate(prevProps)) {
+  protected shouldComponentUpdate(prevProps?: common.TObject) {
+    return true;
+  }
+  
+  public renderDom(prevProps: common.TObject): void {
+    if (!this.shouldComponentUpdate(prevProps)) {
       return;
     }
     StaticContext.setCurrentInstance(this);
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
+    this.initialized = true;
     // mount sub virtual dom tree to global virtual dom tree
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
@@ -55,7 +52,7 @@ export default class Component implements common.IComponent {
       }
       Promise.resolve().then(() => {
         stateHooks[stateHookIndex] = newState;
-        this.update(null);
+        this.renderDom(null);
         this.virtualNode.children[0].reconcile();
       });
     } ];
