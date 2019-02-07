@@ -2,5 +2,6 @@
 .rpt2_cache
 node_modules
 bin
-demo/dist
 yarn*
+demo/dist
+demo/yarn*
