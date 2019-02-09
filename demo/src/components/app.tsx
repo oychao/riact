@@ -20,7 +20,7 @@ const App = function(props: Riact.TStrValObject): JSX.Element {
   ];
 
   return (
-    <div color={props.color}>
+    <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
         <h1>Hello My-React</h1>
         <div>

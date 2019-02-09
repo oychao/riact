@@ -78,11 +78,11 @@ class VirtualNode implements JSX.Element {
         return;
       } else if (key === STYLE_NAME) {
         if (_.isPlainObject(value)) {
-          vNode.attributes[key] = value;
+          vNode.attributes[STYLE_NAME] = value;
         }
         return;
       } else if (key === KEY_NAME) {
-        vNode.key = value as string;
+        vNode[KEY_NAME] = value as string;
         return;
       }
       
@@ -92,7 +92,11 @@ class VirtualNode implements JSX.Element {
       
       if (_.isString(value)) {
         vNode.attributes[key] = value as string;
-      } else if (_.isPlainObject(value) || _.isArray(value)) {
+      } else if (_.isArray(value)) {
+        if (vNode.isComponentNode() || vNode.isTaggedDomNode() && key === CLASS_NAME) {
+          vNode.attributes[key] = value;
+        }
+      } else if (_.isPlainObject(value)) {
         if (vNode.isComponentNode()) {
           vNode.attributes[key] = value;
         }
@@ -383,7 +387,9 @@ class VirtualNode implements JSX.Element {
               el.className = value;
             } else if (_.isArray(value)) {
               value.forEach((cls: string): void => {
-                (el as HTMLElement).classList.add(cls);
+                if (_.isString(cls)) {
+                  (el as HTMLElement).classList.add(cls);
+                }
               });
             }
           } else if (key === STYLE_NAME) {

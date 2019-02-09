@@ -8,10 +8,10 @@ const Count = function(props: Riact.TObject): JSX.Element {
     <div>
       <Button onClick={(e: Event): void => {
         setCount(count - 1);
-      }} className={['app-red']}>-</Button>
+      }}>-</Button>
       <Button onClick={(e: Event): void => {
         setCount(count + 1);
-      }} className={['app-red']}>+</Button>
+      }}>+</Button>
       <br/>
       <span>{count}</span>
     </div>
