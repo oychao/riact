@@ -12,11 +12,12 @@ Currently function component supported only.
 
 ```javascript
 // ./Count.jsx
-import React, { useState } from 'riact';
+import React, { useState, useEffect } from 'riact';
 
 const Count = function() {
   const [ value, setValue ] = useState(0); // exactly like hooks in React 16.8.
   setTimeout(setValue, 1e3, value + 1); // be careful when using hooks in timer function, it's kind of tricky.
+  useEffect(() => void (console.log(value))); // useEffect basic usage
   return (
     <div>
       <p>{value}</p>
@@ -38,11 +39,12 @@ ReactDom.render(<Count></Count>, document.querySelector('#app'));
 ## Supported Feature / API
 
 1. useState(initStateValue);
-2. React.createRef();
-3. React.createContext(initContextValue);
+2. useEffect(effectCallback);
+3. React.createRef();
+4. React.createContext(initContextValue);
    1. Context.Provider
    2. Context.Consumer
-4. React.memo(FunctionComponent);
+5. React.memo(FunctionComponent);
 
 # FYI
 
