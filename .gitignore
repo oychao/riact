@@ -2,6 +2,8 @@
 .rpt2_cache
 node_modules
 bin
+package-lock.json
 yarn*
 demo/dist
+demo/package-lock.json
 demo/yarn*
