@@ -1,8 +1,12 @@
-import React, { useState } from 'riact';
+import React, { useState, useEffect } from 'riact';
 
 const Field = function(props: Riact.TObject): JSX.Element {
   const [ refInput ] = useState(React.createRef());
   const [ value, setValue ] = useState('');
+  // basic effect usage
+  useEffect(() => {
+    console.log(value);
+  });
   return (
     <div>
       <input ref={refInput} onInput={(e: Event): void => {

@@ -1,13 +1,16 @@
 export const latentSet = function(target: any, name: string, value: any): void {
-  Object.defineProperty(target, name, {
-    value,
-    enumerable: false
-  });
+  if (!target.hasOwnProperty(name)) {
+    Object.defineProperty(target, name, {
+      value,
+      enumerable: false,
+      configurable: false
+    });
+  }
 };
 
 export const applyMixins = function (derivedCtor: any, baseCtors: Array<any>): void {
   baseCtors.forEach((baseCtor: any): void => {
-    Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name: string): void => {
       latentSet(derivedCtor.prototype, name, baseCtor.prototype[name]);
     });
   });
@@ -83,9 +86,9 @@ export const omit = function(object: Riact.TObject, keys: string | Array<string>
   return result;
 }
 
-export const flatten = function(arr: Array<any>): Array<any> {
+export const flattenArray = function(arr: Array<any>): Array<any> {
   return arr.reduce((acc: Array<any>, sub: any): Array<any> => {
-    return acc.concat(isArray(sub) ? flatten(sub) : sub);
+    return acc.concat(isArray(sub) ? flattenArray(sub) : sub);
   }, []);
 };
 

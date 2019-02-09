@@ -29,12 +29,14 @@ export default class Component implements Riact.IComponent {
   };
   
   private readonly stateHooks: Array<any>;
+  private effectHooks: Array<Riact.TFunction>;
   private initialized: boolean;
   private stateHookIndex: number;
   
   constructor(context: Context, virtualNode: VirtualNode) {
     this.context = context;
     this.stateHooks = [];
+    this.effectHooks = [];
     this.initialized = false;
     this.virtualNode = virtualNode;
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
@@ -51,6 +53,7 @@ export default class Component implements Riact.IComponent {
       return;
     }
     StaticContext.setCurrentInstance(this);
+    this.effectHooks = [];
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
     this.initialized = true;
@@ -58,6 +61,9 @@ export default class Component implements Riact.IComponent {
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
     this.virtualNode.children[0].reconcile();
+    for (const effect of this.effectHooks) {
+      effect.call(this);
+    }
     StaticContext.clearCurrentInstance();
   }
   
@@ -80,6 +86,10 @@ export default class Component implements Riact.IComponent {
         this.virtualNode.children[0].reconcile();
       });
     } ];
+  }
+  
+  public useEffect(effect: Riact.TFunction): void {
+    this.effectHooks.push(effect);
   }
   
   public unmount() {
