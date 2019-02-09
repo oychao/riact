@@ -15,6 +15,7 @@ export default class Riact extends Context implements Riact.IComponent {
   public static createRef = domUtils.createRef;
   public static memo = Component.memo;
   public static useState = StaticContext.useState;
+  public static useEffect = StaticContext.useEffect;
 
   public static render(virtualNode: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
@@ -57,3 +58,4 @@ export default class Riact extends Context implements Riact.IComponent {
 }
 
 export const useState = StaticContext.useState;
+export const useEffect = StaticContext.useEffect;
