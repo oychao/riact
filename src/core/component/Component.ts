@@ -30,6 +30,8 @@ export default class Component implements Riact.IComponent {
   
   private readonly stateHooks: Array<any>;
   private effectHooks: Array<Riact.TFunction>;
+  private prevEffectRelativeStates: Array<Array<any>>;
+  private currEffectRelativeStates: Array<Array<any>>;
   private initialized: boolean;
   private stateHookIndex: number;
   
@@ -37,6 +39,8 @@ export default class Component implements Riact.IComponent {
     this.context = context;
     this.stateHooks = [];
     this.effectHooks = [];
+    this.prevEffectRelativeStates = [];
+    this.currEffectRelativeStates = [];
     this.initialized = false;
     this.virtualNode = virtualNode;
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
@@ -47,6 +51,17 @@ export default class Component implements Riact.IComponent {
   protected shouldComponentUpdate(prevProps?: Riact.TObject): boolean {
     return true;
   }
+
+  private callEffectHooks() {
+    for (let i = 0; i < this.effectHooks.length; i++) {
+      const prevState: Array<any> = this.prevEffectRelativeStates[i];
+      const currState: Array<any> = this.currEffectRelativeStates[i];
+      const effect: Riact.TFunction = this.effectHooks[i];
+      if (!this.initialized || prevState.length !== currState.length || !prevState.length || !_.isEqualArray(currState, prevState)) {
+        effect.call(this);
+      }
+    }
+  }
   
   public renderDom(prevProps: Riact.TObject): void {
     if (!this.shouldComponentUpdate(prevProps)) {
@@ -54,17 +69,17 @@ export default class Component implements Riact.IComponent {
     }
     StaticContext.setCurrentInstance(this);
     this.effectHooks = [];
+    this.prevEffectRelativeStates = this.currEffectRelativeStates;
+    this.currEffectRelativeStates = [];
     this.stateHookIndex = 0;
     const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
-    this.initialized = true;
     // mount sub virtual dom tree to global virtual dom tree
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
     this.virtualNode.children[0].reconcile();
-    for (const effect of this.effectHooks) {
-      effect.call(this);
-    }
+    this.callEffectHooks();
     StaticContext.clearCurrentInstance();
+    this.initialized = true;
   }
   
   public useStateHook<T>(state: T): [ T, (newState: T) => void ] {
@@ -88,8 +103,9 @@ export default class Component implements Riact.IComponent {
     } ];
   }
   
-  public useEffect(effect: Riact.TFunction): void {
+  public useEffect(effect: Riact.TFunction, relativeState: Array<any>): void {
     this.effectHooks.push(effect);
+    this.currEffectRelativeStates.push(relativeState);
   }
   
   public unmount() {

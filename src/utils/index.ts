@@ -67,6 +67,18 @@ export const isEqualObject = function(object: Riact.TObject, other: Riact.TObjec
   return false;
 };
 
+export const isEqualArray = function(array: Array<any>, other: Array<any>) {
+  if (isArray(array) && isArray(other) && array.length === other.length) {
+    for (let i = 0; i < array.length; i++) {
+      if (!Object.is(array[i], other[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+};
+
 export const pick = function(object: Riact.TObject, keys: string | Array<string>): Riact.TObject {
   keys = isString(keys) ? (keys as string).split(' ') : keys;
   return (keys as Array<string>).reduce((acc: Riact.TObject, key: string): Riact.TObject  => {
