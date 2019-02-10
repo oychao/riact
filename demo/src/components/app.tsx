@@ -5,48 +5,55 @@ import Button from './button';
 import Count from './count';
 import Field from './field';
 import List from './list';
+import InputModel from './model';
+import useRouter from '../hooks/useRouter';
 
 const App = function(props: Riact.TStrValObject): JSX.Element {
-  const [ routeIndex, setRouteIndex ] = useState(0);
-  const [ count, setCount ] = useState(1);
-  const [ theme, setTheme ] = useState({
+  const [count, setCount] = useState(1);
+
+  const routerHook = useRouter([
+    {
+      name: 'Field',
+      component: Field
+    },
+    {
+      name: 'InputModel',
+      component: InputModel
+    },
+    {
+      name: 'Count',
+      component: Count,
+      props: {
+        stateCount: [count, setCount]
+      }
+    },
+    {
+      name: 'List',
+      component: List
+    }
+  ]);
+  const [theme, setTheme] = useState({
     theme: themes.light
   });
-  
-  const RouteComponents: Array<JSX.Element> = [
-    <Field></Field>,
-    <Count stateCount={[ count, setCount ]} ></Count>,
-    <List></List>,
-  ];
-  
+
   return (
     <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
         <h1>Hello World</h1>
         <div>
-          <Button onClick={(): void => {
-            setTheme({
-              theme: theme.theme === themes.light ? themes.dark : themes.light
-            });
-          }}>ToggleTheme</Button>
+          <Button
+            onClick={(): void => {
+              setTheme({
+                theme: theme.theme === themes.light ? themes.dark : themes.light
+              });
+            }}
+          >
+            Toggle Theme
+          </Button>
         </div>
-        <div>
-          <a href="javascript:;" onClick={() => {
-            setRouteIndex(0);
-          }}>Field</a>
-          &nbsp;
-          <a href="javascript:;" onClick={() => {
-            setRouteIndex(1);
-          }}>Count</a>
-          &nbsp;
-          <a href="javascript:;" onClick={() => {
-            setRouteIndex(2);
-          }}>List</a>
-        </div>
-        <hr/>
-        <div>
-          {RouteComponents[routeIndex]}
-        </div>
+        <div>{routerHook.links}</div>
+        <hr />
+        <div>{routerHook.activeComp}</div>
       </ThemeContext.Provider>
     </div>
   );
