@@ -1,3 +1,5 @@
+import * as _ from '../../utils/index';
+
 import Component from "../component/Component";
 
 interface IStaticContext {
@@ -21,6 +23,7 @@ const StaticContext: IStaticContext = {
     return StaticContext.currentInstance.useStateHook(state);
   },
   useEffect(effect: Riact.TFunction, relativeState: Array<any> = []): void {
+    _.warning(_.isArray(relativeState), 'relative state should be an array');
     return StaticContext.currentInstance.useEffect(effect, relativeState);
   }
 };

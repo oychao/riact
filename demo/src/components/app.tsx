@@ -18,11 +18,11 @@ const App = function(props: Riact.TStrValObject): JSX.Element {
     <Count stateCount={[ count, setCount ]} ></Count>,
     <List></List>,
   ];
-
+  
   return (
     <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
-        <h1>Hello My-React</h1>
+        <h1>Hello World</h1>
         <div>
           <Button onClick={(): void => {
             setTheme({
