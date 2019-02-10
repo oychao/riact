@@ -2,11 +2,13 @@
 
 A simplified React-like MVVM framework.
 
-# How to use
+[![Build Status](https://travis-ci.org/oychao/riact.svg?branch=master)](https://travis-ci.org/oychao/riact)
+
+## How to use
 
 Check the [demo][1] above.
 
-## Component
+### Component
 
 Currently function component supported only.
 
@@ -36,22 +38,23 @@ import Count from './Count';
 ReactDom.render(<Count></Count>, document.querySelector('#app'));
 ```
 
-## Supported Feature / API
+### Supported Feature / API
 
 1. useState(initStateValue);
 2. useEffect(effectCallback);
-3. React.createRef();
-4. React.createContext(initContextValue);
+3. useContext(contextComp);
+4. React.createRef();
+5. React.createContext(initContextValue);
    1. Context.Provider
    2. Context.Consumer
-5. React.memo(FunctionComponent);
+6. React.memo(FunctionComponent);
 
-# FYI
+## FYI
 
 **NOTE**: Riact is just for learning modern MVVM framework, it's easy and simple, so DO NOT use it in complex application development, or I wish you LUCK.
 
-# LICENCE
+## LICENCE
 
-[![](http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-badge-4.png)](http://www.wtfpl.net/)
+[GLWTPL](https://github.com/me-shaon/GLWTPL)
 
 [1]: https://github.com/oychao/riact/tree/master/demo

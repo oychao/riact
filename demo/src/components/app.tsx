@@ -18,28 +18,28 @@ const App = function(props: Riact.TStrValObject): JSX.Element {
     <Count stateCount={[ count, setCount ]} ></Count>,
     <List></List>,
   ];
-
+  
   return (
     <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
-        <h1>Hello My-React</h1>
+        <h1>Hello World</h1>
         <div>
-          <Button onClick={(e: Event): void => {
+          <Button onClick={(): void => {
             setTheme({
               theme: theme.theme === themes.light ? themes.dark : themes.light
             });
           }}>ToggleTheme</Button>
         </div>
         <div>
-          <a href="javascript:;" onClick={(e: Event) => {
+          <a href="javascript:;" onClick={() => {
             setRouteIndex(0);
           }}>Field</a>
           &nbsp;
-          <a href="javascript:;" onClick={(e: Event) => {
+          <a href="javascript:;" onClick={() => {
             setRouteIndex(1);
           }}>Count</a>
           &nbsp;
-          <a href="javascript:;" onClick={(e: Event) => {
+          <a href="javascript:;" onClick={() => {
             setRouteIndex(2);
           }}>List</a>
         </div>

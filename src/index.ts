@@ -9,13 +9,13 @@ import StaticContext from './core/context/StaticContext';
 import Component from './core/component/Component';
 
 export default class Riact extends Context implements Riact.IComponent {
-  
   public static createContext = Context.createContext;
   public static createElement = VirtualNode.createElement;
   public static createRef = domUtils.createRef;
   public static memo = Component.memo;
   public static useState = StaticContext.useState;
   public static useEffect = StaticContext.useEffect;
+  public static useContext = StaticContext.useContext;
 
   public static render(virtualNode: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
@@ -59,3 +59,4 @@ export default class Riact extends Context implements Riact.IComponent {
 
 export const useState = StaticContext.useState;
 export const useEffect = StaticContext.useEffect;
+export const useContext = StaticContext.useContext;
