@@ -1,5 +1,5 @@
 import * as _ from '../../utils/index';
-import Context from '../context/Context';
+import Context, { IContextComponent, IContextProvider, IContextConsumer } from '../context/Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 
@@ -29,6 +29,7 @@ export default class Component implements Riact.IComponent {
   };
   
   private readonly stateHooks: Array<any>;
+  private readonly contextCompMap: WeakMap<IContextComponent, IContextProvider>;
   private prevEffectHooks: Array<Riact.TFunction>;
   private currEffectHooks: Array<Riact.TFunction>;
   private prevEffectRelativeStates: Array<Array<any>>;
@@ -36,10 +37,12 @@ export default class Component implements Riact.IComponent {
   private effectCleanups: Array<Riact.TFunction>;
   private initialized: boolean;
   private stateHookIndex: number;
+  public afterUnmount: Riact.TFunction;
   
   constructor(context: Context, virtualNode: VirtualNode) {
     this.context = context;
     this.stateHooks = [];
+    this.contextCompMap = new WeakMap<IContextComponent, IContextProvider>();
     this.currEffectHooks = [];
     this.currEffectRelativeStates = [];
     this.effectCleanups = [];
@@ -76,6 +79,10 @@ export default class Component implements Riact.IComponent {
         callback.call(this);
       }
     }
+  }
+  
+  public getContextCompMap(): WeakMap<IContextComponent, IContextProvider> {
+    return this.contextCompMap;
   }
   
   public renderDom(prevProps: Riact.TObject): void {
@@ -131,8 +138,17 @@ export default class Component implements Riact.IComponent {
   }
   
   public unmount() {
+    _.dfsWalk(this.virtualNode, 'children', (node: VirtualNode) => {
+      if (node.el && node.el instanceof Component && node !== this.virtualNode) {
+        (node.el as Component).unmount();
+      }
+      return true;
+    });
     this.callEffectCleanups();
     this.virtualNode = null;
+    if (_.isFunction(this.afterUnmount)) {
+      this.afterUnmount();
+    }
   }
   
   public virtualNode: VirtualNode;
