@@ -42,11 +42,12 @@ ReactDom.render(<Count></Count>, document.querySelector('#app'));
 
 1. useState(initStateValue);
 2. useEffect(effectCallback);
-3. React.createRef();
-4. React.createContext(initContextValue);
+3. useContext(contextComp);
+4. React.createRef();
+5. React.createContext(initContextValue);
    1. Context.Provider
    2. Context.Consumer
-5. React.memo(FunctionComponent);
+6. React.memo(FunctionComponent);
 
 ## FYI
 
