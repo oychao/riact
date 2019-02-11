@@ -14,7 +14,7 @@ export const applyMixins = function (derivedCtor: any, baseCtors: Array<any>): v
       latentSet(derivedCtor.prototype, name, baseCtor.prototype[name]);
     });
   });
-}
+};
 
 export const warning = function(condition: boolean, message: string): void {
   if (!condition) {
@@ -96,7 +96,7 @@ export const omit = function(object: Riact.TObject, keys: string | Array<string>
     delete result[key];
   });
   return result;
-}
+};
 
 export const flattenArray = function(arr: Array<any>): Array<any> {
   return arr.reduce((acc: Array<any>, sub: any): Array<any> => {

@@ -32,6 +32,7 @@ const FieldStore = function(props: Riact.TObject): JSX.Element {
           type: 'ADD',
           payload: inputHook.value
         });
+        inputHook.setValue('');
       }}>Add</Button>
       <Button onClick={() => {
         dispatch({

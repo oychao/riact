@@ -13,6 +13,7 @@ import {
   CLASS_NAME_PRESERVED,
   KEY_NAME,
   REF_NAME,
+  VALUE_NAME,
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -478,6 +479,8 @@ class VirtualNode implements JSX.Element {
               if (isDomNode) {
                 if (key === STYLE_NAME) {
                   loadStyle(node.el as HTMLElement, value);
+                } else if (key === VALUE_NAME) {
+                  (node.el as HTMLInputElement).value = value;
                 } else {
                   (node.el as HTMLElement).setAttribute(key, value);
                 }
