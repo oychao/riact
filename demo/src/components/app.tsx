@@ -3,50 +3,62 @@ import React, { useState } from 'riact';
 import ThemeContext, { themes } from '../context/theme';
 import Button from './button';
 import Count from './count';
-import Field from './field';
+import FieldBasic from './fieldBasic';
 import List from './list';
+import FieldModel from './fieldModel';
+import useRouter from '../hooks/useRouter';
+import FieldStore from './fieldStore';
 
 const App = function(props: Riact.TStrValObject): JSX.Element {
-  const [ routeIndex, setRouteIndex ] = useState(0);
-  const [ count, setCount ] = useState(1);
-  const [ theme, setTheme ] = useState({
+  const [count, setCount] = useState(1);
+
+  const routerHook = useRouter([
+    {
+      name: 'FieldBasic',
+      component: FieldBasic
+    },
+    {
+      name: 'FieldModel',
+      component: FieldModel
+    },
+    {
+      name: 'FieldStore',
+      component: FieldStore
+    },
+    {
+      name: 'Count',
+      component: Count,
+      props: {
+        stateCount: [count, setCount]
+      }
+    },
+    {
+      name: 'List',
+      component: List
+    }
+  ]);
+  const [theme, setTheme] = useState({
     theme: themes.light
   });
-  
-  const RouteComponents: Array<JSX.Element> = [
-    <Field></Field>,
-    <Count stateCount={[ count, setCount ]} ></Count>,
-    <List></List>,
-  ];
 
   return (
-    <div color={props.color}>
+    <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
-        <h1>Hello My-React</h1>
+        <h1>Hello World</h1>
         <div>
-          <Button onClick={(e: Event): void => {
-            setTheme({
-              theme: theme.theme === themes.light ? themes.dark : themes.light
-            });
-          }}>ToggleTheme</Button>
+          <Button
+            onClick={(): void => {
+              setTheme({
+                theme: theme.theme === themes.light ? themes.dark : themes.light
+              });
+            }}
+          >
+            Toggle Theme
+          </Button>
         </div>
-        <div>
-          <a href="javascript:;" onClick={(e: Event) => {
-            setRouteIndex(0);
-          }}>Field</a>
-          &nbsp;
-          <a href="javascript:;" onClick={(e: Event) => {
-            setRouteIndex(1);
-          }}>Count</a>
-          &nbsp;
-          <a href="javascript:;" onClick={(e: Event) => {
-            setRouteIndex(2);
-          }}>List</a>
-        </div>
-        <hr/>
-        <div>
-          {RouteComponents[routeIndex]}
-        </div>
+        <div>{routerHook.links}</div>
+        <hr />
+        <div>{routerHook.activeComp}</div>
       </ThemeContext.Provider>
     </div>
   );

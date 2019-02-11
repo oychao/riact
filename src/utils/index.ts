@@ -1,17 +1,20 @@
 export const latentSet = function(target: any, name: string, value: any): void {
-  Object.defineProperty(target, name, {
-    value,
-    enumerable: false
-  });
+  if (!target.hasOwnProperty(name)) {
+    Object.defineProperty(target, name, {
+      value,
+      enumerable: false,
+      configurable: false
+    });
+  }
 };
 
 export const applyMixins = function (derivedCtor: any, baseCtors: Array<any>): void {
   baseCtors.forEach((baseCtor: any): void => {
-    Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name: string): void => {
       latentSet(derivedCtor.prototype, name, baseCtor.prototype[name]);
     });
   });
-}
+};
 
 export const warning = function(condition: boolean, message: string): void {
   if (!condition) {
@@ -64,6 +67,18 @@ export const isEqualObject = function(object: Riact.TObject, other: Riact.TObjec
   return false;
 };
 
+export const isEqualArray = function(array: Array<any>, other: Array<any>) {
+  if (isArray(array) && isArray(other) && array.length === other.length) {
+    for (let i = 0; i < array.length; i++) {
+      if (!Object.is(array[i], other[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+};
+
 export const pick = function(object: Riact.TObject, keys: string | Array<string>): Riact.TObject {
   keys = isString(keys) ? (keys as string).split(' ') : keys;
   return (keys as Array<string>).reduce((acc: Riact.TObject, key: string): Riact.TObject  => {
@@ -81,11 +96,11 @@ export const omit = function(object: Riact.TObject, keys: string | Array<string>
     delete result[key];
   });
   return result;
-}
+};
 
-export const flatten = function(arr: Array<any>): Array<any> {
+export const flattenArray = function(arr: Array<any>): Array<any> {
   return arr.reduce((acc: Array<any>, sub: any): Array<any> => {
-    return acc.concat(isArray(sub) ? flatten(sub) : sub);
+    return acc.concat(isArray(sub) ? flattenArray(sub) : sub);
   }, []);
 };
 
