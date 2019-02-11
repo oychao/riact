@@ -51,7 +51,7 @@ ReactDom.render(<Count></Count>, document.querySelector('#app'));
 
 ## FYI
 
-**NOTE**: Riact is just for learning modern MVVM framework, it's easy and simple, so DO NOT use it in complex application development, or I wish you LUCK.
+**NOTE**: Riact is just for learning, it's easy and simple so DO NOT use it to develop complex application, otherwise I wish you LUCK.
 
 ## LICENCE
 

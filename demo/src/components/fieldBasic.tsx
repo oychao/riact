@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'riact';
 
-const Field = function(props: Riact.TObject): JSX.Element {
+const FieldBasic = function(props: Riact.TObject): JSX.Element {
   const [ refInput ] = useState(React.createRef());
   const [ value, setValue ] = useState('123');
   // basic effect usage
@@ -21,4 +21,4 @@ const Field = function(props: Riact.TObject): JSX.Element {
   );
 };
 
-export default Field;
+export default FieldBasic;

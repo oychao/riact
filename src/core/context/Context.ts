@@ -41,8 +41,8 @@ abstract class Context implements Riact.IContext {
         };
       }
       public renderDom(prevProps: Riact.TObject): void {
-        super.renderDom(prevProps);
         this.value = this.virtualNode.attributes.value;
+        super.renderDom(prevProps);
         if (!prevProps || !Object.is(prevProps.value, this.value)) {
           for (const decendantConsumer of this.decendantConsumers) {
             decendantConsumer.renderDom(prevProps);
