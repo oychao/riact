@@ -4,6 +4,7 @@ export const STYLE_NAME: string = 'style';
 export const REF_NAME: string = 'ref';
 export const KEY_NAME: string = 'key';
 export const VALUE_NAME: string = 'value';
+export const CHILDREN_NAME: string = 'children';
 
 export const EVENT_NAME_PREFIX: string = 'on';
 

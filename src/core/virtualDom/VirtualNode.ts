@@ -14,6 +14,7 @@ import {
   KEY_NAME,
   REF_NAME,
   VALUE_NAME,
+  CHILDREN_NAME,
 } from '../../constants/index';
 import Component from '../component/Component';
 import Context from '../context/Context';
@@ -309,7 +310,7 @@ class VirtualNode implements JSX.Element {
       return [];
     }
     const htmlDoms: Array<Node> = [];
-    _.dfsWalk(this, 'children', (child: VirtualNode): boolean => {
+    _.dfsWalk(this, CHILDREN_NAME, (child: VirtualNode): boolean => {
       let subNodes: Array<Node> = [];
       if (child.isTaggedDomNode() || child.isTextNode()) {
         htmlDoms.push(child.el as Node);
@@ -417,7 +418,7 @@ class VirtualNode implements JSX.Element {
   
   public renderTreeDom(): void {
     if (_.isArray(this.children)) {
-      _.dfsWalk(this, 'children', (offspring: VirtualNode): boolean => {
+      _.dfsWalk(this, CHILDREN_NAME, (offspring: VirtualNode): boolean => {
         offspring.renderDom();
         return !offspring.isComponentNode();
       });
@@ -447,7 +448,7 @@ class VirtualNode implements JSX.Element {
   }
   
   public reconcile(): void {
-    _.dfsWalk(this, 'children', (node: VirtualNode): boolean => {
+    _.dfsWalk(this, CHILDREN_NAME, (node: VirtualNode): boolean => {
       if (_.isNull(node.patch) || _.isUndefined(node.patch)) {
         return true;
       }
