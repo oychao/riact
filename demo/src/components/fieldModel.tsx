@@ -1,7 +1,7 @@
 import React from 'riact';
 import useInput from 'src/hooks/useInput';
 
-const InputModel = function(props: Riact.TObject): JSX.Element {
+const FieldModel = function(props: Riact.TObject): JSX.Element {
   const inputHook = useInput('');
   return (
     <div>
@@ -11,4 +11,4 @@ const InputModel = function(props: Riact.TObject): JSX.Element {
   );
 };
 
-export default InputModel;
+export default FieldModel;

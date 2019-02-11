@@ -3,22 +3,27 @@ import React, { useState } from 'riact';
 import ThemeContext, { themes } from '../context/theme';
 import Button from './button';
 import Count from './count';
-import Field from './field';
+import FieldBasic from './fieldBasic';
 import List from './list';
-import InputModel from './model';
+import FieldModel from './fieldModel';
 import useRouter from '../hooks/useRouter';
+import FieldStore from './fieldStore';
 
 const App = function(props: Riact.TStrValObject): JSX.Element {
   const [count, setCount] = useState(1);
 
   const routerHook = useRouter([
     {
-      name: 'Field',
-      component: Field
+      name: 'FieldBasic',
+      component: FieldBasic
     },
     {
-      name: 'InputModel',
-      component: InputModel
+      name: 'FieldModel',
+      component: FieldModel
+    },
+    {
+      name: 'FieldStore',
+      component: FieldStore
     },
     {
       name: 'Count',

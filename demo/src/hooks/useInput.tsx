@@ -1,11 +1,6 @@
 import { useState } from 'riact';
 
-type TInputHook = {
-  value: string | number;
-  onInput: (e: Event) => void;
-};
-
-const useInput = function(initValue: string | number): TInputHook {
+const useInput = function(initValue: string | number) {
   const [value, setValue] = useState(initValue);
   const onInput = function(e: Event) {
     setValue((e.target as HTMLInputElement).value);
@@ -14,7 +9,8 @@ const useInput = function(initValue: string | number): TInputHook {
 
   return {
     value,
-    onInput
+    onInput,
+    setValue
   };
 };
 
