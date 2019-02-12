@@ -1,64 +1,72 @@
 declare namespace Riact {
   export type TFuncComponent = (props: any) => JSX.Element;
   export type TPatch = {
-    action: Symbol,
-    payload: JSX.Element | {
-      attributes: TObject,
-      events: TFuncValObject
-    } | {
-      index: number,
-      item?: JSX.Element
-    } | Array<TPatch>
+    action: Symbol;
+    payload:
+      | JSX.Element
+      | {
+          attributes: TObject;
+          events: TFuncValObject;
+        }
+      | {
+          index: number;
+          item?: JSX.Element;
+        }
+      | Array<TPatch>;
   };
   export type TPatchUpdatePropsPayload = {
-    attributes: TObject,
-    events: TFuncValObject
+    attributes: TObject;
+    events: TFuncValObject;
   };
   export type TPatchInsertPayload = {
-    index: number,
-    item: JSX.Element
+    index: number;
+    item: JSX.Element;
   };
   export type TPatchRemovePayload = {
-    index: number
+    index: number;
   };
   export type TPatchTree = {
-    [key: string]: TPatch
+    [key: string]: TPatch;
   };
   export type TObject = {
-    [key: string]: any
+    [key: string]: any;
   };
   export type TStrValObject = {
-    [key: string]: string
+    [key: string]: string;
   };
   export type TFunction = (...args: Array<any>) => any;
   export type TFuncValObject = {
-    [key: string]: TFunction
+    [key: string]: TFunction;
   };
   export type TRef = {
-    current: HTMLElement
+    current: HTMLElement;
   };
-  export interface IContext {}
+  export interface IAppContext {
+    pushDirtyComponent(comp: IComponent): void;
+    popDirtyComponent(): IComponent;
+    hasDirtyComponent(): boolean;
+  }
   export interface IComponent {
     virtualNode: JSX.Element;
-    context: IContext;
+    context: IAppContext;
     render: Riact.TFuncComponent;
-    getContext(): IContext;
+    getContext(): IAppContext;
   }
 }
 
 declare namespace JSX {
   export interface Element {
-    tagType: string | Riact.TFuncComponent,
-    attributes?: Riact.TObject,
-    children?: Array<Element>,
-    el?: Node | Riact.IComponent,
-    events?: Riact.TFuncValObject,
-    key?: string,
-    nextSibling?: Element,
-    parentNode?: Element,
+    tagType: string | Riact.TFuncComponent;
+    attributes?: Riact.TObject;
+    children?: Array<Element>;
+    el?: Node | Riact.IComponent;
+    events?: Riact.TFuncValObject;
+    key?: string;
+    nextSibling?: Element;
+    parentNode?: Element;
     patch?: Riact.TPatch;
     ref?: Riact.TRef;
-    reserved?: any,
-    value?: any,
+    reserved?: any;
+    value?: any;
   }
 }

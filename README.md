@@ -6,7 +6,7 @@ A simplified React-like MVVM framework.
 
 ## How to use
 
-Check the [demo][1] above.
+Check the [demo][1].
 
 ### Component
 

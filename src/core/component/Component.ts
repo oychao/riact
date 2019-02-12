@@ -1,5 +1,6 @@
 import * as _ from '../../utils/index';
-import Context, { IContextComponent, IContextProvider, IContextConsumer } from '../context/Context';
+import AppContext from '../context/AppContext';
+import { IContextComponent, IContextProvider } from '../context/Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 import { CHILDREN_NAME } from 'src/constants/index';
@@ -7,12 +8,14 @@ import { CHILDREN_NAME } from 'src/constants/index';
 export default class Component implements Riact.IComponent {
   public static memo(funcComp: Riact.TFuncComponent): Riact.TFuncComponent {
     (funcComp as Riact.TObject).clazz = class PureComponent extends Component {
-      constructor(context: Context, virtualNode: VirtualNode) {
+      constructor(context: AppContext, virtualNode: VirtualNode) {
         super(context, virtualNode);
       }
-      
+
       public shouldComponentUpdate(prevProps: Riact.TObject): boolean {
-        const { virtualNode: { attributes: curProps } }: PureComponent = this;
+        const {
+          virtualNode: { attributes: curProps }
+        }: PureComponent = this;
         if (!prevProps) {
           return true;
         }
@@ -21,7 +24,10 @@ export default class Component implements Riact.IComponent {
             continue;
           }
           if (curProps.hasOwnProperty(key)) {
-            if (!prevProps.hasOwnProperty(key) || !Object.is(curProps[key], prevProps[key])) {
+            if (
+              !prevProps.hasOwnProperty(key) ||
+              !Object.is(curProps[key], prevProps[key])
+            ) {
               return true;
             }
           }
@@ -30,8 +36,8 @@ export default class Component implements Riact.IComponent {
       }
     };
     return funcComp;
-  };
-  
+  }
+
   private readonly stateHooks: Array<any>;
   private readonly contextCompMap: WeakMap<IContextComponent, IContextProvider>;
   private prevEffectHooks: Array<Riact.TFunction>;
@@ -42,8 +48,8 @@ export default class Component implements Riact.IComponent {
   private initialized: boolean;
   private stateHookIndex: number;
   public afterUnmount: Riact.TFunction;
-  
-  constructor(context: Context, virtualNode: VirtualNode) {
+
+  constructor(context: AppContext, virtualNode: VirtualNode) {
     this.context = context;
     this.stateHooks = [];
     this.contextCompMap = new WeakMap<IContextComponent, IContextProvider>();
@@ -56,7 +62,7 @@ export default class Component implements Riact.IComponent {
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
   }
-  
+
   protected shouldComponentUpdate(prevProps?: Riact.TObject): boolean {
     return true;
   }
@@ -67,7 +73,12 @@ export default class Component implements Riact.IComponent {
       const currState: Array<any> = this.currEffectRelativeStates[i];
       const effect: Riact.TFunction = this.currEffectHooks[i];
       const prevCleanup: Riact.TFunction = this.effectCleanups[i];
-      if (!this.initialized || prevState.length !== currState.length || !prevState.length || !_.isEqualArray(currState, prevState)) {
+      if (
+        !this.initialized ||
+        prevState.length !== currState.length ||
+        !prevState.length ||
+        !_.isEqualArray(currState, prevState)
+      ) {
         if (_.isFunction(prevCleanup)) {
           prevCleanup.call(this);
         }
@@ -84,11 +95,11 @@ export default class Component implements Riact.IComponent {
       }
     }
   }
-  
+
   public getContextCompMap(): WeakMap<IContextComponent, IContextProvider> {
     return this.contextCompMap;
   }
-  
+
   public renderDom(prevProps: Riact.TObject): void {
     if (!this.shouldComponentUpdate(prevProps)) {
       return;
@@ -99,7 +110,9 @@ export default class Component implements Riact.IComponent {
     this.prevEffectRelativeStates = this.currEffectRelativeStates;
     this.currEffectRelativeStates = [];
     this.stateHookIndex = 0;
-    const newVirtualDom: VirtualNode = this.render(this.virtualNode.attributes) as VirtualNode;
+    const newVirtualDom: VirtualNode = this.render(
+      this.virtualNode.attributes
+    ) as VirtualNode;
     // mount sub virtual dom tree to global virtual dom tree
     newVirtualDom.parentNode = this.virtualNode;
     VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
@@ -108,8 +121,8 @@ export default class Component implements Riact.IComponent {
     StaticContext.clearCurrentInstance();
     this.initialized = true;
   }
-  
-  public useStateHook<T>(state: T): [ T, (newState: T) => void ] {
+
+  public useStateHook<T>(state: T): [T, (newState: T) => void] {
     let stateValue: T = state;
     const { stateHooks, stateHookIndex, initialized }: Component = this;
     if (initialized) {
@@ -118,32 +131,54 @@ export default class Component implements Riact.IComponent {
       stateHooks.push(state);
     }
     this.stateHookIndex++;
-    return [ stateValue, (newState: T): void => {
-      if (_.isNull(this.virtualNode)) {
-        return;
+    return [
+      stateValue,
+      (newState: T): void => {
+        if (_.isNull(this.virtualNode)) {
+          return;
+        }
+        Promise.resolve().then(() => {
+          stateHooks[stateHookIndex] = newState;
+          this.renderDom(null);
+          this.virtualNode.children[0].reconcile();
+        });
       }
-      Promise.resolve().then(() => {
-        stateHooks[stateHookIndex] = newState;
-        this.renderDom(null);
-        this.virtualNode.children[0].reconcile();
-      });
-    } ];
+    ];
   }
-  
+
   public useEffect(effect: Riact.TFunction, relativeState: Array<any>): void {
-    const { initialized, prevEffectHooks, currEffectHooks, prevEffectRelativeStates, currEffectRelativeStates }: Component = this;
-    if (!_.isEqualArray(prevEffectRelativeStates[currEffectRelativeStates.length], relativeState) || !relativeState.length || !initialized) {
+    const {
+      initialized,
+      prevEffectHooks,
+      currEffectHooks,
+      prevEffectRelativeStates,
+      currEffectRelativeStates
+    }: Component = this;
+    if (
+      !_.isEqualArray(
+        prevEffectRelativeStates[currEffectRelativeStates.length],
+        relativeState
+      ) ||
+      !relativeState.length ||
+      !initialized
+    ) {
       currEffectHooks.push(effect);
       currEffectRelativeStates.push(relativeState);
     } else {
       currEffectHooks.push(prevEffectHooks[currEffectHooks.length]);
-      currEffectRelativeStates.push(prevEffectRelativeStates[currEffectRelativeStates.length]);
+      currEffectRelativeStates.push(
+        prevEffectRelativeStates[currEffectRelativeStates.length]
+      );
     }
   }
-  
+
   public unmount() {
     _.dfsWalk(this.virtualNode, CHILDREN_NAME, (node: VirtualNode) => {
-      if (node.el && node.el instanceof Component && node !== this.virtualNode) {
+      if (
+        node.el &&
+        node.el instanceof Component &&
+        node !== this.virtualNode
+      ) {
         (node.el as Component).unmount();
       }
       return true;
@@ -154,11 +189,11 @@ export default class Component implements Riact.IComponent {
       this.afterUnmount();
     }
   }
-  
+
   public virtualNode: VirtualNode;
-  public readonly context: Context;
+  public readonly context: AppContext;
   public readonly render: Riact.TFuncComponent;
-  public getContext(): Context {
+  public getContext(): AppContext {
     return this.context;
   }
 }

@@ -4,11 +4,14 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  ACTION_REORDER,
+  ACTION_REORDER
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
-export const keyIdxMapFac = function(list: Array<VirtualNode>, key: string): Map<string, number> {
+export const keyIdxMapFac = function(
+  list: Array<VirtualNode>,
+  key: string
+): Map<string, number> {
   const result: Map<string, number> = new Map<string, number>();
   for (let i = 0; i < list.length; i++) {
     result.set(list[i][key], i);
@@ -16,12 +19,20 @@ export const keyIdxMapFac = function(list: Array<VirtualNode>, key: string): Map
   return result;
 };
 
-export const flatternListNode = function(list: Array<VirtualNode>): Array<VirtualNode> {
+export const flatternListNode = function(
+  list: Array<VirtualNode>
+): Array<VirtualNode> {
   if (!_.isArray(list)) {
     return;
   }
-  return list.reduce((acc: Array<VirtualNode>, child: VirtualNode): Array<VirtualNode> => {
-    return acc.concat(child.isListNode() ? flatternListNode(child.children as Array<VirtualNode>) : child);
+  return list.reduce((acc: Array<VirtualNode>, child: VirtualNode): Array<
+    VirtualNode
+  > => {
+    return acc.concat(
+      child.isListNode()
+        ? flatternListNode(child.children as Array<VirtualNode>)
+        : child
+    );
   }, []);
 };
 
@@ -34,7 +45,10 @@ export const makeRemoveAction = function(index: number): Riact.TPatch {
   };
 };
 
-export const makeInsertAction = function(index: number, item: VirtualNode): Riact.TPatch {
+export const makeInsertAction = function(
+  index: number,
+  item: VirtualNode
+): Riact.TPatch {
   return {
     action: ACTION_INSERT,
     payload: {
@@ -51,7 +65,10 @@ export const makeReplaceAction = function(item: VirtualNode): Riact.TPatch {
   } as Riact.TPatch;
 };
 
-export const makeUpdatePropsAction = function(attributes: Riact.TObject, events: Riact.TFuncValObject): Riact.TPatch {
+export const makeUpdatePropsAction = function(
+  attributes: Riact.TObject,
+  events: Riact.TFuncValObject
+): Riact.TPatch {
   return {
     action: ACTION_UPDATE_PROPS,
     payload: {
@@ -61,7 +78,9 @@ export const makeUpdatePropsAction = function(attributes: Riact.TObject, events:
   };
 };
 
-export const makeReorderAction = function(patches: Array<Riact.TPatch>): Riact.TPatch {
+export const makeReorderAction = function(
+  patches: Array<Riact.TPatch>
+): Riact.TPatch {
   return {
     action: ACTION_REORDER,
     payload: patches
@@ -74,7 +93,10 @@ export const createRef = (): Riact.TRef => {
   };
 };
 
-export const loadStyle = (element: HTMLElement, styleObject: Riact.TObject): void => {
+export const loadStyle = (
+  element: HTMLElement,
+  styleObject: Riact.TObject
+): void => {
   for (const styleKey in styleObject) {
     if (styleObject.hasOwnProperty(styleKey)) {
       const styleVal: string = styleObject[styleKey];
