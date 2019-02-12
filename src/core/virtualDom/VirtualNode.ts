@@ -140,16 +140,6 @@ class VirtualNode implements JSX.Element {
     return node;
   }
 
-  private static shouldUpdateNode(
-    oldNode: VirtualNode,
-    newNode: VirtualNode
-  ): boolean {
-    return (
-      !_.isEqualObject(oldNode.attributes, newNode.attributes) ||
-      !_.isEqualObject(oldNode.events, newNode.events)
-    );
-  }
-
   private static diffKeyedList(
     oldList: Array<VirtualNode>,
     newList: Array<VirtualNode>,
@@ -188,6 +178,7 @@ class VirtualNode implements JSX.Element {
       }
 
       if (newItem.key === oldItem.key) {
+        VirtualNode.diffTree(oldItem, newItem);
         j++;
         i++;
       } else {
@@ -195,13 +186,7 @@ class VirtualNode implements JSX.Element {
           actions.push(makeRemoveAction(i));
           j++;
         } else {
-          actions.push(makeInsertAction(i++, oldItem));
-          if (VirtualNode.shouldUpdateNode(oldItem, newItem)) {
-            oldItem.patch = makeUpdatePropsAction(
-              newItem.attributes,
-              newItem.events
-            );
-          }
+          actions.push(makeInsertAction(i++, newItem));
         }
       }
     }
