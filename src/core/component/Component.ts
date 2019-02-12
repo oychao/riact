@@ -104,22 +104,25 @@ export default class Component implements Riact.IComponent {
     if (!this.shouldComponentUpdate(prevProps)) {
       return;
     }
-    StaticContext.setCurrentInstance(this);
-    this.prevEffectHooks = this.currEffectHooks;
-    this.currEffectHooks = [];
-    this.prevEffectRelativeStates = this.currEffectRelativeStates;
-    this.currEffectRelativeStates = [];
-    this.stateHookIndex = 0;
-    const newVirtualDom: VirtualNode = this.render(
-      this.virtualNode.attributes
-    ) as VirtualNode;
-    // mount sub virtual dom tree to global virtual dom tree
-    newVirtualDom.parentNode = this.virtualNode;
-    VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
-    this.virtualNode.children[0].reconcile();
-    this.callEffectHooks();
-    StaticContext.clearCurrentInstance();
-    this.initialized = true;
+    // put the rendering procedure into a transaction
+    this.context.batchingUpdate(() => {
+      StaticContext.setCurrentInstance(this);
+      this.prevEffectHooks = this.currEffectHooks;
+      this.currEffectHooks = [];
+      this.prevEffectRelativeStates = this.currEffectRelativeStates;
+      this.currEffectRelativeStates = [];
+      this.stateHookIndex = 0;
+      const newVirtualDom: VirtualNode = this.render(
+        this.virtualNode.attributes
+      ) as VirtualNode;
+      // mount sub virtual dom tree to global virtual dom tree
+      newVirtualDom.parentNode = this.virtualNode;
+      VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
+      this.virtualNode.children[0].reconcile();
+      this.callEffectHooks();
+      StaticContext.clearCurrentInstance();
+      this.initialized = true;
+    }, this);
   }
 
   public useStateHook<T>(state: T): [T, (newState: T) => void] {

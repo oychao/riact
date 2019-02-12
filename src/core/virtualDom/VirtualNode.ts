@@ -402,7 +402,6 @@ class VirtualNode implements JSX.Element {
 
   public renderDom(): VirtualNode {
     let el: Text | HTMLElement | Component = null;
-
     const { tagType, attributes, children, events } = this;
     if (this.isComponentNode()) {
       const compRender: Riact.TFuncComponent = tagType as Riact.TFuncComponent;
