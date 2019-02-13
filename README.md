@@ -1,12 +1,12 @@
 # Riact
 
-A simplified React-like MVVM framework.
+A simplified React-like modern frontend framework.
 
 [![Build Status](https://travis-ci.org/oychao/riact.svg?branch=master)](https://travis-ci.org/oychao/riact)
 
 ## How to use
 
-Check the [demo][1] above.
+Check the [demo][1].
 
 ### Component
 

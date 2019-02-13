@@ -1,10 +1,10 @@
-export const CLASS_NAME_PRESERVED: string = 'class';
-export const CLASS_NAME: string = 'className';
-export const STYLE_NAME: string = 'style';
-export const REF_NAME: string = 'ref';
-export const KEY_NAME: string = 'key';
-export const VALUE_NAME: string = 'value';
-export const CHILDREN_NAME: string = 'children';
+export const PROP_CLASS_PRESERVED: string = 'class';
+export const PROP_CLASS: string = 'className';
+export const PROP_STYPE: string = 'style';
+export const PROP_REF: string = 'ref';
+export const PROP_KEY: string = 'key';
+export const PROP_VALUE: string = 'value';
+export const PROP_CHILDREN: string = 'children';
 
 export const EVENT_NAME_PREFIX: string = 'on';
 
