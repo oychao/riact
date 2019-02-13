@@ -8,13 +8,13 @@ import {
   ACTION_REORDER,
   ACTION_REMOVE,
   ACTION_INSERT,
-  CLASS_NAME_PRESERVED,
-  CLASS_NAME,
-  STYLE_NAME,
-  KEY_NAME,
-  REF_NAME,
-  VALUE_NAME,
-  CHILDREN_NAME
+  PROP_CLASS_PRESERVED,
+  PROP_CLASS,
+  PROP_STYPE,
+  PROP_KEY,
+  PROP_REF,
+  PROP_VALUE,
+  PROP_CHILDREN
 } from '../../constants/index';
 import {
   keyIdxMapFac,
@@ -74,29 +74,28 @@ class VirtualNode implements JSX.Element {
   ): VirtualNode {
     const vNode: VirtualNode = new VirtualNode();
     vNode.tagType = tagType;
-    vNode.children = children;
-
     attrs = attrs || {};
     vNode.attributes = {};
     vNode.events = {};
+    vNode.children = children;
     Object.entries(attrs).forEach(
       ([key, value]: [
         string,
         string | Riact.TStrValObject | Riact.TFunction | Riact.TRef
       ]): void => {
-        if (key === CLASS_NAME_PRESERVED) {
+        if (key === PROP_CLASS_PRESERVED || key === PROP_CHILDREN) {
           return;
-        } else if (key === STYLE_NAME) {
+        } else if (key === PROP_STYPE) {
           if (_.isPlainObject(value)) {
-            vNode.attributes[STYLE_NAME] = value;
+            vNode.attributes[PROP_STYPE] = value;
           }
           return;
-        } else if (key === KEY_NAME) {
-          vNode[KEY_NAME] = value as string;
+        } else if (key === PROP_KEY) {
+          vNode[PROP_KEY] = value as string;
           return;
         }
 
-        if (key === REF_NAME) {
+        if (key === PROP_REF) {
           vNode.ref = value as Riact.TRef;
         }
 
@@ -105,7 +104,7 @@ class VirtualNode implements JSX.Element {
         } else if (_.isArray(value)) {
           if (
             vNode.isComponentNode() ||
-            (vNode.isTaggedDomNode() && key === CLASS_NAME)
+            (vNode.isTaggedDomNode() && key === PROP_CLASS)
           ) {
             vNode.attributes[key] = value;
           }
@@ -124,6 +123,10 @@ class VirtualNode implements JSX.Element {
     );
 
     normalizeVirtualNode(vNode);
+    if (vNode.isComponentNode()) {
+      vNode.attributes.children = vNode.children;
+      vNode.children = [];
+    }
 
     for (const child of children) {
       if (_.isPlainObject(child)) {
@@ -260,15 +263,13 @@ class VirtualNode implements JSX.Element {
         );
       } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
         VirtualNode.diffFreeList(oldChildren, newChildren);
-      } else if (
-        oldVDom.isComponentNode() &&
-        newVDom.isComponentNode() &&
-        _.isArray(oldAttributes.children)
-      ) {
-        VirtualNode.diffFreeList(
-          oldAttributes.children as Array<VirtualNode>,
-          newChildren
-        );
+      } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {
+        if (_.isArray(oldAttributes.children)) {
+          VirtualNode.diffFreeList(
+            oldAttributes.children as Array<VirtualNode>,
+            newAttributes.children as Array<VirtualNode>
+          );
+        }
       }
     }
   }
@@ -349,7 +350,7 @@ class VirtualNode implements JSX.Element {
     const htmlDoms: Array<Node> = [];
     _.dfsWalk(
       this,
-      CHILDREN_NAME,
+      PROP_CHILDREN,
       (child: VirtualNode): boolean => {
         let subNodes: Array<Node> = [];
         if (child.isTaggedDomNode() || child.isTextNode()) {
@@ -400,17 +401,15 @@ class VirtualNode implements JSX.Element {
     return targetNode && (targetNode.el as Node);
   }
 
-  public renderDom(): VirtualNode {
+  public reflectToDom(): VirtualNode {
     let el: Text | HTMLElement | Component = null;
-    const { tagType, attributes, children, events } = this;
+    const { tagType, attributes, events } = this;
     if (this.isComponentNode()) {
       const compRender: Riact.TFuncComponent = tagType as Riact.TFuncComponent;
       const context: AppContext = this.getParentCompNode().getContext();
       const TargetComponent: typeof Component = context.getComponent(
         compRender
       );
-      this.attributes.children = children;
-      this.children = [];
       el = new TargetComponent(context, this);
       el.renderDom(null);
       return this;
@@ -426,7 +425,7 @@ class VirtualNode implements JSX.Element {
       for (const key in attributes) {
         if (attributes.hasOwnProperty(key)) {
           const value: any = attributes[key];
-          if (key === CLASS_NAME) {
+          if (key === PROP_CLASS) {
             if (_.isString(value)) {
               el.className = value;
             } else if (_.isArray(value)) {
@@ -438,7 +437,7 @@ class VirtualNode implements JSX.Element {
                 }
               );
             }
-          } else if (key === STYLE_NAME) {
+          } else if (key === PROP_STYPE) {
             loadStyle(el as HTMLElement, value);
           } else {
             el.setAttribute(key, value);
@@ -464,9 +463,9 @@ class VirtualNode implements JSX.Element {
     if (_.isArray(this.children)) {
       _.dfsWalk(
         this,
-        CHILDREN_NAME,
+        PROP_CHILDREN,
         (offspring: VirtualNode): boolean => {
-          offspring.renderDom();
+          offspring.reflectToDom();
           return !offspring.isComponentNode();
         }
       );
@@ -498,7 +497,7 @@ class VirtualNode implements JSX.Element {
   public reconcile(): void {
     _.dfsWalk(
       this,
-      CHILDREN_NAME,
+      PROP_CHILDREN,
       (node: VirtualNode): boolean => {
         if (_.isNull(node.patch) || _.isUndefined(node.patch)) {
           return true;
@@ -510,7 +509,7 @@ class VirtualNode implements JSX.Element {
             (node.el as Component).unmount();
           }
           node.loadData(payload as VirtualNode);
-          node.renderDom();
+          node.reflectToDom();
           delete node.patch;
           if (!node.isComponentNode() && _.isArray(node.children)) {
             for (const child of node.children) {
@@ -530,9 +529,9 @@ class VirtualNode implements JSX.Element {
                 const value: any = (attributes as Riact.TObject)[key];
                 node.attributes[key] = value;
                 if (isDomNode) {
-                  if (key === STYLE_NAME) {
+                  if (key === PROP_STYPE) {
                     loadStyle(node.el as HTMLElement, value);
-                  } else if (key === VALUE_NAME) {
+                  } else if (key === PROP_VALUE) {
                     (node.el as HTMLInputElement).value = value;
                   } else {
                     (node.el as HTMLElement).setAttribute(key, value);

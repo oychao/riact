@@ -3,7 +3,7 @@ import AppContext from '../context/AppContext';
 import { IContextComponent, IContextProvider } from '../context/Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
-import { CHILDREN_NAME } from 'src/constants/index';
+import { PROP_CHILDREN } from 'src/constants/index';
 
 export default class Component implements Riact.IComponent {
   public static memo(funcComp: Riact.TFuncComponent): Riact.TFuncComponent {
@@ -20,7 +20,7 @@ export default class Component implements Riact.IComponent {
           return true;
         }
         for (const key in curProps) {
-          if (key === CHILDREN_NAME) {
+          if (key === PROP_CHILDREN) {
             continue;
           }
           if (curProps.hasOwnProperty(key)) {
@@ -176,7 +176,7 @@ export default class Component implements Riact.IComponent {
   }
 
   public unmount() {
-    _.dfsWalk(this.virtualNode, CHILDREN_NAME, (node: VirtualNode) => {
+    _.dfsWalk(this.virtualNode, PROP_CHILDREN, (node: VirtualNode) => {
       if (
         node.el &&
         node.el instanceof Component &&

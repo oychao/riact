@@ -1,5 +1,7 @@
 import Component from '../component/Component';
 import componentFac from '../component/factory';
+import { ACTION_UPDATE_PROPS, ACTION_REPLACE } from 'src/constants/index';
+import VirtualNode from '../virtualDom/VirtualNode';
 
 type TransactionWrapper = {
   before: Riact.TFunction;
@@ -16,7 +18,9 @@ abstract class AppContext implements Riact.IAppContext {
     this.wrappers = [AppContext.BATCHING_UPDATE_STRATEGY];
   }
 
-  // register component declaration
+  /**
+   * register component declaration
+   */
   private componentDeclarationMap: Map<Riact.TFuncComponent, typeof Component>;
   public getComponent(render: Riact.TFuncComponent): typeof Component {
     if (this.componentDeclarationMap.has(render)) {
@@ -33,7 +37,11 @@ abstract class AppContext implements Riact.IAppContext {
    */
   private performing: boolean;
   private readonly wrappers: Array<TransactionWrapper>;
-  public perform(callback: Riact.TFunction, scope: any, ...args: Array<any>): void {
+  public perform(
+    callback: Riact.TFunction,
+    scope: any,
+    ...args: Array<any>
+  ): void {
     this.performing = true;
     this.beforeAll();
     callback.apply(scope, args);
@@ -50,7 +58,11 @@ abstract class AppContext implements Riact.IAppContext {
       wrapper.after.call(this);
     }
   }
-  public batchingUpdate(callback: Riact.TFunction, scope: Riact.TObject, ...args: Array<any>): any {
+  public batchingUpdate(
+    callback: Riact.TFunction,
+    scope: Riact.TObject,
+    ...args: Array<any>
+  ): any {
     const { performing }: AppContext = this;
     this.performing = true;
     if (performing) {
@@ -58,26 +70,26 @@ abstract class AppContext implements Riact.IAppContext {
     } else {
       this.perform(callback, scope, args);
     }
-  };
+  }
   private static BATCHING_UPDATE_STRATEGY: TransactionWrapper = {
     before() {},
     after() {
-      const dirtyComponentStack: Array<Component> = [...this.dirtyComponentStack];
-      this.dirtyComponentStack = [];
       // batching update
     }
   };
 
-  // dirty components stack
-  private dirtyComponentStack: Array<Component> = [];
+  /**
+   * dirty components stack
+   */
+  private dirtyComponentQueue: Array<Component> = [];
   public pushDirtyComponent(comp: Component): void {
-    this.dirtyComponentStack.push(comp);
+    this.dirtyComponentQueue.push(comp);
   }
   public popDirtyComponent(): Component {
-    return this.dirtyComponentStack.pop();
+    return this.dirtyComponentQueue.pop();
   }
   public hasDirtyComponent(): boolean {
-    return this.dirtyComponentStack.length > 0;
+    return this.dirtyComponentQueue.length > 0;
   }
 }
 
