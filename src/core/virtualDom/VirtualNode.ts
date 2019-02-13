@@ -221,6 +221,7 @@ class VirtualNode implements JSX.Element {
       return;
     }
 
+    // difference has already been calculated
     if (!_.isNull(oldVDom.patch) && !_.isUndefined(oldVDom.patch)) {
       return;
     }
@@ -264,12 +265,10 @@ class VirtualNode implements JSX.Element {
       } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
         VirtualNode.diffFreeList(oldChildren, newChildren);
       } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {
-        if (_.isArray(oldAttributes.children)) {
-          VirtualNode.diffFreeList(
-            oldAttributes.children as Array<VirtualNode>,
-            newAttributes.children as Array<VirtualNode>
-          );
-        }
+        const comp: Component = oldVDom.el as Component;
+        oldVDom.attributes = newVDom.attributes;
+        oldVDom.events = newVDom.events;
+        comp.renderDom(Object.assign({}, oldVDom.attributes));
       }
     }
   }

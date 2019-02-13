@@ -44,8 +44,15 @@ export default class Riact extends AppContext implements Riact.IComponent {
     this.virtualNode.children = [emptyNode];
     emptyNode.parentNode = this.virtualNode;
 
-    VirtualNode.diffTree(emptyNode, virtualNode);
-    this.virtualNode.reconcile();
+    this.batchingUpdate(() => {
+      this.pushDirtyComponent(this);
+      VirtualNode.diffTree(emptyNode, virtualNode);
+    }, this);
+    // this.virtualNode.reconcile();
+  }
+
+  public reflectToDom(): void {
+    this.virtualNode.children[0].reconcile();
   }
 
   public virtualNode: VirtualNode;

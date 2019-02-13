@@ -51,6 +51,7 @@ declare namespace Riact {
     context: IAppContext;
     render: Riact.TFuncComponent;
     getContext(): IAppContext;
+    reflectToDom(): void;
   }
 }
 

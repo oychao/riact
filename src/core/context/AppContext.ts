@@ -75,6 +75,14 @@ abstract class AppContext implements Riact.IAppContext {
     before() {},
     after() {
       // batching update
+      const preservedDirtyComponents = [
+        ...this.dirtyComponentQueue
+      ];
+      for (let i = 0; i < preservedDirtyComponents.length; i++) {
+        const comp: Component = this.dirtyComponentQueue[i];
+        comp.reflectToDom();
+      }
+      this.dirtyComponentQueue = [];
     }
   };
 
@@ -82,8 +90,8 @@ abstract class AppContext implements Riact.IAppContext {
    * dirty components stack
    */
   private dirtyComponentQueue: Array<Component> = [];
-  public pushDirtyComponent(comp: Component): void {
-    this.dirtyComponentQueue.push(comp);
+  public pushDirtyComponent(comp: Riact.IComponent): void {
+    this.dirtyComponentQueue.push(comp as Component);
   }
   public popDirtyComponent(): Component {
     return this.dirtyComponentQueue.pop();

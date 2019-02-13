@@ -101,12 +101,14 @@ export default class Component implements Riact.IComponent {
   }
 
   public renderDom(prevProps: Riact.TObject): void {
-    if (!this.shouldComponentUpdate(prevProps)) {
-      return;
-    }
     // put the rendering procedure into a transaction
     this.context.batchingUpdate(() => {
+      if (!this.shouldComponentUpdate(prevProps)) {
+        return;
+      }
       StaticContext.setCurrentInstance(this);
+      // push current component into dirty components
+      this.context.pushDirtyComponent(this);
       this.prevEffectHooks = this.currEffectHooks;
       this.currEffectHooks = [];
       this.prevEffectRelativeStates = this.currEffectRelativeStates;
@@ -118,11 +120,17 @@ export default class Component implements Riact.IComponent {
       // mount sub virtual dom tree to global virtual dom tree
       newVirtualDom.parentNode = this.virtualNode;
       VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
-      this.virtualNode.children[0].reconcile();
+      if (!this.initialized) {
+        this.reflectToDom();
+      }
       this.callEffectHooks();
       StaticContext.clearCurrentInstance();
       this.initialized = true;
     }, this);
+  }
+
+  public reflectToDom(): void {
+    this.virtualNode.children[0].reconcile();
   }
 
   public useStateHook<T>(state: T): [T, (newState: T) => void] {
@@ -137,14 +145,13 @@ export default class Component implements Riact.IComponent {
     return [
       stateValue,
       (newState: T): void => {
-        if (_.isNull(this.virtualNode)) {
-          return;
-        }
-        Promise.resolve().then(() => {
+        this.context.batchingUpdate(() => {
+          if (_.isNull(this.virtualNode)) {
+            return;
+          }
           stateHooks[stateHookIndex] = newState;
           this.renderDom(null);
-          this.virtualNode.children[0].reconcile();
-        });
+        }, this);
       }
     ];
   }
