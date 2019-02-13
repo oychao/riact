@@ -10,7 +10,7 @@
   "license": "GLWTPL",
   "repository": "https://github.com/oychao/riact",
   "keywords": [],
-  "description": "A simplified React-like MVVM framework",
+  "description": "A simplified React-like modern frontend framework",
   "files": [
     "LICENSE.md",
     "README.md",
