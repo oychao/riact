@@ -16,6 +16,8 @@ abstract class AppContext implements Riact.IAppContext {
     >();
     this.performing = false;
     this.wrappers = [AppContext.BATCHING_UPDATE_STRATEGY];
+    this.dirtyComponentStack = [];
+    this.dirtyComponentMap = new WeakMap<Component, boolean>();
   }
 
   /**
@@ -75,29 +77,25 @@ abstract class AppContext implements Riact.IAppContext {
     before() {},
     after() {
       // batching update
-      const preservedDirtyComponents = [
-        ...this.dirtyComponentQueue
-      ];
-      for (let i = 0; i < preservedDirtyComponents.length; i++) {
-        const comp: Component = this.dirtyComponentQueue[i];
+      let comp: Component = this.dirtyComponentStack.pop();
+      while (comp) {
         comp.reflectToDom();
+        comp = this.dirtyComponentStack.pop();
       }
-      this.dirtyComponentQueue = [];
+      this.dirtyComponentMap = new WeakMap<Component, boolean>();
     }
   };
 
   /**
    * dirty components stack
    */
-  private dirtyComponentQueue: Array<Component> = [];
+  private dirtyComponentStack: Array<Component>;
+  private dirtyComponentMap: WeakMap<Component, boolean>;
   public pushDirtyComponent(comp: Riact.IComponent): void {
-    this.dirtyComponentQueue.push(comp as Component);
-  }
-  public popDirtyComponent(): Component {
-    return this.dirtyComponentQueue.pop();
-  }
-  public hasDirtyComponent(): boolean {
-    return this.dirtyComponentQueue.length > 0;
+    if (!this.dirtyComponentMap.has(comp as Component)) {
+      this.dirtyComponentStack.push(comp as Component);
+      this.dirtyComponentMap.set(comp as Component, true);
+    }
   }
 }
 
