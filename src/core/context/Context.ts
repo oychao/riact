@@ -41,13 +41,15 @@ abstract class Context {
         };
       }
       public renderDom(prevProps: Riact.TObject): void {
-        this.value = this.virtualNode.attributes.value;
-        super.renderDom(prevProps);
-        if (!prevProps || !Object.is(prevProps.value, this.value)) {
-          for (const decendantConsumer of this.decendantConsumers) {
-            decendantConsumer.renderDom(prevProps);
+        this.context.batchingUpdate(() => {
+          this.value = this.virtualNode.attributes.value;
+          super.renderDom(prevProps);
+          if (!prevProps || !Object.is(prevProps.value, this.value)) {
+            for (const decendantConsumer of this.decendantConsumers) {
+              decendantConsumer.renderDom(prevProps);
+            }
           }
-        }
+        }, this);
       }
     }
 
