@@ -466,17 +466,15 @@ class VirtualNode implements JSX.Element {
     return this;
   }
 
-  public renderTreeDom(): void {
-    if (_.isArray(this.children)) {
-      _.dfsWalk(
-        this,
-        PROP_CHILDREN,
-        (offspring: VirtualNode): boolean => {
-          offspring.reflectToDom();
-          return !offspring.isComponentNode();
-        }
-      );
-    }
+  public reflectDescendantsToDom(): void {
+    _.dfsWalk(
+      this,
+      PROP_CHILDREN,
+      (offspring: VirtualNode): boolean => {
+        offspring.reflectToDom();
+        return !offspring.isComponentNode();
+      }
+    );
   }
 
   public mountToDom(): void {
@@ -516,11 +514,11 @@ class VirtualNode implements JSX.Element {
             (node.el as Component).unmount();
           }
           node.loadData(payload as VirtualNode);
-          node.reflectToDom();
           delete node.patch;
+          node.reflectToDom();
           if (!node.isComponentNode() && _.isArray(node.children)) {
             for (const child of node.children) {
-              child.renderTreeDom();
+              child.reflectDescendantsToDom();
             }
           }
           return false;
@@ -595,7 +593,7 @@ class VirtualNode implements JSX.Element {
                 (item as VirtualNode).nextSibling = nextSibling;
               }
               node.children.splice(index, 0, item as VirtualNode);
-              (item as VirtualNode).renderTreeDom();
+              (item as VirtualNode).reflectDescendantsToDom();
             }
           }
         }
