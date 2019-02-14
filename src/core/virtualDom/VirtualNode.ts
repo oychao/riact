@@ -15,7 +15,8 @@ import {
   PROP_REF,
   PROP_VALUE,
   PROP_CHILDREN,
-  PROP_DANGEROUS_HTML
+  PROP_DANGEROUS_HTML,
+  PROP_EVENT_PREFIX
 } from '../../constants/index';
 import {
   keyIdxMapFac,
@@ -24,7 +25,8 @@ import {
   makeRemoveAction,
   makeInsertAction,
   makeReorderAction,
-  loadStyle
+  loadStyle,
+  loadDangerousInnerHTML
 } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
@@ -114,10 +116,10 @@ class VirtualNode implements JSX.Element {
               vNode.attributes[key] = value;
             }
           } else if (_.isFunction(value)) {
-            if (vNode.isComponentNode()) {
-              vNode.attributes[key] = value;
-            } else {
+            if (vNode.isTaggedDomNode() && key.slice(0, 2) === PROP_EVENT_PREFIX) {
               vNode.events[key] = value as Riact.TFunction;
+            } else {
+              vNode.attributes[key] = value;
             }
           }
         }
@@ -443,7 +445,7 @@ class VirtualNode implements JSX.Element {
           } else if (key === PROP_DANGEROUS_HTML) {
             // children nodes will be disactive due to the dangerous inner html
             this.children = [];
-            (el as HTMLElement).innerHTML = value;
+            loadDangerousInnerHTML(el as HTMLElement, value);
           } else {
             el.setAttribute(key, value);
           }
@@ -541,7 +543,7 @@ class VirtualNode implements JSX.Element {
                   } else if (key === PROP_DANGEROUS_HTML) {
                     // children nodes will be disactive due to the dangerous inner html
                     node.children = [];
-                    (node.el as HTMLElement).innerHTML = value;
+                    loadDangerousInnerHTML(node.el as HTMLElement, value);
                   } else {
                     (node.el as HTMLElement).setAttribute(key, value);
                   }

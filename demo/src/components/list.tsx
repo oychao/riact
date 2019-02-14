@@ -37,7 +37,6 @@ const List = React.memo(function(props: Riact.TObject): JSX.Element {
 
   return (
     <div>
-      <div dangerouslySetInnerHTML={'<h2 style="color: blue">List</h2>'}></div>
       <ol>
         {listValue.map((val: any): JSX.Element => (<li key={val.email}>{val.name}</li>))}
       </ol>

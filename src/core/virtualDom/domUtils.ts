@@ -104,3 +104,13 @@ export const loadStyle = (
     }
   }
 };
+
+export const loadDangerousInnerHTML = (element: HTMLElement, value: any): void => {
+  if (_.isString(value)) {
+    (element as HTMLElement).innerHTML = value;
+  } else if (_.isFunction(value)) {
+    (element as HTMLElement).innerHTML = value.call(null);
+  } else {
+    (element as HTMLElement).innerHTML = Object.prototype.toString.call(value);
+  }
+};

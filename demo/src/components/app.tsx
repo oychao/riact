@@ -41,10 +41,12 @@ const App = function(props: Riact.TStrValObject): JSX.Element {
     theme: themes.light
   });
 
+  const title: string = 'Hello World';
+
   return (
     <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
-        <h1>{'<div>Hello World</div>'}</h1>
+        <div dangerouslySetInnerHTML={() => `<h1 style="color: yellowgreen;">${title}</h1>`}></div>
         <div>
           <Button
             onClick={(): void => {
