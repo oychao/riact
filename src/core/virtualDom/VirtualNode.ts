@@ -14,7 +14,8 @@ import {
   PROP_KEY,
   PROP_REF,
   PROP_VALUE,
-  PROP_CHILDREN
+  PROP_CHILDREN,
+  PROP_DANGEROUS_HTML
 } from '../../constants/index';
 import {
   keyIdxMapFac,
@@ -84,39 +85,40 @@ class VirtualNode implements JSX.Element {
         string | Riact.TStrValObject | Riact.TFunction | Riact.TRef
       ]): void => {
         if (key === PROP_CLASS_PRESERVED || key === PROP_CHILDREN) {
-          return;
+          // preserved property names
         } else if (key === PROP_STYPE) {
           if (_.isPlainObject(value)) {
             vNode.attributes[PROP_STYPE] = value;
           }
-          return;
         } else if (key === PROP_KEY) {
           vNode[PROP_KEY] = value as string;
-          return;
-        }
-
-        if (key === PROP_REF) {
-          vNode.ref = value as Riact.TRef;
-        }
-
-        if (_.isString(value)) {
-          vNode.attributes[key] = value as string;
-        } else if (_.isArray(value)) {
-          if (
-            vNode.isComponentNode() ||
-            (vNode.isTaggedDomNode() && key === PROP_CLASS)
-          ) {
-            vNode.attributes[key] = value;
+        } else if (key === PROP_DANGEROUS_HTML) {
+          if (_.isString(value) || _.isFunction(value)) {
+            vNode.attributes[PROP_DANGEROUS_HTML] = value;
           }
-        } else if (_.isPlainObject(value)) {
-          if (vNode.isComponentNode()) {
-            vNode.attributes[key] = value;
+        } else {
+          if (key === PROP_REF) {
+            vNode.ref = value as Riact.TRef;
           }
-        } else if (_.isFunction(value)) {
-          if (vNode.isComponentNode()) {
-            vNode.attributes[key] = value;
-          } else {
-            vNode.events[key] = value as Riact.TFunction;
+          if (_.isString(value)) {
+            vNode.attributes[key] = value as string;
+          } else if (_.isArray(value)) {
+            if (
+              vNode.isComponentNode() ||
+              (vNode.isTaggedDomNode() && key === PROP_CLASS)
+            ) {
+              vNode.attributes[key] = value;
+            }
+          } else if (_.isPlainObject(value)) {
+            if (vNode.isComponentNode()) {
+              vNode.attributes[key] = value;
+            }
+          } else if (_.isFunction(value)) {
+            if (vNode.isComponentNode()) {
+              vNode.attributes[key] = value;
+            } else {
+              vNode.events[key] = value as Riact.TFunction;
+            }
           }
         }
       }
@@ -438,6 +440,10 @@ class VirtualNode implements JSX.Element {
             }
           } else if (key === PROP_STYPE) {
             loadStyle(el as HTMLElement, value);
+          } else if (key === PROP_DANGEROUS_HTML) {
+            // children nodes will be disactive due to the dangerous inner html
+            this.children = [];
+            (el as HTMLElement).innerHTML = value;
           } else {
             el.setAttribute(key, value);
           }
@@ -532,6 +538,10 @@ class VirtualNode implements JSX.Element {
                     loadStyle(node.el as HTMLElement, value);
                   } else if (key === PROP_VALUE) {
                     (node.el as HTMLInputElement).value = value;
+                  } else if (key === PROP_DANGEROUS_HTML) {
+                    // children nodes will be disactive due to the dangerous inner html
+                    node.children = [];
+                    (node.el as HTMLElement).innerHTML = value;
                   } else {
                     (node.el as HTMLElement).setAttribute(key, value);
                   }

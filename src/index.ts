@@ -30,16 +30,21 @@ export default class Riact extends AppContext implements Riact.IComponent {
 
     this.virtualNode = virtualNode;
 
+    // the mounted dom pointer is a virtual node as well
     const rootNode: VirtualNode = new VirtualNode();
     rootNode.tagType = rootDom.tagName;
     rootNode.el = rootDom;
 
+    // basicly the class Riact is a special function component, the root
+    // component, which always return same virtual dom in render
     this.virtualNode = new VirtualNode();
     rootNode.children = [this.virtualNode];
-    this.virtualNode.tagType = () => this.virtualNode; // basicly this is a special function component;
+    this.virtualNode.tagType = () => this.virtualNode;
     this.virtualNode.el = this;
     this.virtualNode.parentNode = rootNode;
 
+    // mount a empty component onto root component, it will be replaced in
+    // the first reconciliation
     const emptyNode = VirtualNode.createEmptyNode();
     this.virtualNode.children = [emptyNode];
     emptyNode.parentNode = this.virtualNode;
@@ -48,7 +53,6 @@ export default class Riact extends AppContext implements Riact.IComponent {
       this.pushDirtyComponent(this);
       VirtualNode.diffTree(emptyNode, virtualNode);
     }, this);
-    // this.virtualNode.reconcile();
   }
 
   public reflectToDom(): void {

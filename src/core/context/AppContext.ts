@@ -84,7 +84,7 @@ abstract class AppContext implements Riact.IAppContext {
       }
       this.dirtyComponentMap = new WeakMap<Component, boolean>();
     }
-  };
+  }
 
   /**
    * dirty components stack

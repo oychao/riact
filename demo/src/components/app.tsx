@@ -44,7 +44,7 @@ const App = function(props: Riact.TStrValObject): JSX.Element {
   return (
     <div color={props.color} className={['app-red']}>
       <ThemeContext.Provider value={theme}>
-        <h1>Hello World</h1>
+        <h1>{'<div>Hello World</div>'}</h1>
         <div>
           <Button
             onClick={(): void => {
