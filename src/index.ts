@@ -5,7 +5,7 @@ import * as domUtils from './core/virtualDom/domUtils';
 
 import StaticContext from './core/context/StaticContext';
 import AppContext from './core/context/AppContext';
-import Context from './core/context/Context';
+import Context from './core/component/Context';
 import VirtualNode from './core/virtualDom/VirtualNode';
 import Component from './core/component/Component';
 
@@ -17,6 +17,7 @@ export default class Riact extends AppContext implements Riact.IComponent {
   public static useState = StaticContext.useState;
   public static useEffect = StaticContext.useEffect;
   public static useContext = StaticContext.useContext;
+  public static useContextComposer = Context.useContextComposer;
 
   public static render(virtualNode: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
@@ -73,3 +74,4 @@ export default class Riact extends AppContext implements Riact.IComponent {
 export const useState = StaticContext.useState;
 export const useEffect = StaticContext.useEffect;
 export const useContext = StaticContext.useContext;
+export const useContextComposer = Context.useContextComposer;

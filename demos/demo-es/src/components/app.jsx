@@ -1,9 +1,7 @@
-import F, { useState } from 'f';
+import F, { useState, useContextComposer } from 'f';
 
 import ThemeContext, { themes } from '../context/theme';
 import UserContext from '../context/user';
-
-import useContextComposer from '../hooks/useContextComposer';
 
 import Main from './main';
 

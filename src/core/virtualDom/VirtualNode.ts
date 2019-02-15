@@ -71,7 +71,7 @@ export const normalizeVirtualNode = function(node: VirtualNode): void {
 
 class VirtualNode implements JSX.Element {
   public static createElement(
-    tagType: string,
+    tagType: string | Riact.TFuncComponent,
     attrs: any,
     ...children: Array<VirtualNode>
   ): VirtualNode {

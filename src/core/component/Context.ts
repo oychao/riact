@@ -1,8 +1,8 @@
 import * as _ from '../../utils/index';
 
-import Component from '../component/Component';
+import Component from './Component';
 import VirtualNode from '../virtualDom/VirtualNode';
-import AppContext from './AppContext';
+import AppContext from '../context/AppContext';
 import { NODE_TYPE_LIST } from 'src/constants/index';
 
 export interface IContextProvider extends Component {
@@ -104,6 +104,17 @@ abstract class Context {
 
     return contextComp;
   }
+
+  public static useContextComposer(...args: Array<IContextComponent>): Riact.TFuncComponent {
+    if (args.length === 0) {
+      return null;
+    }
+    const InitContext: IContextComponent = args.pop();
+    return ({ children, values }): JSX.Element =>
+      args.reduceRight((Acc, Context, index): JSX.Element =>
+        VirtualNode.createElement(Context.Provider, { value: values[index] }, Acc),
+      VirtualNode.createElement(InitContext.Provider, { value: values[args.length] }, ...children));
+  };
 }
 
 export default Context;

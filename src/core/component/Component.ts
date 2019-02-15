@@ -1,6 +1,6 @@
 import * as _ from '../../utils/index';
 import AppContext from '../context/AppContext';
-import { IContextComponent, IContextProvider } from '../context/Context';
+import { IContextComponent, IContextProvider } from './Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 import { PROP_CHILDREN } from 'src/constants/index';
