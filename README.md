@@ -6,7 +6,7 @@ A simplified React-like modern frontend framework.
 
 ## How to use
 
-Check the [demo][1].
+Check the [demos][1].
 
 ### Component
 
@@ -18,7 +18,7 @@ import React, { useState, useEffect } from 'riact';
 
 const Count = function() {
   const [ value, setValue ] = useState(0); // exactly like hooks in React 16.8.
-  setTimeout(setValue, 1e3, value + 1); // be careful when using hooks in timer function, it's kind of tricky.
+  setTimeout(setValue, 1e3, value + 1); // be careful when using hooks in timer functions, it's kind of tricky.
   useEffect(() => void (console.log(value))); // useEffect basic usage
   return (
     <div>
@@ -51,10 +51,10 @@ ReactDom.render(<Count></Count>, document.querySelector('#app'));
 
 ## FYI
 
-**NOTE**: Riact is just for learning, it's easy and simple so DO NOT use it to develop complex application, otherwise I wish you LUCK.
+**NOTE**: Riact is just for learning, it's easy and simple so DO NOT use it to develop complex applications, otherwise I wish you LUCK.
 
 ## LICENCE
 
 [GLWTPL](https://github.com/me-shaon/GLWTPL)
 
-[1]: https://github.com/oychao/riact/tree/master/demo
+[1]: https://github.com/oychao/riact/tree/master/demos

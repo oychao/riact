@@ -1,6 +1,6 @@
 import * as _ from '../../utils/index';
 import AppContext from '../context/AppContext';
-import { IContextComponent, IContextProvider } from '../context/Context';
+import { IContextComponent, IContextProvider } from './Context';
 import VirtualNode from '../virtualDom/VirtualNode';
 import StaticContext from '../context/StaticContext';
 import { PROP_CHILDREN } from 'src/constants/index';
@@ -49,8 +49,8 @@ export default class Component implements Riact.IComponent {
   private stateHookIndex: number;
   public afterUnmount: Riact.TFunction;
 
-  constructor(context: AppContext, virtualNode: VirtualNode) {
-    this.context = context;
+  constructor(appContext: AppContext, virtualNode: VirtualNode) {
+    this.appContext = appContext;
     this.stateHooks = [];
     this.contextCompMap = new WeakMap<IContextComponent, IContextProvider>();
     this.currEffectHooks = [];
@@ -61,6 +61,10 @@ export default class Component implements Riact.IComponent {
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
     this.virtualNode.el = this;
+  }
+
+  protected isInitialized(): boolean {
+    return this.initialized;
   }
 
   protected shouldComponentUpdate(prevProps?: Riact.TObject): boolean {
@@ -102,13 +106,13 @@ export default class Component implements Riact.IComponent {
 
   public renderDom(prevProps: Riact.TObject): void {
     // put the rendering procedure into a transaction
-    this.context.batchingUpdate(() => {
+    this.appContext.batchingUpdate(() => {
       if (!this.shouldComponentUpdate(prevProps)) {
         return;
       }
       StaticContext.setCurrentInstance(this);
       // push current component into dirty components
-      this.context.pushDirtyComponent(this);
+      this.appContext.pushDirtyComponent(this);
       this.prevEffectHooks = this.currEffectHooks;
       this.currEffectHooks = [];
       this.prevEffectRelativeStates = this.currEffectRelativeStates;
@@ -145,7 +149,7 @@ export default class Component implements Riact.IComponent {
     return [
       stateValue,
       (newState: T): void => {
-        this.context.batchingUpdate(() => {
+        this.appContext.batchingUpdate(() => {
           if (_.isNull(this.virtualNode)) {
             return;
           }
@@ -190,6 +194,9 @@ export default class Component implements Riact.IComponent {
         node !== this.virtualNode
       ) {
         (node.el as Component).unmount();
+        // children virtual dom tree should be unmounted in the component
+        // where it being used, dfs-walk break if current node is component
+        return false;
       }
       return true;
     });
@@ -201,9 +208,9 @@ export default class Component implements Riact.IComponent {
   }
 
   public virtualNode: VirtualNode;
-  public readonly context: AppContext;
+  public readonly appContext: AppContext;
   public readonly render: Riact.TFuncComponent;
-  public getContext(): AppContext {
-    return this.context;
+  public getAppContext(): AppContext {
+    return this.appContext;
   }
 }

@@ -5,6 +5,8 @@ export const PROP_REF: string = 'ref';
 export const PROP_KEY: string = 'key';
 export const PROP_VALUE: string = 'value';
 export const PROP_CHILDREN: string = 'children';
+export const PROP_DANGEROUS_HTML: string = 'dangerouslySetInnerHTML';
+export const PROP_EVENT_PREFIX: string = 'on';
 
 export const EVENT_NAME_PREFIX: string = 'on';
 

@@ -14,7 +14,9 @@ import {
   PROP_KEY,
   PROP_REF,
   PROP_VALUE,
-  PROP_CHILDREN
+  PROP_CHILDREN,
+  PROP_DANGEROUS_HTML,
+  PROP_EVENT_PREFIX
 } from '../../constants/index';
 import {
   keyIdxMapFac,
@@ -23,7 +25,8 @@ import {
   makeRemoveAction,
   makeInsertAction,
   makeReorderAction,
-  loadStyle
+  loadStyle,
+  loadDangerousInnerHTML
 } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
@@ -68,7 +71,7 @@ export const normalizeVirtualNode = function(node: VirtualNode): void {
 
 class VirtualNode implements JSX.Element {
   public static createElement(
-    tagType: string,
+    tagType: string | Riact.TFuncComponent,
     attrs: any,
     ...children: Array<VirtualNode>
   ): VirtualNode {
@@ -77,46 +80,47 @@ class VirtualNode implements JSX.Element {
     attrs = attrs || {};
     vNode.attributes = {};
     vNode.events = {};
-    vNode.children = children;
+    vNode.children = children || [];
     Object.entries(attrs).forEach(
       ([key, value]: [
         string,
         string | Riact.TStrValObject | Riact.TFunction | Riact.TRef
       ]): void => {
         if (key === PROP_CLASS_PRESERVED || key === PROP_CHILDREN) {
-          return;
+          // preserved property names
         } else if (key === PROP_STYPE) {
           if (_.isPlainObject(value)) {
             vNode.attributes[PROP_STYPE] = value;
           }
-          return;
         } else if (key === PROP_KEY) {
           vNode[PROP_KEY] = value as string;
-          return;
-        }
-
-        if (key === PROP_REF) {
-          vNode.ref = value as Riact.TRef;
-        }
-
-        if (_.isString(value)) {
-          vNode.attributes[key] = value as string;
-        } else if (_.isArray(value)) {
-          if (
-            vNode.isComponentNode() ||
-            (vNode.isTaggedDomNode() && key === PROP_CLASS)
-          ) {
-            vNode.attributes[key] = value;
+        } else if (key === PROP_DANGEROUS_HTML) {
+          if (_.isString(value) || _.isFunction(value)) {
+            vNode.attributes[PROP_DANGEROUS_HTML] = value;
           }
-        } else if (_.isPlainObject(value)) {
-          if (vNode.isComponentNode()) {
-            vNode.attributes[key] = value;
+        } else {
+          if (key === PROP_REF) {
+            vNode.ref = value as Riact.TRef;
           }
-        } else if (_.isFunction(value)) {
-          if (vNode.isComponentNode()) {
-            vNode.attributes[key] = value;
-          } else {
-            vNode.events[key] = value as Riact.TFunction;
+          if (_.isString(value)) {
+            vNode.attributes[key] = value as string;
+          } else if (_.isArray(value)) {
+            if (
+              vNode.isComponentNode() ||
+              (vNode.isTaggedDomNode() && key === PROP_CLASS)
+            ) {
+              vNode.attributes[key] = value;
+            }
+          } else if (_.isPlainObject(value)) {
+            if (vNode.isComponentNode()) {
+              vNode.attributes[key] = value;
+            }
+          } else if (_.isFunction(value)) {
+            if (vNode.isTaggedDomNode() && key.slice(0, 2) === PROP_EVENT_PREFIX) {
+              vNode.events[key] = value as Riact.TFunction;
+            } else {
+              vNode.attributes[key] = value;
+            }
           }
         }
       }
@@ -405,11 +409,11 @@ class VirtualNode implements JSX.Element {
     const { tagType, attributes, events } = this;
     if (this.isComponentNode()) {
       const compRender: Riact.TFuncComponent = tagType as Riact.TFuncComponent;
-      const context: AppContext = this.getParentCompNode().getContext();
-      const TargetComponent: typeof Component = context.getComponent(
+      const appContext: AppContext = this.getParentCompNode().getAppContext();
+      const TargetComponent: typeof Component = appContext.getComponent(
         compRender
       );
-      el = new TargetComponent(context, this);
+      el = new TargetComponent(appContext, this);
       el.renderDom(null);
       return this;
     } else if (this.isTextNode()) {
@@ -438,6 +442,10 @@ class VirtualNode implements JSX.Element {
             }
           } else if (key === PROP_STYPE) {
             loadStyle(el as HTMLElement, value);
+          } else if (key === PROP_DANGEROUS_HTML) {
+            // children nodes will be disactive due to the dangerous inner html
+            this.children = [];
+            loadDangerousInnerHTML(el as HTMLElement, value);
           } else {
             el.setAttribute(key, value);
           }
@@ -458,17 +466,15 @@ class VirtualNode implements JSX.Element {
     return this;
   }
 
-  public renderTreeDom(): void {
-    if (_.isArray(this.children)) {
-      _.dfsWalk(
-        this,
-        PROP_CHILDREN,
-        (offspring: VirtualNode): boolean => {
-          offspring.reflectToDom();
-          return !offspring.isComponentNode();
-        }
-      );
-    }
+  public reflectDescendantsToDom(): void {
+    _.dfsWalk(
+      this,
+      PROP_CHILDREN,
+      (offspring: VirtualNode): boolean => {
+        offspring.reflectToDom();
+        return !offspring.isComponentNode();
+      }
+    );
   }
 
   public mountToDom(): void {
@@ -507,12 +513,12 @@ class VirtualNode implements JSX.Element {
           if (node.isComponentNode()) {
             (node.el as Component).unmount();
           }
-          node.loadData(payload as VirtualNode);
-          node.reflectToDom();
+          node.loadAttributes(payload as VirtualNode);
           delete node.patch;
+          node.reflectToDom();
           if (!node.isComponentNode() && _.isArray(node.children)) {
             for (const child of node.children) {
-              child.renderTreeDom();
+              child.reflectDescendantsToDom();
             }
           }
           return false;
@@ -532,6 +538,10 @@ class VirtualNode implements JSX.Element {
                     loadStyle(node.el as HTMLElement, value);
                   } else if (key === PROP_VALUE) {
                     (node.el as HTMLInputElement).value = value;
+                  } else if (key === PROP_DANGEROUS_HTML) {
+                    // children nodes will be disactive due to the dangerous inner html
+                    node.children = [];
+                    loadDangerousInnerHTML(node.el as HTMLElement, value);
                   } else {
                     (node.el as HTMLElement).setAttribute(key, value);
                   }
@@ -539,7 +549,7 @@ class VirtualNode implements JSX.Element {
               }
             }
             if (isCompNode) {
-              (node.el as Component).renderDom(prevProps);
+              (node.el as Component).reflectToDom();
             } else if (isDomNode) {
               for (const key in events) {
                 if (events.hasOwnProperty(key)) {
@@ -583,7 +593,7 @@ class VirtualNode implements JSX.Element {
                 (item as VirtualNode).nextSibling = nextSibling;
               }
               node.children.splice(index, 0, item as VirtualNode);
-              (item as VirtualNode).renderTreeDom();
+              (item as VirtualNode).reflectDescendantsToDom();
             }
           }
         }
@@ -593,11 +603,11 @@ class VirtualNode implements JSX.Element {
     );
   }
 
-  public loadData(that: VirtualNode): void {
+  public loadAttributes(that: VirtualNode): void {
     this.tagType = that.tagType;
-    this.attributes = that.attributes;
-    this.children = that.children;
-    this.events = that.events;
+    this.attributes = that.attributes || {};
+    this.children = that.children || [];
+    this.events = that.events || {};
     if (_.isArray(this.children)) {
       for (const child of this.children) {
         child.parentNode = this;

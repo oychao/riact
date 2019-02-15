@@ -109,7 +109,7 @@ export const omit = function(
   object: Riact.TObject,
   keys: string | Array<string>
 ): Riact.TObject {
-  const result = Object.assign({}, object);
+  const result: Riact.TObject = Object.assign({}, object);
   keys = isString(keys) ? (keys as string).split(' ') : keys;
   (keys as Array<string>).forEach(
     (key: string): void => {

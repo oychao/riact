@@ -14,7 +14,6 @@ const FieldBasic = function(props: Riact.TObject): JSX.Element {
     <div>
       <input ref={refInput} onInput={(e: Event): void => {
         setValue((refInput.current as HTMLInputElement).value);
-        e.preventDefault();
       }} value={value} />
       <div style={{ color: 'grey' }}>{value}</div>
     </div>

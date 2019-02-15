@@ -1,6 +1,8 @@
-import Component from '../component/Component';
+import * as _ from '../../utils/index';
+
+import Component from './Component';
 import VirtualNode from '../virtualDom/VirtualNode';
-import AppContext from './AppContext';
+import AppContext from '../context/AppContext';
 import { NODE_TYPE_LIST } from 'src/constants/index';
 
 export interface IContextProvider extends Component {
@@ -22,14 +24,13 @@ abstract class Context {
   public static createContext(initialValue: any): IContextComponent {
     class Provider extends Component implements IContextProvider {
       private decendantConsumers: Array<Consumer>;
-      private value: any;
       constructor(context: AppContext, virtualNode: VirtualNode) {
         super(context, virtualNode);
-        this.value = virtualNode.attributes.value || initialValue;
         this.decendantConsumers = [];
       }
       public getValue(): any {
-        return this.value;
+        const { attributes: { value } }: VirtualNode = this.virtualNode;
+        return _.isUndefined(value) ? initialValue : value;
       }
       public subscribe(consumer: Consumer): Riact.TFunction {
         const { decendantConsumers }: Provider = this;
@@ -41,14 +42,14 @@ abstract class Context {
         };
       }
       public renderDom(prevProps: Riact.TObject): void {
-        this.context.batchingUpdate(() => {
-          this.value = this.virtualNode.attributes.value;
-          super.renderDom(prevProps);
-          if (!prevProps || !Object.is(prevProps.value, this.value)) {
+        this.appContext.batchingUpdate(() => {
+          const { attributes: { value } }: VirtualNode = this.virtualNode;
+          if (this.isInitialized() && (!prevProps || !Object.is(prevProps.value, value))) {
             for (const decendantConsumer of this.decendantConsumers) {
               decendantConsumer.renderDom(prevProps);
             }
           }
+          super.renderDom(prevProps);
         }, this);
       }
     }
@@ -86,11 +87,11 @@ abstract class Context {
     (providerRender as Riact.TObject).clazz = Provider;
 
     const consumerRender: Riact.TFuncComponent = function(): JSX.Element {
-      const value: any = this.ancestorProvider
+      const vNode: JSX.Element = this.virtualNode.attributes.children[0];
+      vNode.attributes = vNode.attributes || {};
+      vNode.attributes.value = this.ancestorProvider
         ? this.ancestorProvider.getValue()
         : initialValue;
-      const vNode: JSX.Element = this.virtualNode.attributes.children[0];
-      vNode.attributes = value;
       return vNode;
     };
     (consumerRender as Riact.TObject).clazz = Consumer;
@@ -103,6 +104,17 @@ abstract class Context {
 
     return contextComp;
   }
+
+  public static useContextComposer(...args: Array<IContextComponent>): Riact.TFuncComponent {
+    if (args.length === 0) {
+      return null;
+    }
+    const InitContext: IContextComponent = args.pop();
+    return ({ children, values }): JSX.Element =>
+      args.reduceRight((Acc, Context, index): JSX.Element =>
+        VirtualNode.createElement(Context.Provider, { value: values[index] }, Acc),
+      VirtualNode.createElement(InitContext.Provider, { value: values[args.length] }, ...children));
+  };
 }
 
 export default Context;

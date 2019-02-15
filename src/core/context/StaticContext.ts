@@ -6,7 +6,7 @@ import {
   IContextComponent,
   IContextConsumer,
   IContextProvider
-} from './Context';
+} from '../component/Context';
 
 interface IStaticContext {
   currentInstance: IContextConsumer;
