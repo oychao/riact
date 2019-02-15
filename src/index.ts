@@ -28,6 +28,7 @@ export default class Riact extends AppContext implements Riact.IComponent {
     _.warning(!_.isNull(virtualNode), 'empty virtual dom');
     _.warning(rootDom instanceof HTMLElement, 'invalid root dom element');
 
+    this.appContext = this;
     this.virtualNode = virtualNode;
 
     // the mounted dom pointer is a virtual node as well
@@ -60,11 +61,11 @@ export default class Riact extends AppContext implements Riact.IComponent {
   }
 
   public virtualNode: VirtualNode;
-  public readonly context: AppContext;
+  public readonly appContext: AppContext;
   public render(): JSX.Element {
     return this.virtualNode;
   }
-  public getContext(): Riact.IAppContext {
+  public getAppContext(): Riact.IAppContext {
     return this;
   }
 }

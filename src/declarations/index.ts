@@ -46,9 +46,9 @@ declare namespace Riact {
   }
   export interface IComponent {
     virtualNode: JSX.Element;
-    context: IAppContext;
+    appContext: IAppContext;
     render: Riact.TFuncComponent;
-    getContext(): IAppContext;
+    getAppContext(): IAppContext;
     reflectToDom(): void;
   }
 }

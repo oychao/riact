@@ -80,7 +80,7 @@ class VirtualNode implements JSX.Element {
     attrs = attrs || {};
     vNode.attributes = {};
     vNode.events = {};
-    vNode.children = children;
+    vNode.children = children || [];
     Object.entries(attrs).forEach(
       ([key, value]: [
         string,
@@ -409,11 +409,11 @@ class VirtualNode implements JSX.Element {
     const { tagType, attributes, events } = this;
     if (this.isComponentNode()) {
       const compRender: Riact.TFuncComponent = tagType as Riact.TFuncComponent;
-      const context: AppContext = this.getParentCompNode().getContext();
-      const TargetComponent: typeof Component = context.getComponent(
+      const appContext: AppContext = this.getParentCompNode().getAppContext();
+      const TargetComponent: typeof Component = appContext.getComponent(
         compRender
       );
-      el = new TargetComponent(context, this);
+      el = new TargetComponent(appContext, this);
       el.renderDom(null);
       return this;
     } else if (this.isTextNode()) {
@@ -513,7 +513,7 @@ class VirtualNode implements JSX.Element {
           if (node.isComponentNode()) {
             (node.el as Component).unmount();
           }
-          node.loadData(payload as VirtualNode);
+          node.loadAttributes(payload as VirtualNode);
           delete node.patch;
           node.reflectToDom();
           if (!node.isComponentNode() && _.isArray(node.children)) {
@@ -549,7 +549,7 @@ class VirtualNode implements JSX.Element {
               }
             }
             if (isCompNode) {
-              (node.el as Component).renderDom(prevProps);
+              (node.el as Component).reflectToDom();
             } else if (isDomNode) {
               for (const key in events) {
                 if (events.hasOwnProperty(key)) {
@@ -603,11 +603,11 @@ class VirtualNode implements JSX.Element {
     );
   }
 
-  public loadData(that: VirtualNode): void {
+  public loadAttributes(that: VirtualNode): void {
     this.tagType = that.tagType;
-    this.attributes = that.attributes;
-    this.children = that.children;
-    this.events = that.events;
+    this.attributes = that.attributes || {};
+    this.children = that.children || [];
+    this.events = that.events || {};
     if (_.isArray(this.children)) {
       for (const child of this.children) {
         child.parentNode = this;
