@@ -3,7 +3,7 @@ import F, { useContext } from 'f';
 import ThemeContext, { themes } from '../context/theme';
 import UserContext from '../context/user';
 
-const Main = function(props) {
+const Main = F.memo(function(props) {
   const theme = useContext(ThemeContext);
   const user = useContext(UserContext);
   return (
@@ -14,6 +14,6 @@ const Main = function(props) {
       }}>toggle theme</button>
     </div>
   );
-};
+});
 
 export default Main;

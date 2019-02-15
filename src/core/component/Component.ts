@@ -47,6 +47,7 @@ export default class Component implements Riact.IComponent {
   private effectCleanups: Array<Riact.TFunction>;
   private initialized: boolean;
   private stateHookIndex: number;
+  private waitingContextProviderUpdate: boolean;
   public afterUnmount: Riact.TFunction;
 
   constructor(appContext: AppContext, virtualNode: VirtualNode) {
@@ -57,6 +58,7 @@ export default class Component implements Riact.IComponent {
     this.currEffectRelativeStates = [];
     this.effectCleanups = [];
     this.initialized = false;
+    this.waitingContextProviderUpdate = false;
     this.virtualNode = virtualNode;
     this.virtualNode.children[0] = VirtualNode.createEmptyNode();
     this.virtualNode.children[0].parentNode = this.virtualNode;
@@ -69,6 +71,18 @@ export default class Component implements Riact.IComponent {
 
   protected shouldComponentUpdate(prevProps?: Riact.TObject): boolean {
     return true;
+  }
+
+  public activateWaitingContextProviderUpdate(): void {
+    this.waitingContextProviderUpdate = true;
+  }
+
+  public disactivateWaitingContextProviderUpdate(): void {
+    this.waitingContextProviderUpdate = false;
+  }
+
+  public isWaitingContextProviderUpdate(): boolean {
+    return this.waitingContextProviderUpdate;
   }
 
   private callEffectHooks(): void {
@@ -103,9 +117,15 @@ export default class Component implements Riact.IComponent {
   public getContextCompMap(): WeakMap<IContextComponent, IContextProvider> {
     return this.contextCompMap;
   }
+  
+  /**
+   * force render dom, without checking property mutations
+   */
+  public forceRenderDom(): void {
+    this.renderDom(null);
+  }
 
   public renderDom(prevProps: Riact.TObject): void {
-    // put the rendering procedure into a transaction
     this.appContext.batchingUpdate(() => {
       if (!this.shouldComponentUpdate(prevProps)) {
         return;
@@ -154,7 +174,7 @@ export default class Component implements Riact.IComponent {
             return;
           }
           stateHooks[stateHookIndex] = newState;
-          this.renderDom(null);
+          this.forceRenderDom();
         }, this);
       }
     ];
