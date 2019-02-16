@@ -270,9 +270,12 @@ class VirtualNode implements JSX.Element {
         VirtualNode.diffFreeList(oldChildren, newChildren);
       } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {
         const comp: Component = oldVDom.el as Component;
+        const prevProps: Riact.TObject = Object.assign({}, oldVDom.attributes);
         oldVDom.attributes = newVDom.attributes;
         oldVDom.events = newVDom.events;
-        comp.renderDom(Object.assign({}, oldVDom.attributes));
+        if (!comp.isWaitingContextProviderUpdate()) {
+          comp.renderDom(prevProps);
+        }
       }
     }
   }
@@ -414,7 +417,7 @@ class VirtualNode implements JSX.Element {
         compRender
       );
       el = new TargetComponent(appContext, this);
-      el.renderDom(null);
+      el.forceRenderDom();
       return this;
     } else if (this.isTextNode()) {
       el = document.createTextNode(this.value) as Text;
