@@ -1,7 +1,5 @@
 import Component from '../component/Component';
 import componentFac from '../component/factory';
-import { ACTION_UPDATE_PROPS, ACTION_REPLACE } from 'src/constants/index';
-import VirtualNode from '../virtualDom/VirtualNode';
 
 type TransactionWrapper = {
   before: Riact.TFunction;

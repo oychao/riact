@@ -44,12 +44,19 @@ abstract class Context {
       public renderDom(prevProps: Riact.TObject): void {
         this.appContext.batchingUpdate(() => {
           const { attributes: { value } }: VirtualNode = this.virtualNode;
-          if (this.isInitialized() && (!prevProps || !Object.is(prevProps.value, value))) {
+          const shouldUpdate: boolean = this.isInitialized() && (!prevProps || !Object.is(prevProps.value, value));
+          if (shouldUpdate) {
             for (const decendantConsumer of this.decendantConsumers) {
-              decendantConsumer.renderDom(prevProps);
+              decendantConsumer.activateWaitingContextProviderUpdate();
             }
           }
           super.renderDom(prevProps);
+          if (shouldUpdate) {
+            for (const decendantConsumer of this.decendantConsumers) {
+              decendantConsumer.forceRenderDom();
+              decendantConsumer.disactivateWaitingContextProviderUpdate();
+            }
+          }
         }, this);
       }
     }
