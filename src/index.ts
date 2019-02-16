@@ -52,7 +52,7 @@ export default class Riact extends AppContext implements Riact.IComponent {
     emptyNode.parentNode = this.virtualNode;
 
     this.batchingUpdate(() => {
-      this.pushDirtyComponent(this);
+      this.pushDirtyStateComponent(this);
       VirtualNode.diffTree(emptyNode, virtualNode);
     }, this);
   }
@@ -60,6 +60,8 @@ export default class Riact extends AppContext implements Riact.IComponent {
   public reflectToDom(): void {
     this.virtualNode.children[0].reconcile();
   }
+
+  public callEffectHooks(): void {}
 
   public virtualNode: VirtualNode;
   public readonly appContext: AppContext;

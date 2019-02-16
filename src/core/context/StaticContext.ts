@@ -29,8 +29,11 @@ const StaticContext: IStaticContext = {
   useState<T>(state: T): [T, (newState: T) => void] {
     return (StaticContext.currentInstance as Component).useStateHook(state);
   },
-  useEffect(effect: Riact.TFunction, relativeState: Array<any> = []): void {
-    _.warning(_.isArray(relativeState), 'relative state should be an array');
+  useEffect(effect: Riact.TFunction, relativeState?: Array<any>): void {
+    _.warning(
+      _.isArray(relativeState) || _.isUndefined(relativeState),
+      'relative state should be an array or an undefined value'
+    );
     return StaticContext.currentInstance.useEffect(effect, relativeState);
   },
   useContext(contextComp: IContextComponent): any {
