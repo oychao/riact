@@ -85,18 +85,13 @@ export default class Component implements Riact.IComponent {
     return this.waitingContextProviderUpdate;
   }
 
-  private callEffectHooks(): void {
+  public callEffectHooks(): void {
     for (let i = 0; i < this.currEffectHooks.length; i++) {
       const prevState: Array<any> = this.prevEffectRelativeStates[i];
       const currState: Array<any> = this.currEffectRelativeStates[i];
       const effect: Riact.TFunction = this.currEffectHooks[i];
       const prevCleanup: Riact.TFunction = this.effectCleanups[i];
-      if (
-        !this.initialized ||
-        prevState.length !== currState.length ||
-        !prevState.length ||
-        !_.isEqualArray(currState, prevState)
-      ) {
+      if (!_.isEqualArray(prevState, currState) || !this.initialized) {
         if (_.isFunction(prevCleanup)) {
           prevCleanup.call(this);
         }
@@ -117,7 +112,7 @@ export default class Component implements Riact.IComponent {
   public getContextCompMap(): WeakMap<IContextComponent, IContextProvider> {
     return this.contextCompMap;
   }
-  
+
   /**
    * force render dom, without checking property mutations
    */
@@ -132,7 +127,7 @@ export default class Component implements Riact.IComponent {
       }
       StaticContext.setCurrentInstance(this);
       // push current component into dirty components
-      this.appContext.pushDirtyComponent(this);
+      this.appContext.pushDirtyStateComponent(this);
       this.prevEffectHooks = this.currEffectHooks;
       this.currEffectHooks = [];
       this.prevEffectRelativeStates = this.currEffectRelativeStates;
@@ -141,20 +136,22 @@ export default class Component implements Riact.IComponent {
       const newVirtualDom: VirtualNode = this.render(
         this.virtualNode.attributes
       ) as VirtualNode;
+      // if effect hooks exists, call them after dom updated
+      if (this.currEffectHooks.length !== 0) {
+        this.appContext.pushDirtyEffectComponent(this);
+      }
       // mount sub virtual dom tree to global virtual dom tree
       newVirtualDom.parentNode = this.virtualNode;
       VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
-      if (!this.initialized) {
-        this.reflectToDom();
-      }
-      this.callEffectHooks();
       StaticContext.clearCurrentInstance();
       this.initialized = true;
     }, this);
   }
 
   public reflectToDom(): void {
-    this.virtualNode.children[0].reconcile();
+    if (!_.isNull(this.virtualNode)) {
+      this.virtualNode.children[0].reconcile();
+    }
   }
 
   public useStateHook<T>(state: T): [T, (newState: T) => void] {
@@ -182,7 +179,6 @@ export default class Component implements Riact.IComponent {
 
   public useEffect(effect: Riact.TFunction, relativeState: Array<any>): void {
     const {
-      initialized,
       prevEffectHooks,
       currEffectHooks,
       prevEffectRelativeStates,
@@ -192,9 +188,7 @@ export default class Component implements Riact.IComponent {
       !_.isEqualArray(
         prevEffectRelativeStates[currEffectRelativeStates.length],
         relativeState
-      ) ||
-      !relativeState.length ||
-      !initialized
+      )
     ) {
       currEffectHooks.push(effect);
       currEffectRelativeStates.push(relativeState);

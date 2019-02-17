@@ -1,6 +1,6 @@
 export const PROP_CLASS_PRESERVED: string = 'class';
 export const PROP_CLASS: string = 'className';
-export const PROP_STYPE: string = 'style';
+export const PROP_STYLE: string = 'style';
 export const PROP_REF: string = 'ref';
 export const PROP_KEY: string = 'key';
 export const PROP_VALUE: string = 'value';

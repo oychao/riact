@@ -42,7 +42,7 @@ declare namespace Riact {
     current: HTMLElement;
   };
   export interface IAppContext {
-    pushDirtyComponent(comp: IComponent): void;
+    pushDirtyStateComponent(comp: IComponent): void;
   }
   export interface IComponent {
     virtualNode: JSX.Element;
@@ -50,6 +50,7 @@ declare namespace Riact {
     render: Riact.TFuncComponent;
     getAppContext(): IAppContext;
     reflectToDom(): void;
+    callEffectHooks(): void;
   }
 }
 

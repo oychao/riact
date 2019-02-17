@@ -95,11 +95,19 @@ export const createRef = (): Riact.TRef => {
 
 export const loadStyle = (
   element: HTMLElement,
-  styleObject: Riact.TObject
+  currStyle: Riact.TObject,
+  prevStyle?: Riact.TObject
 ): void => {
-  for (const styleKey in styleObject) {
-    if (styleObject.hasOwnProperty(styleKey)) {
-      const styleVal: string = styleObject[styleKey];
+  if (_.isPlainObject(prevStyle)) {
+    for (const styleKey in prevStyle) {
+      if (prevStyle.hasOwnProperty(styleKey)) {
+        (element as HTMLElement).style[styleKey] = '';
+      }
+    }
+  }
+  for (const styleKey in currStyle) {
+    if (currStyle.hasOwnProperty(styleKey)) {
+      const styleVal: string = currStyle[styleKey];
       (element as HTMLElement).style[styleKey] = styleVal;
     }
   }

@@ -10,7 +10,7 @@ import {
   ACTION_INSERT,
   PROP_CLASS_PRESERVED,
   PROP_CLASS,
-  PROP_STYPE,
+  PROP_STYLE,
   PROP_KEY,
   PROP_REF,
   PROP_VALUE,
@@ -88,9 +88,9 @@ class VirtualNode implements JSX.Element {
       ]): void => {
         if (key === PROP_CLASS_PRESERVED || key === PROP_CHILDREN) {
           // preserved property names
-        } else if (key === PROP_STYPE) {
+        } else if (key === PROP_STYLE) {
           if (_.isPlainObject(value)) {
-            vNode.attributes[PROP_STYPE] = value;
+            vNode.attributes[PROP_STYLE] = value;
           }
         } else if (key === PROP_KEY) {
           vNode[PROP_KEY] = value as string;
@@ -443,7 +443,7 @@ class VirtualNode implements JSX.Element {
                 }
               );
             }
-          } else if (key === PROP_STYPE) {
+          } else if (key === PROP_STYLE) {
             loadStyle(el as HTMLElement, value);
           } else if (key === PROP_DANGEROUS_HTML) {
             // children nodes will be disactive due to the dangerous inner html
@@ -537,8 +537,8 @@ class VirtualNode implements JSX.Element {
                 const value: any = (attributes as Riact.TObject)[key];
                 node.attributes[key] = value;
                 if (isDomNode) {
-                  if (key === PROP_STYPE) {
-                    loadStyle(node.el as HTMLElement, value);
+                  if (key === PROP_STYLE) {
+                    loadStyle(node.el as HTMLElement, value, prevProps[PROP_STYLE]);
                   } else if (key === PROP_VALUE) {
                     (node.el as HTMLInputElement).value = value;
                   } else if (key === PROP_DANGEROUS_HTML) {
