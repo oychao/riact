@@ -13,9 +13,11 @@ abstract class AppContext implements Riact.IAppContext {
       typeof Component
     >();
     this.performing = false;
-    this.wrappers = [AppContext.BATCHING_UPDATE_STRATEGY];
-    this.dirtyComponentStack = [];
-    this.dirtyComponentMap = new WeakMap<Component, boolean>();
+    this.wrappers = [AppContext.BATCHING_UPDATE_STRATEGY, AppContext.BATCH_INVOKE_EFFECTS_STRATEGY];
+    this.dirtyStateComponentStack = [];
+    this.dirtyStateComponentMap = new WeakMap<Component, boolean>();
+    this.dirtyEffectComponentStack = [];
+    this.dirtyEffectComponentMap = new WeakMap<Component, boolean>();
   }
 
   /**
@@ -74,25 +76,45 @@ abstract class AppContext implements Riact.IAppContext {
   private static BATCHING_UPDATE_STRATEGY: TransactionWrapper = {
     before() {},
     after() {
-      // batching update
-      let comp: Component = this.dirtyComponentStack.pop();
+      // batching update state
+      let comp: Component = this.dirtyStateComponentStack.pop();
       while (comp) {
         comp.reflectToDom();
-        comp = this.dirtyComponentStack.pop();
+        comp = this.dirtyStateComponentStack.pop();
       }
-      this.dirtyComponentMap = new WeakMap<Component, boolean>();
+      this.dirtyStateComponentMap = new WeakMap<Component, boolean>();
+    }
+  }
+  private static BATCH_INVOKE_EFFECTS_STRATEGY: TransactionWrapper = {
+    before() {},
+    after() {
+      // batching invoke effect
+      let comp: Component = this.dirtyEffectComponentStack.pop();
+      while (comp) {
+        comp.callEffectHooks();
+        comp = this.dirtyEffectComponentStack.pop();
+      }
+      this.dirtyEffectComponentMap = new WeakMap<Component, boolean>();
     }
   }
 
   /**
    * dirty components stack
    */
-  private dirtyComponentStack: Array<Component>;
-  private dirtyComponentMap: WeakMap<Component, boolean>;
-  public pushDirtyComponent(comp: Riact.IComponent): void {
-    if (!this.dirtyComponentMap.has(comp as Component)) {
-      this.dirtyComponentStack.push(comp as Component);
-      this.dirtyComponentMap.set(comp as Component, true);
+  private dirtyStateComponentStack: Array<Component>;
+  private dirtyStateComponentMap: WeakMap<Component, boolean>;
+  public pushDirtyStateComponent(comp: Riact.IComponent): void {
+    if (!this.dirtyStateComponentMap.has(comp as Component)) {
+      this.dirtyStateComponentStack.push(comp as Component);
+      this.dirtyStateComponentMap.set(comp as Component, true);
+    }
+  }
+  private dirtyEffectComponentStack: Array<Component>;
+  private dirtyEffectComponentMap: WeakMap<Component, boolean>;
+  public pushDirtyEffectComponent(comp: Riact.IComponent): void {
+    if (!this.dirtyEffectComponentMap.has(comp as Component)) {
+      this.dirtyEffectComponentStack.push(comp as Component);
+      this.dirtyEffectComponentMap.set(comp as Component, true);
     }
   }
 }
