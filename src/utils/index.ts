@@ -143,3 +143,40 @@ export const dfsWalk = function(
     }
   }
 };
+
+/**
+ * calculate longest increasing subsequence
+ * @param arr array of number
+ */
+export const calcLis = function(arr: Array<number>): Array<number> {
+  const M: Array<number> = [-1];
+  const P: Array<number> = [];
+  const S: Array<number> = [];
+  let i: number;
+  let left: number;
+  let right: number;
+  let mid: number;
+  let len: number;
+  for (i = 0; i < arr.length; i++) {
+    left = 1;
+    right = M.length;
+    while (left < right) {
+      mid = Math.floor((left + right) / 2);
+      if (arr[M[mid]] < arr[i]) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+    M[left] = i;
+    P[i] = M[left - 1];
+  }
+
+  len = M.length - 1;
+  i = M[len];
+  while (i !== -1) {
+    S[len-- - 1] = arr[i];
+    i = P[i];
+  }
+  return S;
+};
