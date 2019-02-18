@@ -14,7 +14,8 @@
   "files": [
     "LICENSE.md",
     "README.md",
-    "bin/"
+    "bin/",
+    "src/declarations.d.ts"
   ],
   "scripts": {
     "build": "rollup -c",

@@ -1,29 +1,33 @@
 declare namespace Riact {
   export type TFuncComponent = (props: any) => JSX.Element;
   export type TPatch = {
-    action: Symbol;
-    payload:
-      | JSX.Element
-      | {
-          attributes: TObject;
-          events: TFuncValObject;
-        }
-      | {
-          index: number;
-          item?: JSX.Element;
-        }
-      | Array<TPatch>;
+    type: Symbol;
+    payload: TPatchPayload;
   };
+  export type TPatchPayload = JSX.Element
+    | {
+        attributes: TObject;
+        events: TFuncValObject;
+      }
+    | {
+        index: number;
+        item?: JSX.Element;
+      }
+    | Array<TPatch>
+    | Array<JSX.Element>
+    | TPatchInsertPayload;
   export type TPatchUpdatePropsPayload = {
     attributes: TObject;
     events: TFuncValObject;
   };
   export type TPatchInsertPayload = {
-    index: number;
+    index?: number;
+    to?: JSX.Element;
     item: JSX.Element;
   };
   export type TPatchRemovePayload = {
-    index: number;
+    index?: number;
+    item?: JSX.Element;
   };
   export type TPatchTree = {
     [key: string]: TPatch;

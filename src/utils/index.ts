@@ -145,7 +145,7 @@ export const dfsWalk = function(
 };
 
 /**
- * calculate longest increasing subsequence
+ * calculate longest increasing subsequence (only for positive numbers)
  * @param arr array of number
  */
 export const calcLis = function(arr: Array<number>): Array<number> {
@@ -158,6 +158,10 @@ export const calcLis = function(arr: Array<number>): Array<number> {
   let mid: number;
   let len: number;
   for (i = 0; i < arr.length; i++) {
+    // skip negative numbers
+    if (arr[i] < 0) {
+      continue;
+    }
     left = 1;
     right = M.length;
     while (left < right) {
@@ -179,4 +183,32 @@ export const calcLis = function(arr: Array<number>): Array<number> {
     i = P[i];
   }
   return S;
+};
+
+/**
+ * trim same elements for two arrays, return deviation counts of beginning
+ * and ending
+ * @param list1 array of object
+ * @param list2 array of object
+ * @param key key name for identification
+ */
+export const trimTwoLists = function(list1: Array<Riact.TObject>, list2:Array<Riact.TObject>, key: string): [number, number] {
+	let sd: number = 0;
+	let ed: number = 0;
+	let idx1: number = 0, idx2: number = 0;
+	const { length: len1 }: Riact.TObject = list1;
+	const { length: len2 }: Riact.TObject = list2;
+	while(sd < len1 && sd < len2 && list1[idx1][key] === list2[idx1][key]) {
+		sd++;
+		idx1 = sd;
+		idx2 = sd;
+	}
+	idx1 = len1 - ed - 1;
+	idx2 = len2 - ed - 1;
+	while(sd + ed < len1 && sd + ed < len2 && list1[idx1][key] === list2[idx2][key]) {
+		ed++;
+    idx1 = len1 - ed - 1;
+    idx2 = len2 - ed - 1;
+	}
+	return [sd, ed];
 };

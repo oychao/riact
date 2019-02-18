@@ -142,34 +142,34 @@ const List = function() {
 };
 
 const la = [{
-  name: 'Derek Floyd',
-  email: 'bih@usovov.cg'
+  name: 'a',
+  email: 'a'
 }, {
-  name: 'Willie Hill',
-  email: 'jiujhe@niz.ac'
+  name: 'b',
+  email: 'b'
 }, {
-  name: 'Max Gilbert',
-  email: 'ger@efelu.dz'
+  name: 'c',
+  email: 'c'
 }, {
-  name: 'David Fuller',
-  email: 'ruru@hijo.aw'
+  name: 'd',
+  email: 'd'
 }];
 const lb = [{
-  name: 'Willie Hill',
-  email: 'jiujhe@niz.ac'
+  name: 'e',
+  email: 'e'
 }, {
-  name: 'Max Gilbert',
-  email: 'ger@efelu.dz'
+  name: 'a',
+  email: 'a'
 }, {
-  name: 'Derek Floyd',
-  email: 'bih@usovov.cg'
+  name: 'd',
+  email: 'd'
 }, {
-  name: 'Abbie Garza',
-  email: 'ruru@hijo.aw'
+  name: 'b',
+  email: 'b'
 }, {
-  name: 'Lucy Dennis',
-  email: 'ekgiov@upeukgo.pe'
-}];
+  name: 'c',
+  email: 'c'
+}];;
 const ShowList = function() {
   const [list, setList] = useState(la);
   setTimeout(() => {
