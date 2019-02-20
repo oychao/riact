@@ -169,7 +169,10 @@ const lb = [{
 }, {
   name: 'c',
   email: 'c'
-}];;
+}];
+const Item = function({ children }) {
+  return <li>{children}</li>;
+};
 const ShowList = function() {
   const [list, setList] = useState(la);
   setTimeout(() => {
@@ -177,7 +180,7 @@ const ShowList = function() {
   }, 1e3);
   return (
     <ol>
-      {list.map(({name, email}) => <li key={email}>{name}</li>)}
+      {list.map(({name, email}) => <Item key={email}>{name}</Item>)}
     </ol>
   );
 };
