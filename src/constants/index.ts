@@ -11,6 +11,7 @@ export const PROP_EVENT_PREFIX: string = 'on';
 export const NODE_TYPE_EMPTY: string = 'NODE_TYPE_EMPTY';
 export const NODE_TYPE_TEXT: string = 'NODE_TYPE_TEXT';
 export const NODE_TYPE_LIST: string = 'NODE_TYPE_LIST';
+export const NODE_TYPE_FRAGMENT: string = 'NODE_TYPE_FRAGMENT';
 
 export const ACTION_REMOVE: Symbol = Symbol.for('ACTION_REMOVE');
 export const ACTION_REMOVE_NEXT: Symbol = Symbol.for('ACTION_REMOVE_NEXT');

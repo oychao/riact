@@ -16,11 +16,14 @@ const useRouter = function(routers) {
   return [
     <div>
       {routers.map(([name], curIdx) => (
-        <span>
+        <span key={curIdx}>
           <a
+            key={curIdx}
             style={curIdx === index ? { color: 'red' } : {}}
             href="javascript:;"
-            onClick={() => setIndex(curIdx)}
+            onClick={() => {
+              setIndex(curIdx);
+            }}
           >
             {name}
           </a>
@@ -91,9 +94,12 @@ const Count = function() {
 
 const List = function() {
   const valueModel = useInputModel('');
-  const { state, dispatch } = useReducer(function(state = { list: [] }, action) {
+  const { state, dispatch } = useReducer(function(
+    state = { list: [] },
+    action
+  ) {
     const newState = Object.assign({}, state);
-    switch(action.type) {
+    switch (action.type) {
     case 'ADD':
       if (Array.isArray(action.payload)) {
         newState.list = newState.list.concat(action.payload);
@@ -101,7 +107,7 @@ const List = function() {
         newState.list.push(action.payload);
       }
       break;
-    default:;
+    default:
     }
     return newState;
   });
@@ -125,13 +131,17 @@ const List = function() {
   }, []);
   return (
     <div>
-      <input type="text" {...valueModel}/>
-      <ThemedButton onClick={() => {
-        dispatch({
-          type: 'ADD',
-          payload: valueModel.value
-        });
-      }}>add item</ThemedButton>
+      <input type="text" {...valueModel} />
+      <button
+        onClick={() => {
+          dispatch({
+            type: 'ADD',
+            payload: valueModel.value
+          });
+        }}
+      >
+        add item
+      </button>
       <ol>
         {list.length === 0
           ? 'loading'
@@ -141,37 +151,52 @@ const List = function() {
   );
 };
 
-const la = [{
-  name: 'a',
-  email: 'a'
-}, {
-  name: 'b',
-  email: 'b'
-}, {
-  name: 'c',
-  email: 'c'
-}, {
-  name: 'd',
-  email: 'd'
-}];
-const lb = [{
-  name: 'e',
-  email: 'e'
-}, {
-  name: 'a',
-  email: 'a'
-}, {
-  name: 'd',
-  email: 'd'
-}, {
-  name: 'b',
-  email: 'b'
-}, {
-  name: 'c',
-  email: 'c'
-}];
+const la = [
+  {
+    name: 'a',
+    email: 'a'
+  },
+  {
+    name: 'b',
+    email: 'b'
+  },
+  {
+    name: 'c',
+    email: 'c'
+  },
+  {
+    name: 'd',
+    email: 'd'
+  }
+];
+const lb = [
+  {
+    name: 'e',
+    email: 'e'
+  },
+  {
+    name: 'a',
+    email: 'a'
+  },
+  {
+    name: 'd',
+    email: 'd'
+  },
+  {
+    name: 'hgaga',
+    email: 'b'
+  },
+  {
+    name: 'c',
+    email: 'c'
+  }
+];
 const Item = function({ children }) {
-  return <li>{children}</li>;
+  return (
+    <>
+      <li>{children}</li>
+    </>
+  );
 };
 const ShowList = function() {
   const [list, setList] = useState(la);
@@ -180,17 +205,19 @@ const ShowList = function() {
   }, 1e3);
   return (
     <ol>
-      {list.map(({name, email}) => <Item key={email}>{name}</Item>)}
+      {list.map(({ name, email }) => (
+        <Item key={email}>{name}</Item>
+      ))}
     </ol>
   );
 };
 
 const App = function() {
   const [links, activeRoute] = useRouter([
+    ['list', <List />],
     ['show list', <ShowList />],
     ['count', <Count />],
-    ['profile', <Profile />],
-    ['list', <List />]
+    ['profile', <Profile />]
   ]);
   const [theme, setTheme] = useState(themes.light);
   return (

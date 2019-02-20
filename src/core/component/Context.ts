@@ -3,7 +3,7 @@ import * as _ from '../../utils/index';
 import Component from './Component';
 import VirtualNode from '../virtualDom/VirtualNode';
 import AppContext from '../context/AppContext';
-import { NODE_TYPE_LIST } from 'src/constants/index';
+import { NODE_TYPE_FRAGMENT } from 'src/constants/index';
 
 export interface IContextProvider extends Component {
   getValue(): any;
@@ -86,7 +86,7 @@ abstract class Context {
 
     const providerRender: Riact.TFuncComponent = function(): JSX.Element {
       return VirtualNode.createElement(
-        NODE_TYPE_LIST,
+        NODE_TYPE_FRAGMENT,
         null,
         ...((this as Provider).virtualNode.attributes.children as Array<any>)
       );

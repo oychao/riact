@@ -19,7 +19,8 @@ import {
   PROP_EVENT_PREFIX,
   ACTION_MOVE,
   ACTION_REORDER_BEFORE_16,
-  ACTION_REMOVE_NEXT
+  ACTION_REMOVE_NEXT,
+  NODE_TYPE_FRAGMENT
 } from '../../constants/index';
 import {
   keyIdxMapFac,
@@ -85,6 +86,9 @@ class VirtualNode implements JSX.Element {
     vNode.attributes = {};
     vNode.events = {};
     vNode.children = children || [];
+    if (vNode.isFragmentNode()) {
+      attrs = {};
+    }
     Object.entries(attrs).forEach(
       ([key, value]: [
         string,
@@ -120,7 +124,10 @@ class VirtualNode implements JSX.Element {
               vNode.attributes[key] = value;
             }
           } else if (_.isFunction(value)) {
-            if (vNode.isTaggedDomNode() && key.slice(0, 2) === PROP_EVENT_PREFIX) {
+            if (
+              vNode.isTaggedDomNode() &&
+              key.slice(0, 2) === PROP_EVENT_PREFIX
+            ) {
               vNode.events[key] = value as Riact.TFunction;
             } else {
               vNode.attributes[key] = value;
@@ -215,25 +222,80 @@ class VirtualNode implements JSX.Element {
   }
 
   /**
+   * trim same elements for two arrays, return deviation counts of beginning
+   * and ending
+   * @param list1 array of object
+   * @param list2 array of object
+   * @param key key name for identification
+   */
+  private static trimTwoLists(
+    list1: Array<VirtualNode>,
+    list2: Array<VirtualNode>,
+    key: string
+  ): [number, number] {
+    let sd: number = 0;
+    let ed: number = 0;
+    let idx1: number = 0,
+      idx2: number = 0;
+    const { length: len1 }: Array<VirtualNode> = list1;
+    const { length: len2 }: Array<VirtualNode> = list2;
+    while (sd < len1 && sd < len2 && list1[idx1][key] === list2[idx1][key]) {
+      VirtualNode.diffTree(list1[idx1], list2[idx2]);
+      sd++;
+      idx1 = sd;
+      idx2 = sd;
+    }
+    idx1 = len1 - ed - 1;
+    idx2 = len2 - ed - 1;
+    while (
+      sd + ed < len1 &&
+      sd + ed < len2 &&
+      list1[idx1][key] === list2[idx2][key]
+    ) {
+      VirtualNode.diffTree(list1[idx1], list2[idx2]);
+      ed++;
+      idx1 = len1 - ed - 1;
+      idx2 = len2 - ed - 1;
+    }
+    return [sd, ed];
+  }
+
+  /**
    * diff two arrays of number, Takes O(nlogn) time in expectation
    * @param list1 array of characters
    * @param list2 array of characters
    */
-  private static diffKeyedList (list1: Array<VirtualNode>, list2:Array<VirtualNode>, key: string = PROP_KEY): Array<Riact.TPatch> {
+  private static diffKeyedList(
+    list1: Array<VirtualNode>,
+    list2: Array<VirtualNode>,
+    key: string = PROP_KEY
+  ): Array<Riact.TPatch> {
     const { length: len1 }: Array<VirtualNode> = list1;
     const { length: len2 }: Array<VirtualNode> = list2;
-    const [sd, ed]: [number, number] = _.trimTwoLists(list1, list2, key);
+    const [sd, ed]: [number, number] = VirtualNode.trimTwoLists(
+      list1,
+      list2,
+      key
+    );
     const pHeaderIns: Array<VirtualNode> = []; // tail insertions
     const pMovs: Array<Riact.TPatch> = []; // move patches
     const pRmvs: Array<Riact.TPatch> = []; // remove patches
-    const pInss: Map<VirtualNode, Array<Riact.TPatch>> = new Map<VirtualNode, Array<Riact.TPatch>>();
-    const IM: Map<string, number> = new Map<string, number>(); // index map
-    const IT: Array<number> = new Array(len2 - sd - ed).fill(-1); // index table
+    const pInss: Map<VirtualNode, Array<Riact.TPatch>> = new Map<
+      VirtualNode,
+      Array<Riact.TPatch>
+    >();
+    const IM: Map<string, number> = new Map<string, number>(); // index map of length1
+    const IT: Array<number> = new Array(len2 - sd - ed).fill(-1); // index table of length2
     let LIS: Array<number>; // longest increasing subsequence of index table
     let P: Array<Riact.TPatch>; // all patches
     let shouldMoved: boolean = false; // no need to move if LIS.length == IT.length(positive numbers only)
-    let i: number, j: number, k: number, end: number, last: number, patches: Array<Riact.TPatch>,
-      len: number, type: Symbol, payload: Riact.TPatchPayload; // other temp variables
+    let i: number,
+      j: number,
+      k: number,
+      end: number,
+      last: number,
+      patches: Array<Riact.TPatch>,
+      len: number; // other temp variables
     for (i = sd, end = len2 - ed; i < end; i++) {
       IM.set(list2[i].key, i);
     }
@@ -241,6 +303,7 @@ class VirtualNode implements JSX.Element {
     for (i = sd, end = len1 - ed; i < end; i++) {
       j = IM.get(list1[i].key);
       if (j !== undefined) {
+        VirtualNode.diffTree(list1[i], list2[j]);
         IT[j - sd] = i;
         if (j < last) {
           shouldMoved = true;
@@ -281,7 +344,8 @@ class VirtualNode implements JSX.Element {
           pMovs.push({
             type: ACTION_MOVE,
             payload: {
-              to: IT[last] === undefined ? list1[len1 - 1] : list1[IT[last] - 1],
+              to:
+                IT[last] === undefined ? list1[len1 - 1] : list1[IT[last] - 1],
               item: list1[IT[i] - 1]
             }
           });
@@ -293,11 +357,13 @@ class VirtualNode implements JSX.Element {
     }
 
     P = [...pMovs, ...pRmvs];
-    pInss.forEach((val: Array<Riact.TPatch>, key: JSX.Element): void => {
-      for (i = 0, len = val.length; i < len; i++) {
-        P.push(val[i]);
+    pInss.forEach(
+      (val: Array<Riact.TPatch>, key: JSX.Element): void => {
+        for (i = 0, len = val.length; i < len; i++) {
+          P.push(val[i]);
+        }
       }
-    });
+    );
     for (i = 0, len = pHeaderIns.length; i < len; i++) {
       P.push({
         type: ACTION_INSERT,
@@ -309,7 +375,7 @@ class VirtualNode implements JSX.Element {
     }
 
     return P;
-  };
+  }
 
   private static diffFreeList(
     oldList: Array<VirtualNode>,
@@ -363,7 +429,11 @@ class VirtualNode implements JSX.Element {
         return;
       } else if (
         !_.isEqualObject(oldAttributes, newAttributes) ||
-        !_.isEqualObject(oldEvents, newEvents)
+        !_.isEqualObject(oldEvents, newEvents) ||
+        (_.isUndefined(oldAttributes) &&
+          _.isUndefined(newAttributes) &&
+          _.isUndefined(oldEvents) &&
+          _.isUndefined(newEvents))
       ) {
         oldVDom.patch = makeUpdatePropsAction(newAttributes, newEvents);
       }
@@ -420,6 +490,9 @@ class VirtualNode implements JSX.Element {
   public isListNode(): boolean {
     return this.tagType === NODE_TYPE_LIST;
   }
+  public isFragmentNode(): boolean {
+    return this.tagType === NODE_TYPE_FRAGMENT;
+  }
   public isComponentNode(): boolean {
     return _.isFunction(this.tagType);
   }
@@ -428,7 +501,8 @@ class VirtualNode implements JSX.Element {
       !this.isEmptyNode() &&
       !this.isComponentNode() &&
       !this.isTextNode() &&
-      !this.isListNode()
+      !this.isListNode() &&
+      !this.isFragmentNode()
     );
   }
 
@@ -476,13 +550,29 @@ class VirtualNode implements JSX.Element {
     return vNodes;
   }
 
+  public getChildrenCompNodes(): Array<Component> {
+    const comps: Array<Component> = [];
+    _.dfsWalk(
+      this,
+      PROP_CHILDREN,
+      (child: VirtualNode): boolean => {
+        if (child.isComponentNode()) {
+          comps.push(child.el as Component);
+          return false;
+        }
+        return true;
+      }
+    );
+    return comps;
+  }
+
   public getMostLeftDomNodeInSubTree(): VirtualNode {
     const { children }: VirtualNode = this;
     if (!_.isArray(children) || !children.length) {
       return null;
     }
     for (const child of children) {
-      if (child.isComponentNode()) {
+      if (child.isComponentNode() || child.isFragmentNode()) {
         return child.getMostLeftDomNodeInSubTree();
       } else if (child.isTaggedDomNode() || child.isTextNode()) {
         return child;
@@ -598,7 +688,7 @@ class VirtualNode implements JSX.Element {
   public unmountFromDom(): void {
     if (this.isTaggedDomNode() || this.isTextNode()) {
       this.getDomParentNode().removeChild(this.el as Node);
-    } else if (this.isComponentNode()) {
+    } else if (this.isComponentNode() || this.isFragmentNode()) {
       const domChildrenVNodes: Array<VirtualNode> = this.getDomChildrenVNodes();
       for (const vNode of domChildrenVNodes) {
         (vNode.el as Node).parentNode.removeChild(vNode.el as Node);
@@ -619,6 +709,12 @@ class VirtualNode implements JSX.Element {
           node.unmountFromDom();
           if (node.isComponentNode()) {
             (node.el as Component).unmount();
+          }
+          if (!node.isEmptyNode() && !node.isTextNode()) {
+            const comps: Array<Component> = node.getChildrenCompNodes();
+            for (const comp of comps) {
+              comp.unmount();
+            }
           }
           node.loadAttributes(payload as VirtualNode);
           delete node.patch;
@@ -642,7 +738,11 @@ class VirtualNode implements JSX.Element {
                 node.attributes[key] = value;
                 if (isDomNode) {
                   if (key === PROP_STYLE) {
-                    loadStyle(node.el as HTMLElement, value, prevProps[PROP_STYLE]);
+                    loadStyle(
+                      node.el as HTMLElement,
+                      value,
+                      prevProps[PROP_STYLE]
+                    );
                   } else if (key === PROP_VALUE) {
                     (node.el as HTMLInputElement).value = value;
                   } else if (key === PROP_DANGEROUS_HTML) {
@@ -656,7 +756,7 @@ class VirtualNode implements JSX.Element {
               }
             }
             if (isCompNode) {
-              (node.el as Component).reflectToDom();
+              (node.el as Component).forceRenderDom();
             } else if (isDomNode) {
               for (const key in events) {
                 if (events.hasOwnProperty(key)) {
@@ -667,15 +767,19 @@ class VirtualNode implements JSX.Element {
             }
           }
         } else if (type === ACTION_REORDER) {
+          let startNode: VirtualNode = node[PROP_CHILDREN][0];
           for (const patch of payload as Array<Riact.TPatch>) {
             const {
               type: reorderAction,
               payload: reorderPayload
             }: Riact.TPatch = patch;
-            let startNode: VirtualNode = node[PROP_CHILDREN][0];
             if (reorderAction === ACTION_INSERT) {
               // handle insert
-              const { index, item, to }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
+              const {
+                index,
+                item,
+                to
+              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
               if (to) {
                 item.nextSibling = to.nextSibling;
                 to.nextSibling = item;
@@ -698,8 +802,12 @@ class VirtualNode implements JSX.Element {
               toBeRemoved.unmountFromDom();
             } else if (reorderAction === ACTION_MOVE) {
               // handle move
-              const { item, to }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
+              const {
+                item,
+                to
+              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
               let target: VirtualNode;
+              // reorder child chain
               if (_.isUndefined(item)) {
                 target = startNode;
                 startNode = startNode.nextSibling;
@@ -714,8 +822,11 @@ class VirtualNode implements JSX.Element {
                 target.nextSibling = to.nextSibling as VirtualNode;
                 to.nextSibling = target;
               }
+              // mount to dom
               if (target.isListNode() || target.isComponentNode()) {
-                const domChildrenVNodes: Array<VirtualNode> = target.getDomChildrenVNodes();
+                const domChildrenVNodes: Array<
+                  VirtualNode
+                > = target.getDomChildrenVNodes();
                 for (const vNode of domChildrenVNodes) {
                   vNode.mountToDom();
                 }
@@ -723,14 +834,14 @@ class VirtualNode implements JSX.Element {
                 target.mountToDom();
               }
             }
-            const newChildren: Array<VirtualNode> = [];
-            let pivot: VirtualNode = startNode;
-            while (pivot) {
-              newChildren.push(pivot);
-              pivot = pivot.nextSibling;
-            }
-            node.children = newChildren;
           }
+          const newChildren: Array<VirtualNode> = [];
+          let pivot: VirtualNode = startNode;
+          while (pivot) {
+            newChildren.push(pivot);
+            pivot = pivot.nextSibling;
+          }
+          node.children = newChildren;
         } else if (type === ACTION_REORDER_BEFORE_16) {
           /**
            * @decprecated

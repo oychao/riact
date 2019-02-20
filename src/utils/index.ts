@@ -132,6 +132,9 @@ export const dfsWalk = function(
   index: number = 0,
   parentNode: Riact.TObject = null
 ): void {
+  if (isNull(node)) {
+    return;
+  }
   if (!handler.call(null, node, index, parentNode)) {
     return;
   }
@@ -183,32 +186,4 @@ export const calcLis = function(arr: Array<number>): Array<number> {
     i = P[i];
   }
   return S;
-};
-
-/**
- * trim same elements for two arrays, return deviation counts of beginning
- * and ending
- * @param list1 array of object
- * @param list2 array of object
- * @param key key name for identification
- */
-export const trimTwoLists = function(list1: Array<Riact.TObject>, list2:Array<Riact.TObject>, key: string): [number, number] {
-	let sd: number = 0;
-	let ed: number = 0;
-	let idx1: number = 0, idx2: number = 0;
-	const { length: len1 }: Riact.TObject = list1;
-	const { length: len2 }: Riact.TObject = list2;
-	while(sd < len1 && sd < len2 && list1[idx1][key] === list2[idx1][key]) {
-		sd++;
-		idx1 = sd;
-		idx2 = sd;
-	}
-	idx1 = len1 - ed - 1;
-	idx2 = len2 - ed - 1;
-	while(sd + ed < len1 && sd + ed < len2 && list1[idx1][key] === list2[idx2][key]) {
-		ed++;
-    idx1 = len1 - ed - 1;
-    idx2 = len2 - ed - 1;
-	}
-	return [sd, ed];
 };
