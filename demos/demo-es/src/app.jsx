@@ -53,6 +53,7 @@ const ThemeContext = F.createContext(themes.light);
 
 const ThemedButton = function({ children, onClick }) {
   const theme = useContext(ThemeContext);
+  console.log(children);
   return (
     <button style={{ ...theme }} onClick={onClick}>
       {children}
@@ -128,6 +129,9 @@ const List = function() {
         payload: data
       });
     });
+    return () => {
+      console.log('unmount');
+    };
   }, []);
   return (
     <div>
@@ -183,7 +187,7 @@ const lb = [
     email: 'd'
   },
   {
-    name: 'hgaga',
+    name: 'b',
     email: 'b'
   },
   {

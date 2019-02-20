@@ -139,11 +139,15 @@ class VirtualNode implements JSX.Element {
 
     normalizeVirtualNode(vNode);
     if (vNode.isComponentNode()) {
-      vNode.attributes.children = vNode.children;
+      vNode.attributes.children = VirtualNode.createElement(
+        NODE_TYPE_FRAGMENT,
+        null,
+        ...vNode.children
+      );
       vNode.children = [];
     }
 
-    for (const child of children) {
+    for (const child of vNode.children) {
       if (_.isPlainObject(child)) {
         child.parentNode = vNode;
       }
@@ -709,8 +713,7 @@ class VirtualNode implements JSX.Element {
           node.unmountFromDom();
           if (node.isComponentNode()) {
             (node.el as Component).unmount();
-          }
-          if (!node.isEmptyNode() && !node.isTextNode()) {
+          } else if (!node.isEmptyNode() && !node.isTextNode()) {
             const comps: Array<Component> = node.getChildrenCompNodes();
             for (const comp of comps) {
               comp.unmount();

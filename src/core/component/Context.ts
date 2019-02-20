@@ -85,16 +85,12 @@ abstract class Context {
     }
 
     const providerRender: Riact.TFuncComponent = function(): JSX.Element {
-      return VirtualNode.createElement(
-        NODE_TYPE_FRAGMENT,
-        null,
-        ...((this as Provider).virtualNode.attributes.children as Array<any>)
-      );
+      return (this as Provider).virtualNode.attributes.children;
     };
     (providerRender as Riact.TObject).clazz = Provider;
 
     const consumerRender: Riact.TFuncComponent = function(): JSX.Element {
-      const vNode: JSX.Element = this.virtualNode.attributes.children[0];
+      const vNode: JSX.Element = this.virtualNode.attributes.children.children[0];
       vNode.attributes = vNode.attributes || {};
       vNode.attributes.value = this.ancestorProvider
         ? this.ancestorProvider.getValue()

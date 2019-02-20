@@ -85,30 +85,6 @@ export default class Component implements Riact.IComponent {
     return this.waitingContextProviderUpdate;
   }
 
-  public callEffectHooks(): void {
-    for (let i = 0; i < this.currEffectHooks.length; i++) {
-      const prevState: Array<any> = this.prevEffectRelativeStates[i];
-      const currState: Array<any> = this.currEffectRelativeStates[i];
-      const effect: Riact.TFunction = this.currEffectHooks[i];
-      const prevCleanup: Riact.TFunction = this.effectCleanups[i];
-      if (!_.isEqualArray(prevState, currState) || !this.initialized) {
-        if (_.isFunction(prevCleanup)) {
-          prevCleanup.call(this);
-        }
-        this.effectCleanups[i] = effect.call(this);
-      }
-    }
-  }
-
-  private callEffectCleanups(): void {
-    for (let i = 0; i < this.effectCleanups.length; i++) {
-      const callback: Riact.TFunction = this.effectCleanups[i];
-      if (_.isFunction(callback)) {
-        callback.call(this);
-      }
-    }
-  }
-
   public getContextCompMap(): WeakMap<IContextComponent, IContextProvider> {
     return this.contextCompMap;
   }
@@ -197,6 +173,30 @@ export default class Component implements Riact.IComponent {
       currEffectRelativeStates.push(
         prevEffectRelativeStates[currEffectRelativeStates.length]
       );
+    }
+  }
+
+  public callEffectHooks(): void {
+    for (let i = 0; i < this.currEffectHooks.length; i++) {
+      const prevState: Array<any> = this.prevEffectRelativeStates[i];
+      const currState: Array<any> = this.currEffectRelativeStates[i];
+      const effect: Riact.TFunction = this.currEffectHooks[i];
+      const prevCleanup: Riact.TFunction = this.effectCleanups[i];
+      if (!_.isEqualArray(prevState, currState) || !this.initialized) {
+        if (_.isFunction(prevCleanup)) {
+          prevCleanup.call(this);
+        }
+        this.effectCleanups[i] = effect.call(this);
+      }
+    }
+  }
+
+  private callEffectCleanups(): void {
+    for (let i = 0; i < this.effectCleanups.length; i++) {
+      const callback: Riact.TFunction = this.effectCleanups[i];
+      if (_.isFunction(callback)) {
+        callback.call(this);
+      }
     }
   }
 
