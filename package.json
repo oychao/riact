@@ -1,6 +1,6 @@
 {
   "name": "riact",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1",
   "main": "./bin/index.js",
   "typings": "./bin/index.d.ts",
   "author": {
@@ -19,7 +19,9 @@
   ],
   "watch": {
     "build": {
-      "patterns": ["src"],
+      "patterns": [
+        "src"
+      ],
       "extensions": "ts",
       "build": "src/*/**.ts"
     }
