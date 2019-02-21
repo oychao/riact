@@ -1,3 +1,4 @@
+import './declarations';
 import * as _ from './utils/index';
 import * as domUtils from './core/virtualDom/domUtils';
 
