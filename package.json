@@ -1,6 +1,6 @@
 {
   "name": "riact",
-  "version": "0.0.1-beta.1",
+  "version": "0.0.1-beta.2",
   "main": "./bin/index.js",
   "typings": "./bin/index.d.ts",
   "author": {
@@ -14,12 +14,21 @@
   "files": [
     "LICENSE.md",
     "README.md",
-    "bin/"
+    "bin/",
+    "src/declarations.d.ts"
   ],
+  "watch": {
+    "build": {
+      "patterns": ["src"],
+      "extensions": "ts",
+      "build": "src/*/**.ts"
+    }
+  },
   "scripts": {
     "build": "rollup -c",
     "test": "mocha --require babel-register test/**/*.spec.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "watch": "npm-watch build"
   },
   "devDependencies": {
     "@types/node": "^10.12.21",
@@ -30,6 +39,7 @@
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "mocha-sinon": "^2.1.0",
+    "npm-watch": "^0.6.0",
     "rollup": "^1.1.2",
     "rollup-plugin-typescript2": "^0.19.2",
     "sinon": "^7.2.3",

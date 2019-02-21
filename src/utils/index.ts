@@ -132,6 +132,9 @@ export const dfsWalk = function(
   index: number = 0,
   parentNode: Riact.TObject = null
 ): void {
+  if (isNull(node)) {
+    return;
+  }
   if (!handler.call(null, node, index, parentNode)) {
     return;
   }
@@ -142,4 +145,45 @@ export const dfsWalk = function(
       dfsWalk(child, key, handler, i, node);
     }
   }
+};
+
+/**
+ * calculate longest increasing subsequence (only for positive numbers)
+ * @param arr array of number
+ */
+export const calcLis = function(arr: Array<number>): Array<number> {
+  const M: Array<number> = [-1];
+  const P: Array<number> = [];
+  const S: Array<number> = [];
+  let i: number;
+  let left: number;
+  let right: number;
+  let mid: number;
+  let len: number;
+  for (i = 0; i < arr.length; i++) {
+    // skip negative numbers
+    if (arr[i] < 0) {
+      continue;
+    }
+    left = 1;
+    right = M.length;
+    while (left < right) {
+      mid = Math.floor((left + right) / 2);
+      if (arr[M[mid]] < arr[i]) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+    M[left] = i;
+    P[i] = M[left - 1];
+  }
+
+  len = M.length - 1;
+  i = M[len];
+  while (i !== -1) {
+    S[len-- - 1] = arr[i];
+    i = P[i];
+  }
+  return S;
 };

@@ -109,6 +109,9 @@ abstract class AppContext implements Riact.IAppContext {
       this.dirtyStateComponentMap.set(comp as Component, true);
     }
   }
+  public hasDirtyComponent(comp: Riact.IComponent): boolean {
+    return this.dirtyEffectComponentMap.get(comp as Component);
+  }
   private dirtyEffectComponentStack: Array<Component>;
   private dirtyEffectComponentMap: WeakMap<Component, boolean>;
   public pushDirtyEffectComponent(comp: Riact.IComponent): void {

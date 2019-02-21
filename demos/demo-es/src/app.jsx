@@ -1,5 +1,15 @@
 import F, { useState, useEffect, useContext } from 'f';
 
+const useLifeCycleChecker = function(name) {
+  // console.log(`${name} rendering`);
+  // useEffect(() => {
+  //   console.log(`${name} mounted`);
+  //   return () => {
+  //     console.log(`${name} unmounted`);
+  //   };
+  // }, []);
+};
+
 const useInputModel = function(initValue) {
   const [value, setValue] = useState(initValue);
   return {
@@ -16,11 +26,14 @@ const useRouter = function(routers) {
   return [
     <div>
       {routers.map(([name], curIdx) => (
-        <span>
+        <span key={curIdx}>
           <a
+            key={curIdx}
             style={curIdx === index ? { color: 'red' } : {}}
             href="javascript:;"
-            onClick={() => setIndex(curIdx)}
+            onClick={() => {
+              setIndex(curIdx);
+            }}
           >
             {name}
           </a>
@@ -49,6 +62,7 @@ const themes = {
 const ThemeContext = F.createContext(themes.light);
 
 const ThemedButton = function({ children, onClick }) {
+  useLifeCycleChecker('ThemedButton');
   const theme = useContext(ThemeContext);
   return (
     <button style={{ ...theme }} onClick={onClick}>
@@ -58,6 +72,7 @@ const ThemedButton = function({ children, onClick }) {
 };
 
 const Header = function({ toggleTheme }) {
+  useLifeCycleChecker('Header');
   return (
     <div>
       <h1>Hello World</h1>
@@ -67,6 +82,7 @@ const Header = function({ toggleTheme }) {
 };
 
 const Profile = function() {
+  useLifeCycleChecker('Profile');
   const firstNameModel = useInputModel('Chao');
   const lastNameModel = useInputModel('Ouyang');
   return (
@@ -79,6 +95,7 @@ const Profile = function() {
 };
 
 const Count = function() {
+  useLifeCycleChecker('Count');
   const [num, setNum] = useState(2);
   return (
     <div>
@@ -90,10 +107,14 @@ const Count = function() {
 };
 
 const List = function() {
+  useLifeCycleChecker('List');
   const valueModel = useInputModel('');
-  const { state, dispatch } = useReducer(function(state = { list: [] }, action) {
+  const { state, dispatch } = useReducer(function(
+    state = { list: [] },
+    action
+  ) {
     const newState = Object.assign({}, state);
-    switch(action.type) {
+    switch (action.type) {
     case 'ADD':
       if (Array.isArray(action.payload)) {
         newState.list = newState.list.concat(action.payload);
@@ -101,7 +122,7 @@ const List = function() {
         newState.list.push(action.payload);
       }
       break;
-    default:;
+    default:
     }
     return newState;
   });
@@ -125,69 +146,98 @@ const List = function() {
   }, []);
   return (
     <div>
-      <input type="text" {...valueModel}/>
-      <ThemedButton onClick={() => {
-        dispatch({
-          type: 'ADD',
-          payload: valueModel.value
-        });
-      }}>add item</ThemedButton>
+      <input type="text" {...valueModel} />
+      <ThemedButton
+        onClick={() => {
+          dispatch({
+            type: 'ADD',
+            payload: valueModel.value
+          });
+        }}
+      >
+        add item
+      </ThemedButton>
       <ol>
         {list.length === 0
           ? 'loading'
-          : list.map(item => <li key={item}>{item}</li>)}
+          : list.map(item => {
+            return <li key={item}>{item}</li>;
+          })}
       </ol>
     </div>
   );
 };
 
-const la = [{
-  name: 'Derek Floyd',
-  email: 'bih@usovov.cg'
-}, {
-  name: 'Willie Hill',
-  email: 'jiujhe@niz.ac'
-}, {
-  name: 'Max Gilbert',
-  email: 'ger@efelu.dz'
-}, {
-  name: 'David Fuller',
-  email: 'ruru@hijo.aw'
-}];
-const lb = [{
-  name: 'Willie Hill',
-  email: 'jiujhe@niz.ac'
-}, {
-  name: 'Max Gilbert',
-  email: 'ger@efelu.dz'
-}, {
-  name: 'Derek Floyd',
-  email: 'bih@usovov.cg'
-}, {
-  name: 'Abbie Garza',
-  email: 'ruru@hijo.aw'
-}, {
-  name: 'Lucy Dennis',
-  email: 'ekgiov@upeukgo.pe'
-}];
+const la = [
+  {
+    name: 'a',
+    email: 'a'
+  },
+  {
+    name: 'b',
+    email: 'b'
+  },
+  {
+    name: 'c',
+    email: 'c'
+  },
+  {
+    name: 'd',
+    email: 'd'
+  }
+];
+const lb = [
+  {
+    name: 'e',
+    email: 'e'
+  },
+  {
+    name: 'hahaha',
+    email: 'a'
+  },
+  {
+    name: 'd',
+    email: 'd'
+  },
+  {
+    name: 'b',
+    email: 'b'
+  },
+  {
+    name: 'c',
+    email: 'c'
+  }
+];
+const Item = function({ children }) {
+  useLifeCycleChecker('Item');
+  return (
+    <>
+      <li>{children}</li>
+    </>
+  );
+};
 const ShowList = function() {
+  useLifeCycleChecker('ShowList');
   const [list, setList] = useState(la);
   setTimeout(() => {
     setList(list === la ? lb : la);
   }, 1e3);
   return (
     <ol>
-      {list.map(({name, email}) => <li key={email}>{name}</li>)}
+      {list.map(({ name, email }) => (
+        <Item key={email}>{name}</Item>
+      ))}
     </ol>
   );
 };
 
 const App = function() {
+  useLifeCycleChecker('App');
   const [links, activeRoute] = useRouter([
+    ['list', <List />],
     ['show list', <ShowList />],
     ['count', <Count />],
-    ['profile', <Profile />],
-    ['list', <List />]
+    ['profile', <Profile />]
   ]);
   const [theme, setTheme] = useState(themes.light);
   return (

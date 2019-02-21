@@ -1,5 +1,4 @@
 import './declarations';
-
 import * as _ from './utils/index';
 import * as domUtils from './core/virtualDom/domUtils';
 
@@ -8,6 +7,7 @@ import AppContext from './core/context/AppContext';
 import Context from './core/component/Context';
 import VirtualNode from './core/virtualDom/VirtualNode';
 import Component from './core/component/Component';
+import { NODE_TYPE_FRAGMENT } from './constants/index';
 
 export default class Riact extends AppContext implements Riact.IComponent {
   public static createContext = Context.createContext;
@@ -18,6 +18,7 @@ export default class Riact extends AppContext implements Riact.IComponent {
   public static useEffect = StaticContext.useEffect;
   public static useContext = StaticContext.useContext;
   public static useContextComposer = Context.useContextComposer;
+  public static Fragment = NODE_TYPE_FRAGMENT;
 
   public static render(virtualNode: JSX.Element, rootDom: HTMLElement) {
     rootDom.innerHTML = '';
