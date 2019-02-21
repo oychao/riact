@@ -1,5 +1,15 @@
 import F, { useState, useEffect, useContext } from 'f';
 
+const useLifeCycleChecker = function(name) {
+  // console.log(`${name} rendering`);
+  // useEffect(() => {
+  //   console.log(`${name} mounted`);
+  //   return () => {
+  //     console.log(`${name} unmounted`);
+  //   };
+  // }, []);
+};
+
 const useInputModel = function(initValue) {
   const [value, setValue] = useState(initValue);
   return {
@@ -52,6 +62,7 @@ const themes = {
 const ThemeContext = F.createContext(themes.light);
 
 const ThemedButton = function({ children, onClick }) {
+  useLifeCycleChecker('ThemedButton');
   const theme = useContext(ThemeContext);
   return (
     <button style={{ ...theme }} onClick={onClick}>
@@ -61,6 +72,7 @@ const ThemedButton = function({ children, onClick }) {
 };
 
 const Header = function({ toggleTheme }) {
+  useLifeCycleChecker('Header');
   return (
     <div>
       <h1>Hello World</h1>
@@ -70,6 +82,7 @@ const Header = function({ toggleTheme }) {
 };
 
 const Profile = function() {
+  useLifeCycleChecker('Profile');
   const firstNameModel = useInputModel('Chao');
   const lastNameModel = useInputModel('Ouyang');
   return (
@@ -82,6 +95,7 @@ const Profile = function() {
 };
 
 const Count = function() {
+  useLifeCycleChecker('Count');
   const [num, setNum] = useState(2);
   return (
     <div>
@@ -93,6 +107,7 @@ const Count = function() {
 };
 
 const List = function() {
+  useLifeCycleChecker('List');
   const valueModel = useInputModel('');
   const { state, dispatch } = useReducer(function(
     state = { list: [] },
@@ -128,14 +143,11 @@ const List = function() {
         payload: data
       });
     });
-    return () => {
-      console.log('unmount');
-    };
   }, []);
   return (
     <div>
       <input type="text" {...valueModel} />
-      <button
+      <ThemedButton
         onClick={() => {
           dispatch({
             type: 'ADD',
@@ -144,7 +156,7 @@ const List = function() {
         }}
       >
         add item
-      </button>
+      </ThemedButton>
       <ol>
         {list.length === 0
           ? 'loading'
@@ -197,6 +209,7 @@ const lb = [
   }
 ];
 const Item = function({ children }) {
+  useLifeCycleChecker('Item');
   return (
     <>
       <li>{children}</li>
@@ -204,6 +217,7 @@ const Item = function({ children }) {
   );
 };
 const ShowList = function() {
+  useLifeCycleChecker('ShowList');
   const [list, setList] = useState(la);
   setTimeout(() => {
     setList(list === la ? lb : la);
@@ -218,6 +232,7 @@ const ShowList = function() {
 };
 
 const App = function() {
+  useLifeCycleChecker('App');
   const [links, activeRoute] = useRouter([
     ['list', <List />],
     ['show list', <ShowList />],
@@ -228,11 +243,11 @@ const App = function() {
   return (
     <div>
       <ThemeContext.Provider value={theme}>
-        {/* <Header
+        <Header
           toggleTheme={() => {
             setTheme(theme === themes.light ? themes.dark : themes.light);
           }}
-        /> */}
+        />
         {links}
         <hr />
         {activeRoute}

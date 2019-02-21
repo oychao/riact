@@ -3,7 +3,6 @@ import * as _ from '../../utils/index';
 import Component from './Component';
 import VirtualNode from '../virtualDom/VirtualNode';
 import AppContext from '../context/AppContext';
-import { NODE_TYPE_FRAGMENT } from 'src/constants/index';
 
 export interface IContextProvider extends Component {
   getValue(): any;
@@ -90,12 +89,12 @@ abstract class Context {
     (providerRender as Riact.TObject).clazz = Provider;
 
     const consumerRender: Riact.TFuncComponent = function(): JSX.Element {
-      const vNode: JSX.Element = this.virtualNode.attributes.children.children[0];
-      vNode.attributes = vNode.attributes || {};
-      vNode.attributes.value = this.ancestorProvider
+      const fac: Riact.TFunction = this.virtualNode.attributes.children.children[0].tagType;
+      return fac(
+        this.ancestorProvider
         ? this.ancestorProvider.getValue()
-        : initialValue;
-      return vNode;
+        : initialValue
+      );
     };
     (consumerRender as Riact.TObject).clazz = Consumer;
 
