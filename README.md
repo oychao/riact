@@ -12,9 +12,23 @@ Check the [demos][1].
 
 Currently function component supported only.
 
+```json
+// .babelrc
+{
+  //...
+  "plugins": [
+    ["@babel/plugin-transform-react-jsx", {
+      "pragma": "Riact.createElement",
+      "pragmaFrag": "Riact.Fragment"
+    }],
+    // ...
+  ]
+}
+```
+
 ```javascript
 // ./Count.jsx
-import React, { useState, useEffect } from 'riact';
+import Riact, { useState, useEffect } from 'riact';
 
 const Count = function() {
   const [ value, setValue ] = useState(0); // exactly like hooks in React 16.8.
@@ -51,7 +65,7 @@ ReactDom.render(<Count></Count>, document.querySelector('#app'));
 
 ## FYI
 
-**NOTE**: Riact is just for learning, it's easy and simple so DO NOT use it to develop complex applications, otherwise I wish you LUCK.
+**NOTE**: Riact is just for learning, it's easy and simple so DO NOT use it to develop complex applications.
 
 ## LICENCE
 

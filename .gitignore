@@ -4,3 +4,5 @@ node_modules
 bin
 package-lock.json
 yarn*
+coverage
+.nyc_output

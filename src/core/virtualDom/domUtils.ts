@@ -4,7 +4,8 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  ACTION_REORDER
+  ACTION_REORDER,
+  ACTION_REORDER_BEFORE_16
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
@@ -38,7 +39,7 @@ export const flatternListNode = function(
 
 export const makeRemoveAction = function(index: number): Riact.TPatch {
   return {
-    action: ACTION_REMOVE,
+    type: ACTION_REMOVE,
     payload: {
       index
     }
@@ -50,7 +51,7 @@ export const makeInsertAction = function(
   item: VirtualNode
 ): Riact.TPatch {
   return {
-    action: ACTION_INSERT,
+    type: ACTION_INSERT,
     payload: {
       index,
       item
@@ -60,7 +61,7 @@ export const makeInsertAction = function(
 
 export const makeReplaceAction = function(item: VirtualNode): Riact.TPatch {
   return {
-    action: ACTION_REPLACE,
+    type: ACTION_REPLACE,
     payload: item
   } as Riact.TPatch;
 };
@@ -70,7 +71,7 @@ export const makeUpdatePropsAction = function(
   events: Riact.TFuncValObject
 ): Riact.TPatch {
   return {
-    action: ACTION_UPDATE_PROPS,
+    type: ACTION_UPDATE_PROPS,
     payload: {
       attributes,
       events
@@ -78,11 +79,20 @@ export const makeUpdatePropsAction = function(
   };
 };
 
+export const makeReorderActionBefore16 = function(
+  patches: Array<Riact.TPatch>
+): Riact.TPatch {
+  return {
+    type: ACTION_REORDER_BEFORE_16,
+    payload: patches
+  };
+};
+
 export const makeReorderAction = function(
   patches: Array<Riact.TPatch>
 ): Riact.TPatch {
   return {
-    action: ACTION_REORDER,
+    type: ACTION_REORDER,
     payload: patches
   };
 };

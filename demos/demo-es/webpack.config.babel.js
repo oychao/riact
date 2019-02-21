@@ -19,7 +19,10 @@ const config = {
   },
   resolve: {
     modules: [path.resolve('./src'), path.resolve('./node_modules')],
-    extensions: ['.js', '.json', '.jsx', '.css']
+    extensions: ['.js', '.json', '.jsx', '.css'],
+    alias: {
+      'f': 'riact'
+    }
   },
   module: {
     rules: [
