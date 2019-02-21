@@ -361,19 +361,18 @@ class VirtualNode implements JSX.Element {
     }
 
     P = [...pMovs, ...pRmvs];
-    pInss.forEach(
-      (val: Array<Riact.TPatch>, key: JSX.Element): void => {
-        for (i = 0, len = val.length; i < len; i++) {
-          P.push(val[i]);
-        }
+    pInss.forEach((val: Array<Riact.TPatch>): void => {
+      for (i = 0, len = val.length; i < len; i++) {
+        P.push(val[i]);
       }
-    );
+    });
     for (i = 0, len = pHeaderIns.length; i < len; i++) {
       P.push({
         type: ACTION_INSERT,
         payload: {
-          index: 0,
-          item: pHeaderIns[i]
+          index: sd === 0 ? 0 : undefined,
+          item: pHeaderIns[i],
+          to: sd === 0 ? undefined : list1[sd - 1]
         }
       });
     }
@@ -783,7 +782,7 @@ class VirtualNode implements JSX.Element {
                 item,
                 to
               }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              if (to) {
+              if (!_.isUndefined(to)) {
                 item.nextSibling = to.nextSibling;
                 to.nextSibling = item;
               } else if (index === 0) {

@@ -149,7 +149,6 @@ const List = function() {
         {list.length === 0
           ? 'loading'
           : list.map(item => {
-            console.log(item);
             return <li key={item}>{item}</li>;
           })}
       </ol>
@@ -181,7 +180,7 @@ const lb = [
     email: 'e'
   },
   {
-    name: 'a',
+    name: 'hahaha',
     email: 'a'
   },
   {
