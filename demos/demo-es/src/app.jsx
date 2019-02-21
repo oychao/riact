@@ -53,7 +53,6 @@ const ThemeContext = F.createContext(themes.light);
 
 const ThemedButton = function({ children, onClick }) {
   const theme = useContext(ThemeContext);
-  console.log(children);
   return (
     <button style={{ ...theme }} onClick={onClick}>
       {children}
@@ -149,7 +148,10 @@ const List = function() {
       <ol>
         {list.length === 0
           ? 'loading'
-          : list.map(item => <li key={item}>{item}</li>)}
+          : list.map(item => {
+            console.log(item);
+            return <li key={item}>{item}</li>;
+          })}
       </ol>
     </div>
   );
@@ -227,11 +229,11 @@ const App = function() {
   return (
     <div>
       <ThemeContext.Provider value={theme}>
-        <Header
+        {/* <Header
           toggleTheme={() => {
             setTheme(theme === themes.light ? themes.dark : themes.light);
           }}
-        />
+        /> */}
         {links}
         <hr />
         {activeRoute}

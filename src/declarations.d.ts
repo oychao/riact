@@ -47,6 +47,7 @@ declare namespace Riact {
   };
   export interface IAppContext {
     pushDirtyStateComponent(comp: IComponent): void;
+    hasDirtyComponent(comp: Riact.IComponent): boolean;
   }
   export interface IComponent {
     virtualNode: JSX.Element;
