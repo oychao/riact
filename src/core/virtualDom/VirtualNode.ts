@@ -28,10 +28,9 @@ import {
 } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
-import Diffable from './Diffable';
+import Diffable, { DiffAlgorithmFactory } from './Diffable';
 import DiffAlgorithmLisBased from './DiffAlgorithmLisBased';
-// import DiffAlgorithmLisBased from './DiffAlgorithmLisBased';
-// import DiffAlgorithmBefore16 from './DiffAlgorithmBefore16';
+import DiffAlgorithmBefore16 from './DiffAlgorithmBefore16';
 
 const normalizeVirtualNode = function(node: VirtualNode): void {
   let prevSibling: VirtualNode = null;
@@ -171,11 +170,11 @@ class VirtualNode implements JSX.Element {
   public ref?: Riact.TRef;
   public reserved?: any;
   public value?: any;
-  private diffable?: Diffable;
 
-  constructor() {
-    this.diffable = Diffable.getInstance(DiffAlgorithmLisBased);
-  }
+  @DiffAlgorithmFactory(DiffAlgorithmLisBased)
+  private diffable: Diffable;
+
+  constructor() {}
 
   public findAncestor(conditionFunc: Riact.TFunction): VirtualNode {
     let ancestor: VirtualNode = this.parentNode;
@@ -303,6 +302,10 @@ class VirtualNode implements JSX.Element {
       currentNode = currentNode.parentNode;
     } while (!currentNode.isTaggedDomNode());
     return targetNode && (targetNode.el as Node);
+  }
+
+  public setDiffable(diffable: Diffable): void {
+    this.diffable = diffable;
   }
 
   public diffThat(that: VirtualNode): void {
