@@ -27,7 +27,7 @@ export default class DiffAlgorithmLisBased extends Diffable {
     const { length: len1 }: Array<VirtualNode> = list1;
     const { length: len2 }: Array<VirtualNode> = list2;
     while (sd < len1 && sd < len2 && list1[idx1][key] === list2[idx1][key]) {
-      this.diffTree(list1[idx1], list2[idx2]);
+      this.run(list1[idx1], list2[idx2]);
       sd++;
       idx1 = sd;
       idx2 = sd;
@@ -39,7 +39,7 @@ export default class DiffAlgorithmLisBased extends Diffable {
       sd + ed < len2 &&
       list1[idx1][key] === list2[idx2][key]
     ) {
-      this.diffTree(list1[idx1], list2[idx2]);
+      this.run(list1[idx1], list2[idx2]);
       ed++;
       idx1 = len1 - ed - 1;
       idx2 = len2 - ed - 1;
@@ -90,7 +90,7 @@ export default class DiffAlgorithmLisBased extends Diffable {
     for (i = sd, end = len1 - ed; i < end; i++) {
       j = IM.get(list1[i].key);
       if (j !== undefined) {
-        this.diffTree(list1[i], list2[j]);
+        this.run(list1[i], list2[j]);
         IT[j - sd] = i;
         if (j < last) {
           shouldMoved = true;

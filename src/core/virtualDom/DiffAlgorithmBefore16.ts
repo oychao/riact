@@ -46,7 +46,7 @@ export default class DiffAlgorithmBefore16 extends Diffable {
       }
       
       if (newItem.key === oldItem.key) {
-        this.diffTree(oldItem, newItem);
+        this.run(oldItem, newItem);
         j++;
         i++;
       } else {

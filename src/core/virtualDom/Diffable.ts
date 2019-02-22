@@ -3,9 +3,17 @@ import * as _ from '../../utils/index';
 import VirtualNode from './VirtualNode';
 import { makeReplaceAction, makeUpdatePropsAction } from './domUtils';
 import Component from '../component/Component';
+import Patchable from './Patchable';
+import PatchReplace from './PatchReplace';
+import PatchUpdateProps from './PatchUpdateProps';
+import PatchReorderLisBasedDiff from './PatchReorderLisBasedDiff';
 
 /**
- * design pattern: mixin of singleton / factory /  strategy / flyweight pattern
+ * Diffable abstract class, any class extends this class shall implement keyed list algorithm,
+ * the run method.
+ * The child class will later be injected into VirtualNode for diff calculation.
+ * A static factory method is provided to get pooled diffable algorithm instance.
+ * This design is for code decoupling.
  */
 abstract class Diffable {
   protected abstract diffKeyedList(list1: Array<VirtualNode>, list2: Array<VirtualNode>, key: string):
@@ -33,17 +41,17 @@ abstract class Diffable {
     );
 
     for (let i = 0; i < oldList.length; i++) {
-      this.diffTree(oldList[i], newList[i]);
+      this.run(oldList[i], newList[i]);
     }
   }
 
-  public diffTree(oldVDom: VirtualNode, newVDom: VirtualNode, key: string = 'key'): void {
+  public run(oldVDom: VirtualNode, newVDom: VirtualNode, key: string = 'key'): void {
     if (oldVDom.isEmptyNode() && newVDom.isEmptyNode()) {
       return;
     }
 
     // difference has already been calculated
-    if (!_.isNull(oldVDom.patch) && !_.isUndefined(oldVDom.patch)) {
+    if (oldVDom.hasPatchable()) {
       return;
     }
 
@@ -52,10 +60,10 @@ abstract class Diffable {
       oldVDom.isEmptyNode() ||
       newVDom.isEmptyNode()
     ) {
-      oldVDom.patch = makeReplaceAction(newVDom);
+      oldVDom.setPatchable(Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom)));
     } else if (oldVDom.isTextNode() && newVDom.isTextNode()) {
       if (oldVDom.value !== newVDom.value) {
-        oldVDom.patch = makeReplaceAction(newVDom);
+        oldVDom.setPatchable(Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom)));
       }
     } else {
       const {
@@ -71,7 +79,7 @@ abstract class Diffable {
         events: newEvents
       } = newVDom as VirtualNode;
       if (oldTagType !== newTagType) {
-        oldVDom.patch = makeReplaceAction(newVDom);
+        oldVDom.setPatchable(Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom)));
         return;
       } else if (
         !_.isEqualObject(oldAttributes, newAttributes) ||
@@ -81,10 +89,10 @@ abstract class Diffable {
           _.isUndefined(oldEvents) &&
           _.isUndefined(newEvents))
       ) {
-        oldVDom.patch = makeUpdatePropsAction(newAttributes, newEvents);
+        oldVDom.setPatchable(Patchable.getInstance(PatchUpdateProps, oldVDom, makeUpdatePropsAction(newAttributes, newEvents)));
       }
       if (oldVDom.isListNode() && newVDom.isListNode()) {
-        oldVDom.patch = this.diffKeyedList(oldChildren, newChildren, key);
+        oldVDom.setPatchable(Patchable.getInstance(PatchReorderLisBasedDiff, oldVDom, this.diffKeyedList(oldChildren, newChildren, key)));
       } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
         this.diffFreeList(oldChildren, newChildren);
       } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {

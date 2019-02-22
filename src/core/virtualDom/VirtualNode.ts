@@ -3,23 +3,14 @@ import {
   NODE_TYPE_TEXT,
   NODE_TYPE_LIST,
   NODE_TYPE_EMPTY,
-  ACTION_REPLACE,
-  ACTION_UPDATE_PROPS,
-  ACTION_REORDER,
-  ACTION_REMOVE,
-  ACTION_INSERT,
   PROP_CLASS_PRESERVED,
   PROP_CLASS,
   PROP_STYLE,
   PROP_KEY,
   PROP_REF,
-  PROP_VALUE,
   PROP_CHILDREN,
   PROP_DANGEROUS_HTML,
   PROP_EVENT_PREFIX,
-  ACTION_MOVE,
-  ACTION_REORDER_BEFORE_16,
-  ACTION_REMOVE_NEXT,
   NODE_TYPE_FRAGMENT
 } from '../../constants/index';
 import {
@@ -30,7 +21,7 @@ import Component from '../component/Component';
 import AppContext from '../context/AppContext';
 import Diffable, { DiffAlgorithmFactory } from './Diffable';
 import DiffAlgorithmLisBased from './DiffAlgorithmLisBased';
-import DiffAlgorithmBefore16 from './DiffAlgorithmBefore16';
+import Patchable from './Patchable';
 
 const normalizeVirtualNode = function(node: VirtualNode): void {
   let prevSibling: VirtualNode = null;
@@ -74,14 +65,14 @@ class VirtualNode implements JSX.Element {
   public static createElement(
     tagType: string | Riact.TFuncComponent,
     attrs: any,
-    ...children: Array<VirtualNode>
-  ): VirtualNode {
+    ...children: Array<JSX.Element>
+  ): JSX.Element {
     const vNode: VirtualNode = new VirtualNode();
     vNode.tagType = tagType;
     attrs = attrs || {};
     vNode.attributes = {};
     vNode.events = {};
-    vNode.children = children || [];
+    vNode.children = (children || []) as Array<VirtualNode>;
     if (vNode.isFragmentNode()) {
       attrs = {};
     }
@@ -166,13 +157,14 @@ class VirtualNode implements JSX.Element {
   public key?: string;
   public nextSibling?: VirtualNode;
   public parentNode?: VirtualNode;
-  public patch?: Riact.TPatch;
   public ref?: Riact.TRef;
   public reserved?: any;
   public value?: any;
 
+  // dependency injection
   @DiffAlgorithmFactory(DiffAlgorithmLisBased)
   private diffable: Diffable;
+  private patchable?: Patchable;
 
   constructor() {}
 
@@ -308,8 +300,20 @@ class VirtualNode implements JSX.Element {
     this.diffable = diffable;
   }
 
+  public hasPatchable(): boolean {
+    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable)
+  }
+
+  public setPatchable(patchable: Patchable): void {
+    this.patchable = patchable;
+  }
+
+  public clearPatchable(): void {
+    delete this.patchable;
+  }
+
   public diffThat(that: VirtualNode): void {
-    this.diffable.diffTree(this, that);
+    this.diffable.run(this, that);
   }
 
   public reflectToDom(): VirtualNode {
@@ -412,214 +416,13 @@ class VirtualNode implements JSX.Element {
       this,
       PROP_CHILDREN,
       (node: VirtualNode): boolean => {
-        if (_.isNull(node.patch) || _.isUndefined(node.patch)) {
+        if (_.isNull(node.patchable) || _.isUndefined(node.patchable)) {
           return true;
         }
-        const { type, payload }: Riact.TPatch = node.patch as Riact.TPatch;
-        if (type === ACTION_REPLACE) {
-          node.unmountFromDom();
-          if (node.isComponentNode()) {
-            (node.el as Component).unmount();
-          } else if (!node.isEmptyNode() && !node.isTextNode()) {
-            const comps: Array<Component> = node.getChildrenCompNodes();
-            for (const comp of comps) {
-              comp.unmount();
-            }
-          }
-          node.loadAttributes(payload as VirtualNode);
-          delete node.patch;
-          node.reflectToDom();
-          if (!node.isComponentNode() && _.isArray(node.children)) {
-            for (const child of node.children) {
-              child.reflectDescendantsToDom();
-            }
-          }
-          return false;
-        } else if (type === ACTION_UPDATE_PROPS) {
-          const isDomNode: boolean = node.isTaggedDomNode();
-          const isCompNode: boolean = node.isComponentNode();
-          if (isDomNode || isCompNode) {
-            const prevProps: Riact.TObject = Object.assign({}, node.attributes);
-            const { attributes, events }: Riact.TPatchUpdatePropsPayload = node
-              .patch.payload as Riact.TPatchUpdatePropsPayload;
-            for (const key in attributes as Riact.TObject) {
-              if (attributes.hasOwnProperty(key)) {
-                const value: any = (attributes as Riact.TObject)[key];
-                node.attributes[key] = value;
-                if (isDomNode) {
-                  if (key === PROP_STYLE) {
-                    loadStyle(
-                      node.el as HTMLElement,
-                      value,
-                      prevProps[PROP_STYLE]
-                    );
-                  } else if (key === PROP_VALUE) {
-                    (node.el as HTMLInputElement).value = value;
-                  } else if (key === PROP_DANGEROUS_HTML) {
-                    // children nodes will be disactive due to the dangerous inner html
-                    node.children = [];
-                    loadDangerousInnerHTML(node.el as HTMLElement, value);
-                  } else {
-                    (node.el as HTMLElement).setAttribute(key, value);
-                  }
-                }
-              }
-            }
-            if (isCompNode) {
-              (node.el as Component).forceRenderDom();
-            } else if (isDomNode) {
-              for (const key in events) {
-                if (events.hasOwnProperty(key)) {
-                  const eventHandler: Riact.TFunction = events[key];
-                  (node.el as HTMLElement)[key.toLowerCase()] = eventHandler;
-                }
-              }
-            }
-          }
-        } else if (type === ACTION_REORDER) {
-          let startNode: VirtualNode = node[PROP_CHILDREN][0];
-          for (const patch of payload as Array<Riact.TPatch>) {
-            const {
-              type: reorderAction,
-              payload: reorderPayload
-            }: Riact.TPatch = patch;
-            if (reorderAction === ACTION_INSERT) {
-              // handle insert
-              const {
-                index,
-                item,
-                to
-              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              if (!_.isUndefined(to)) {
-                item.nextSibling = to.nextSibling;
-                to.nextSibling = item;
-              } else if (index === 0) {
-                item.nextSibling = startNode;
-                startNode = item as VirtualNode;
-              }
-              (item as VirtualNode).parentNode = node;
-              (item as VirtualNode).reflectDescendantsToDom();
-            } else if (reorderAction === ACTION_REMOVE_NEXT) {
-              // handle remove
-              let toBeRemoved: VirtualNode;
-              if (_.isUndefined(reorderPayload)) {
-                toBeRemoved = node[PROP_CHILDREN][0];
-                startNode = node[PROP_CHILDREN][1];
-              } else {
-                toBeRemoved = (reorderPayload as VirtualNode).nextSibling;
-                (reorderPayload as VirtualNode).nextSibling = (reorderPayload as VirtualNode).nextSibling.nextSibling;
-              }
-              toBeRemoved.unmountFromDom();
-            } else if (reorderAction === ACTION_MOVE) {
-              // handle move
-              const {
-                item,
-                to
-              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              let target: VirtualNode;
-              // reorder child chain
-              if (_.isUndefined(item)) {
-                target = startNode;
-                startNode = startNode.nextSibling;
-              } else {
-                target = item.nextSibling as VirtualNode;
-                item.nextSibling = target.nextSibling;
-              }
-              if (_.isUndefined(to)) {
-                target.nextSibling = startNode;
-                startNode = target;
-              } else {
-                target.nextSibling = to.nextSibling as VirtualNode;
-                to.nextSibling = target;
-              }
-              // mount to dom
-              if (target.isListNode() || target.isComponentNode()) {
-                const domChildrenVNodes: Array<
-                  VirtualNode
-                > = target.getDomChildrenVNodes();
-                for (const vNode of domChildrenVNodes) {
-                  vNode.mountToDom();
-                }
-              } else {
-                target.mountToDom();
-              }
-            }
-          }
-          const newChildren: Array<VirtualNode> = [];
-          let pivot: VirtualNode = startNode;
-          while (pivot) {
-            newChildren.push(pivot);
-            pivot = pivot.nextSibling;
-          }
-          node.children = newChildren;
-        } else if (type === ACTION_REORDER_BEFORE_16) {
-          /**
-           * @decprecated
-           */
-          for (const patch of payload as Array<Riact.TPatch>) {
-            const {
-              type: reorderAction,
-              payload: reorderPayload
-            }: Riact.TPatch = patch;
-            if (reorderAction === ACTION_REMOVE) {
-              const {
-                index
-              }: Riact.TPatchRemovePayload = reorderPayload as Riact.TPatchRemovePayload;
-              const [toBeRemoved] = node.children.splice(
-                (reorderPayload as Riact.TPatchRemovePayload).index,
-                1
-              );
-              const prevSibling: VirtualNode = node.children[index - 1];
-              if (prevSibling) {
-                prevSibling.nextSibling = toBeRemoved.nextSibling;
-              }
-              toBeRemoved.unmountFromDom();
-            } else if (reorderAction === ACTION_INSERT) {
-              const {
-                index,
-                item
-              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              (item as VirtualNode).parentNode = node;
-              const prevSibling: VirtualNode = node.children[index - 1];
-              const nextSibling: VirtualNode = node.children[index];
-              if (prevSibling instanceof VirtualNode) {
-                prevSibling.nextSibling = item as VirtualNode;
-              }
-              if (nextSibling instanceof VirtualNode) {
-                (item as VirtualNode).nextSibling = nextSibling;
-              }
-              node.children.splice(index, 0, item as VirtualNode);
-              (item as VirtualNode).reflectDescendantsToDom();
-            }
-          }
-        }
-        delete node.patch;
+        node.patchable.run();
         return true;
       }
     );
-  }
-
-  public loadAttributes(that: VirtualNode): void {
-    this.tagType = that.tagType;
-    this.attributes = that.attributes || {};
-    this.children = that.children || [];
-    this.events = that.events || {};
-    if (_.isArray(this.children)) {
-      for (const child of this.children) {
-        child.parentNode = this;
-      }
-    }
-    if (that.reserved) {
-      this.reserved = that.reserved;
-    } else {
-      delete this.reserved;
-    }
-    if (!_.isUndefined(that.value) && !_.isNull(that.value)) {
-      this.value = that.value;
-    } else {
-      delete this.value;
-    }
-    delete this.el;
   }
 }
 
