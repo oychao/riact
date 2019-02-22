@@ -23,20 +23,17 @@ import {
   NODE_TYPE_FRAGMENT
 } from '../../constants/index';
 import {
-  keyIdxMapFac,
-  makeReplaceAction,
-  makeUpdatePropsAction,
-  makeRemoveAction,
-  makeInsertAction,
-  makeReorderAction,
   loadStyle,
-  loadDangerousInnerHTML,
-  makeReorderActionBefore16
+  loadDangerousInnerHTML
 } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
+import Diffable from './Diffable';
+import DiffAlgorithmLisBased from './DiffAlgorithmLisBased';
+// import DiffAlgorithmLisBased from './DiffAlgorithmLisBased';
+// import DiffAlgorithmBefore16 from './DiffAlgorithmBefore16';
 
-export const normalizeVirtualNode = function(node: VirtualNode): void {
+const normalizeVirtualNode = function(node: VirtualNode): void {
   let prevSibling: VirtualNode = null;
   for (let i = 0; i < node.children.length; i++) {
     const child: any = node.children[i];
@@ -162,305 +159,6 @@ class VirtualNode implements JSX.Element {
     return node;
   }
 
-  /**
-   * !meant to be keyed list diff algorithm before React 16, bad implementation with bugs
-   * @deprecated
-   */
-  private static diffKeyedListBefore16(
-    oldList: Array<VirtualNode>,
-    newList: Array<VirtualNode>,
-    key: string = 'key'
-  ): Array<Riact.TPatch> {
-    const actions: Array<Riact.TPatch> = [];
-
-    const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(oldList, key);
-    const newKeyIdxMap: Map<string, number> = keyIdxMapFac(newList, key);
-
-    const reservedOldList: Array<VirtualNode> = [];
-
-    let i: number;
-    let j: number;
-
-    // remove all items which no longer exists in new list
-    for (i = 0; i < oldList.length; i++) {
-      const item = oldList[i];
-      if (newKeyIdxMap.has(item.key)) {
-        reservedOldList.push(item);
-      } else {
-        actions.push(makeRemoveAction(i - actions.length));
-      }
-    }
-
-    i = 0;
-    j = 0;
-    while (i < newList.length) {
-      const newItem = newList[i];
-      const oldItem = reservedOldList[j];
-      const nextOldItem = reservedOldList[j + 1];
-
-      if (!oldItem || !oldKeyIdxMap.has(newItem.key)) {
-        actions.push(makeInsertAction(i++, newItem));
-        continue;
-      }
-
-      if (newItem.key === oldItem.key) {
-        VirtualNode.diffTree(oldItem, newItem);
-        j++;
-        i++;
-      } else {
-        if (nextOldItem && nextOldItem.key === newItem.key) {
-          actions.push(makeRemoveAction(i));
-          j++;
-        } else {
-          actions.push(makeInsertAction(i++, newItem));
-        }
-      }
-    }
-
-    while (j < reservedOldList.length) {
-      actions.push(makeRemoveAction(j));
-      j++;
-    }
-
-    return actions;
-  }
-
-  /**
-   * trim same elements for two arrays, return deviation counts of beginning
-   * and ending
-   * @param list1 array of object
-   * @param list2 array of object
-   * @param key key name for identification
-   */
-  private static trimTwoLists(
-    list1: Array<VirtualNode>,
-    list2: Array<VirtualNode>,
-    key: string
-  ): [number, number] {
-    let sd: number = 0;
-    let ed: number = 0;
-    let idx1: number = 0,
-      idx2: number = 0;
-    const { length: len1 }: Array<VirtualNode> = list1;
-    const { length: len2 }: Array<VirtualNode> = list2;
-    while (sd < len1 && sd < len2 && list1[idx1][key] === list2[idx1][key]) {
-      VirtualNode.diffTree(list1[idx1], list2[idx2]);
-      sd++;
-      idx1 = sd;
-      idx2 = sd;
-    }
-    idx1 = len1 - ed - 1;
-    idx2 = len2 - ed - 1;
-    while (
-      sd + ed < len1 &&
-      sd + ed < len2 &&
-      list1[idx1][key] === list2[idx2][key]
-    ) {
-      VirtualNode.diffTree(list1[idx1], list2[idx2]);
-      ed++;
-      idx1 = len1 - ed - 1;
-      idx2 = len2 - ed - 1;
-    }
-    return [sd, ed];
-  }
-
-  /**
-   * diff two arrays of number, Takes O(nlogn) time in expectation
-   * @param list1 array of characters
-   * @param list2 array of characters
-   */
-  private static diffKeyedList(
-    list1: Array<VirtualNode>,
-    list2: Array<VirtualNode>,
-    key: string = PROP_KEY
-  ): Array<Riact.TPatch> {
-    const { length: len1 }: Array<VirtualNode> = list1;
-    const { length: len2 }: Array<VirtualNode> = list2;
-    const [sd, ed]: [number, number] = VirtualNode.trimTwoLists(
-      list1,
-      list2,
-      key
-    );
-    const pHeaderIns: Array<VirtualNode> = []; // tail insertions
-    const pMovs: Array<Riact.TPatch> = []; // move patches
-    const pRmvs: Array<Riact.TPatch> = []; // remove patches
-    const pInss: Map<VirtualNode, Array<Riact.TPatch>> = new Map<
-      VirtualNode,
-      Array<Riact.TPatch>
-    >();
-    const IM: Map<string, number> = new Map<string, number>(); // index map of length1
-    const IT: Array<number> = new Array(len2 - sd - ed).fill(-1); // index table of length2
-    let LIS: Array<number>; // longest increasing subsequence of index table
-    let P: Array<Riact.TPatch>; // all patches
-    let shouldMoved: boolean = false; // no need to move if LIS.length == IT.length(positive numbers only)
-    let i: number,
-      j: number,
-      k: number,
-      end: number,
-      last: number,
-      patches: Array<Riact.TPatch>,
-      len: number; // other temp variables
-    for (i = sd, end = len2 - ed; i < end; i++) {
-      IM.set(list2[i].key, i);
-    }
-    last = -1;
-    for (i = sd, end = len1 - ed; i < end; i++) {
-      j = IM.get(list1[i].key);
-      if (j !== undefined) {
-        VirtualNode.diffTree(list1[i], list2[j]);
-        IT[j - sd] = i;
-        if (j < last) {
-          shouldMoved = true;
-        } else {
-          last = j;
-        }
-      } else {
-        pRmvs.push({
-          type: ACTION_REMOVE_NEXT,
-          payload: list1[i - 1]
-        });
-      }
-    }
-    LIS = _.calcLis(IT);
-    last = IT.length;
-    for (i = len2 - ed - 1, j = LIS.length - 1, end = sd - 1; i > end; i--) {
-      k = i - sd;
-      if (IT[k] === -1) {
-        if (LIS[j] !== undefined) {
-          if (pInss.has(list1[IT[last]])) {
-            patches = pInss.get(list1[IT[last]]);
-          } else {
-            patches = [];
-            pInss.set(list1[IT[last]], patches);
-          }
-          patches.push({
-            type: ACTION_INSERT,
-            payload: {
-              item: list2[i],
-              to: list1[IT[last] - 1]
-            }
-          });
-        } else {
-          pHeaderIns.push(list2[i]);
-        }
-      } else if (shouldMoved) {
-        if (j < 0 || LIS[j] !== IT[k]) {
-          pMovs.push({
-            type: ACTION_MOVE,
-            payload: {
-              to:
-                IT[last] === undefined ? list1[len1 - 1] : list1[IT[last] - 1],
-              item: list1[IT[i] - 1]
-            }
-          });
-        } else {
-          j--;
-        }
-      }
-      last = IT[k] === -1 ? last : k;
-    }
-
-    P = [...pMovs, ...pRmvs];
-    pInss.forEach((val: Array<Riact.TPatch>): void => {
-      for (i = 0, len = val.length; i < len; i++) {
-        P.push(val[i]);
-      }
-    });
-    for (i = 0, len = pHeaderIns.length; i < len; i++) {
-      P.push({
-        type: ACTION_INSERT,
-        payload: {
-          index: sd === 0 ? 0 : undefined,
-          item: pHeaderIns[i],
-          to: sd === 0 ? undefined : list1[sd - 1]
-        }
-      });
-    }
-
-    return P;
-  }
-
-  private static diffFreeList(
-    oldList: Array<VirtualNode>,
-    newList: Array<VirtualNode>
-  ): void {
-    _.warning(
-      oldList.length === newList.length,
-      'calculating invalid free list difference, length unequaled'
-    );
-
-    for (let i = 0; i < oldList.length; i++) {
-      VirtualNode.diffTree(oldList[i], newList[i]);
-    }
-  }
-
-  public static diffTree(oldVDom: VirtualNode, newVDom: VirtualNode): void {
-    if (oldVDom.isEmptyNode() && newVDom.isEmptyNode()) {
-      return;
-    }
-
-    // difference has already been calculated
-    if (!_.isNull(oldVDom.patch) && !_.isUndefined(oldVDom.patch)) {
-      return;
-    }
-
-    if (
-      !oldVDom.sameTypeWith(newVDom) ||
-      oldVDom.isEmptyNode() ||
-      newVDom.isEmptyNode()
-    ) {
-      oldVDom.patch = makeReplaceAction(newVDom);
-    } else if (oldVDom.isTextNode() && newVDom.isTextNode()) {
-      if (oldVDom.value !== newVDom.value) {
-        oldVDom.patch = makeReplaceAction(newVDom);
-      }
-    } else {
-      const {
-        tagType: oldTagType,
-        attributes: oldAttributes,
-        children: oldChildren,
-        events: oldEvents
-      } = oldVDom as VirtualNode;
-      const {
-        tagType: newTagType,
-        attributes: newAttributes,
-        children: newChildren,
-        events: newEvents
-      } = newVDom as VirtualNode;
-      if (oldTagType !== newTagType) {
-        oldVDom.patch = makeReplaceAction(newVDom);
-        return;
-      } else if (
-        !_.isEqualObject(oldAttributes, newAttributes) ||
-        !_.isEqualObject(oldEvents, newEvents) ||
-        (_.isUndefined(oldAttributes) &&
-          _.isUndefined(newAttributes) &&
-          _.isUndefined(oldEvents) &&
-          _.isUndefined(newEvents))
-      ) {
-        oldVDom.patch = makeUpdatePropsAction(newAttributes, newEvents);
-      }
-      if (oldVDom.isListNode() && newVDom.isListNode()) {
-        // oldVDom.patch = makeReorderActionBefore16(
-        //   VirtualNode.diffKeyedListBefore16(oldChildren, newChildren)
-        // );
-        oldVDom.patch = makeReorderAction(
-          VirtualNode.diffKeyedList(oldChildren, newChildren)
-        );
-      } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
-        VirtualNode.diffFreeList(oldChildren, newChildren);
-      } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {
-        const comp: Component = oldVDom.el as Component;
-        const prevProps: Riact.TObject = Object.assign({}, oldVDom.attributes);
-        oldVDom.attributes = newVDom.attributes;
-        oldVDom.events = newVDom.events;
-        if (!comp.isWaitingContextProviderUpdate()) {
-          comp.renderDom(prevProps);
-        }
-      }
-    }
-  }
-
   public tagType: string | Riact.TFuncComponent;
   public attributes?: Riact.TObject;
   public children?: Array<VirtualNode>;
@@ -473,8 +171,11 @@ class VirtualNode implements JSX.Element {
   public ref?: Riact.TRef;
   public reserved?: any;
   public value?: any;
+  private diffable?: Diffable;
 
-  constructor() {}
+  constructor() {
+    this.diffable = Diffable.getInstance(DiffAlgorithmLisBased);
+  }
 
   public findAncestor(conditionFunc: Riact.TFunction): VirtualNode {
     let ancestor: VirtualNode = this.parentNode;
@@ -602,6 +303,10 @@ class VirtualNode implements JSX.Element {
       currentNode = currentNode.parentNode;
     } while (!currentNode.isTaggedDomNode());
     return targetNode && (targetNode.el as Node);
+  }
+
+  public diffThat(that: VirtualNode): void {
+    this.diffable.diffTree(this, that);
   }
 
   public reflectToDom(): VirtualNode {
