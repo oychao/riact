@@ -2,11 +2,16 @@ import * as _ from '../../utils/index';
 
 import Patchable from './Patchable';
 import VirtualNode from './VirtualNode';
-import { PROP_CHILDREN, ACTION_INSERT, ACTION_REMOVE_NEXT, ACTION_MOVE } from 'src/constants/index';
+import {
+  PROP_CHILDREN,
+  ACTION_INSERT,
+  ACTION_REMOVE_NEXT,
+  ACTION_MOVE
+} from 'src/constants/index';
 
 export default class PatchReorderLisBasedDiff extends Patchable {
-  constructor () {
-    super();
+  constructor(target: VirtualNode, patchData: Riact.TPatch) {
+    super(target, patchData);
   }
 
   public run(): void {
@@ -14,11 +19,8 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     const { payload }: Riact.TPatch = this.patchData;
     let startNode: VirtualNode = target[PROP_CHILDREN][0];
     for (const patch of payload as Array<Riact.TPatch>) {
-      const {
-        type: reorderAction,
-        payload: reorderPayload
-      }: Riact.TPatch = patch;
-      if (reorderAction === ACTION_INSERT) {
+      const { type, payload: reorderPayload }: Riact.TPatch = patch;
+      if (type === ACTION_INSERT) {
         // handle insert
         const {
           index,
@@ -34,7 +36,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
         }
         (item as VirtualNode).parentNode = target;
         (item as VirtualNode).reflectDescendantsToDom();
-      } else if (reorderAction === ACTION_REMOVE_NEXT) {
+      } else if (type === ACTION_REMOVE_NEXT) {
         // handle remove
         let toBeRemoved: VirtualNode;
         if (_.isUndefined(reorderPayload)) {
@@ -45,7 +47,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
           (reorderPayload as VirtualNode).nextSibling = (reorderPayload as VirtualNode).nextSibling.nextSibling;
         }
         toBeRemoved.unmountFromDom();
-      } else if (reorderAction === ACTION_MOVE) {
+      } else if (type === ACTION_MOVE) {
         // handle move
         const {
           item,

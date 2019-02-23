@@ -1,8 +1,18 @@
 import * as _ from '../../utils/index';
 import Diffable from './Diffable';
 import VirtualNode from './VirtualNode';
-import { PROP_KEY, ACTION_REMOVE_NEXT, ACTION_INSERT, ACTION_MOVE, ACTION_REORDER } from 'src/constants/index';
+import {
+  PROP_KEY,
+  ACTION_REMOVE_NEXT,
+  ACTION_INSERT,
+  ACTION_MOVE,
+  ACTION_REORDER
+} from 'src/constants/index';
 
+/**
+ * Longest Increasing Subsequence based keyed list diff algorithm, LIS helped to make
+ * unneccesary node moves at maximum degree.
+ */
 export default class DiffAlgorithmLisBased extends Diffable {
   constructor() {
     super();
@@ -104,7 +114,7 @@ export default class DiffAlgorithmLisBased extends Diffable {
         });
       }
     }
-    LIS = _.calcLis(IT);
+    LIS = _.calcLis(IT); // calculate LIS of old list index table
     last = IT.length;
     for (i = len2 - ed - 1, j = LIS.length - 1, end = sd - 1; i > end; i--) {
       k = i - sd;
@@ -143,6 +153,7 @@ export default class DiffAlgorithmLisBased extends Diffable {
       last = IT[k] === -1 ? last : k;
     }
 
+    // arrange all sort of patched into one list
     P = [...pMovs, ...pRmvs];
     pInss.forEach((val: Array<Riact.TPatch>): void => {
       for (i = 0, len = val.length; i < len; i++) {
