@@ -1,5 +1,5 @@
-import F from 'f';
+import Riact from 'riact';
 
 import App from './src/app';
 
-F.render(<App/>, document.querySelector('#root'));
+Riact.render(<App/>, document.querySelector('#root'));

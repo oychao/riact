@@ -54,7 +54,7 @@ export default class Riact extends AppContext implements Riact.IComponent {
 
     this.batchingUpdate(() => {
       this.pushDirtyStateComponent(this);
-      VirtualNode.diffTree(emptyNode, virtualNode);
+      emptyNode.diffThat(virtualNode);
     }, this);
   }
 

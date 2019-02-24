@@ -118,7 +118,7 @@ export default class Component implements Riact.IComponent {
       }
       // mount sub virtual dom tree to global virtual dom tree
       newVirtualDom.parentNode = this.virtualNode;
-      VirtualNode.diffTree(this.virtualNode.children[0], newVirtualDom);
+      this.virtualNode.children[0].diffThat(newVirtualDom);
       StaticContext.clearCurrentInstance();
       this.initialized = true;
     }, this);

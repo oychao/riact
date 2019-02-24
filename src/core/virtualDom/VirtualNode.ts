@@ -3,40 +3,27 @@ import {
   NODE_TYPE_TEXT,
   NODE_TYPE_LIST,
   NODE_TYPE_EMPTY,
-  ACTION_REPLACE,
-  ACTION_UPDATE_PROPS,
-  ACTION_REORDER,
-  ACTION_REMOVE,
-  ACTION_INSERT,
   PROP_CLASS_PRESERVED,
   PROP_CLASS,
   PROP_STYLE,
   PROP_KEY,
   PROP_REF,
-  PROP_VALUE,
   PROP_CHILDREN,
   PROP_DANGEROUS_HTML,
   PROP_EVENT_PREFIX,
-  ACTION_MOVE,
-  ACTION_REORDER_BEFORE_16,
-  ACTION_REMOVE_NEXT,
   NODE_TYPE_FRAGMENT
 } from '../../constants/index';
 import {
-  keyIdxMapFac,
-  makeReplaceAction,
-  makeUpdatePropsAction,
-  makeRemoveAction,
-  makeInsertAction,
-  makeReorderAction,
   loadStyle,
-  loadDangerousInnerHTML,
-  makeReorderActionBefore16
+  loadDangerousInnerHTML
 } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
+import Diffable, { DiffAlgorithmFactory } from './Diffable';
+import DiffAlgorithmLisBased from './DiffAlgorithmLisBased';
+import Patchable from './Patchable';
 
-export const normalizeVirtualNode = function(node: VirtualNode): void {
+const normalizeVirtualNode = function(node: VirtualNode): void {
   let prevSibling: VirtualNode = null;
   for (let i = 0; i < node.children.length; i++) {
     const child: any = node.children[i];
@@ -78,14 +65,14 @@ class VirtualNode implements JSX.Element {
   public static createElement(
     tagType: string | Riact.TFuncComponent,
     attrs: any,
-    ...children: Array<VirtualNode>
-  ): VirtualNode {
+    ...children: Array<JSX.Element>
+  ): JSX.Element {
     const vNode: VirtualNode = new VirtualNode();
     vNode.tagType = tagType;
     attrs = attrs || {};
     vNode.attributes = {};
     vNode.events = {};
-    vNode.children = children || [];
+    vNode.children = (children || []) as Array<VirtualNode>;
     if (vNode.isFragmentNode()) {
       attrs = {};
     }
@@ -162,305 +149,6 @@ class VirtualNode implements JSX.Element {
     return node;
   }
 
-  /**
-   * !meant to be keyed list diff algorithm before React 16, bad implementation with bugs
-   * @deprecated
-   */
-  private static diffKeyedListBefore16(
-    oldList: Array<VirtualNode>,
-    newList: Array<VirtualNode>,
-    key: string = 'key'
-  ): Array<Riact.TPatch> {
-    const actions: Array<Riact.TPatch> = [];
-
-    const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(oldList, key);
-    const newKeyIdxMap: Map<string, number> = keyIdxMapFac(newList, key);
-
-    const reservedOldList: Array<VirtualNode> = [];
-
-    let i: number;
-    let j: number;
-
-    // remove all items which no longer exists in new list
-    for (i = 0; i < oldList.length; i++) {
-      const item = oldList[i];
-      if (newKeyIdxMap.has(item.key)) {
-        reservedOldList.push(item);
-      } else {
-        actions.push(makeRemoveAction(i - actions.length));
-      }
-    }
-
-    i = 0;
-    j = 0;
-    while (i < newList.length) {
-      const newItem = newList[i];
-      const oldItem = reservedOldList[j];
-      const nextOldItem = reservedOldList[j + 1];
-
-      if (!oldItem || !oldKeyIdxMap.has(newItem.key)) {
-        actions.push(makeInsertAction(i++, newItem));
-        continue;
-      }
-
-      if (newItem.key === oldItem.key) {
-        VirtualNode.diffTree(oldItem, newItem);
-        j++;
-        i++;
-      } else {
-        if (nextOldItem && nextOldItem.key === newItem.key) {
-          actions.push(makeRemoveAction(i));
-          j++;
-        } else {
-          actions.push(makeInsertAction(i++, newItem));
-        }
-      }
-    }
-
-    while (j < reservedOldList.length) {
-      actions.push(makeRemoveAction(j));
-      j++;
-    }
-
-    return actions;
-  }
-
-  /**
-   * trim same elements for two arrays, return deviation counts of beginning
-   * and ending
-   * @param list1 array of object
-   * @param list2 array of object
-   * @param key key name for identification
-   */
-  private static trimTwoLists(
-    list1: Array<VirtualNode>,
-    list2: Array<VirtualNode>,
-    key: string
-  ): [number, number] {
-    let sd: number = 0;
-    let ed: number = 0;
-    let idx1: number = 0,
-      idx2: number = 0;
-    const { length: len1 }: Array<VirtualNode> = list1;
-    const { length: len2 }: Array<VirtualNode> = list2;
-    while (sd < len1 && sd < len2 && list1[idx1][key] === list2[idx1][key]) {
-      VirtualNode.diffTree(list1[idx1], list2[idx2]);
-      sd++;
-      idx1 = sd;
-      idx2 = sd;
-    }
-    idx1 = len1 - ed - 1;
-    idx2 = len2 - ed - 1;
-    while (
-      sd + ed < len1 &&
-      sd + ed < len2 &&
-      list1[idx1][key] === list2[idx2][key]
-    ) {
-      VirtualNode.diffTree(list1[idx1], list2[idx2]);
-      ed++;
-      idx1 = len1 - ed - 1;
-      idx2 = len2 - ed - 1;
-    }
-    return [sd, ed];
-  }
-
-  /**
-   * diff two arrays of number, Takes O(nlogn) time in expectation
-   * @param list1 array of characters
-   * @param list2 array of characters
-   */
-  private static diffKeyedList(
-    list1: Array<VirtualNode>,
-    list2: Array<VirtualNode>,
-    key: string = PROP_KEY
-  ): Array<Riact.TPatch> {
-    const { length: len1 }: Array<VirtualNode> = list1;
-    const { length: len2 }: Array<VirtualNode> = list2;
-    const [sd, ed]: [number, number] = VirtualNode.trimTwoLists(
-      list1,
-      list2,
-      key
-    );
-    const pHeaderIns: Array<VirtualNode> = []; // tail insertions
-    const pMovs: Array<Riact.TPatch> = []; // move patches
-    const pRmvs: Array<Riact.TPatch> = []; // remove patches
-    const pInss: Map<VirtualNode, Array<Riact.TPatch>> = new Map<
-      VirtualNode,
-      Array<Riact.TPatch>
-    >();
-    const IM: Map<string, number> = new Map<string, number>(); // index map of length1
-    const IT: Array<number> = new Array(len2 - sd - ed).fill(-1); // index table of length2
-    let LIS: Array<number>; // longest increasing subsequence of index table
-    let P: Array<Riact.TPatch>; // all patches
-    let shouldMoved: boolean = false; // no need to move if LIS.length == IT.length(positive numbers only)
-    let i: number,
-      j: number,
-      k: number,
-      end: number,
-      last: number,
-      patches: Array<Riact.TPatch>,
-      len: number; // other temp variables
-    for (i = sd, end = len2 - ed; i < end; i++) {
-      IM.set(list2[i].key, i);
-    }
-    last = -1;
-    for (i = sd, end = len1 - ed; i < end; i++) {
-      j = IM.get(list1[i].key);
-      if (j !== undefined) {
-        VirtualNode.diffTree(list1[i], list2[j]);
-        IT[j - sd] = i;
-        if (j < last) {
-          shouldMoved = true;
-        } else {
-          last = j;
-        }
-      } else {
-        pRmvs.push({
-          type: ACTION_REMOVE_NEXT,
-          payload: list1[i - 1]
-        });
-      }
-    }
-    LIS = _.calcLis(IT);
-    last = IT.length;
-    for (i = len2 - ed - 1, j = LIS.length - 1, end = sd - 1; i > end; i--) {
-      k = i - sd;
-      if (IT[k] === -1) {
-        if (LIS[j] !== undefined) {
-          if (pInss.has(list1[IT[last]])) {
-            patches = pInss.get(list1[IT[last]]);
-          } else {
-            patches = [];
-            pInss.set(list1[IT[last]], patches);
-          }
-          patches.push({
-            type: ACTION_INSERT,
-            payload: {
-              item: list2[i],
-              to: list1[IT[last] - 1]
-            }
-          });
-        } else {
-          pHeaderIns.push(list2[i]);
-        }
-      } else if (shouldMoved) {
-        if (j < 0 || LIS[j] !== IT[k]) {
-          pMovs.push({
-            type: ACTION_MOVE,
-            payload: {
-              to:
-                IT[last] === undefined ? list1[len1 - 1] : list1[IT[last] - 1],
-              item: list1[IT[i] - 1]
-            }
-          });
-        } else {
-          j--;
-        }
-      }
-      last = IT[k] === -1 ? last : k;
-    }
-
-    P = [...pMovs, ...pRmvs];
-    pInss.forEach((val: Array<Riact.TPatch>): void => {
-      for (i = 0, len = val.length; i < len; i++) {
-        P.push(val[i]);
-      }
-    });
-    for (i = 0, len = pHeaderIns.length; i < len; i++) {
-      P.push({
-        type: ACTION_INSERT,
-        payload: {
-          index: sd === 0 ? 0 : undefined,
-          item: pHeaderIns[i],
-          to: sd === 0 ? undefined : list1[sd - 1]
-        }
-      });
-    }
-
-    return P;
-  }
-
-  private static diffFreeList(
-    oldList: Array<VirtualNode>,
-    newList: Array<VirtualNode>
-  ): void {
-    _.warning(
-      oldList.length === newList.length,
-      'calculating invalid free list difference, length unequaled'
-    );
-
-    for (let i = 0; i < oldList.length; i++) {
-      VirtualNode.diffTree(oldList[i], newList[i]);
-    }
-  }
-
-  public static diffTree(oldVDom: VirtualNode, newVDom: VirtualNode): void {
-    if (oldVDom.isEmptyNode() && newVDom.isEmptyNode()) {
-      return;
-    }
-
-    // difference has already been calculated
-    if (!_.isNull(oldVDom.patch) && !_.isUndefined(oldVDom.patch)) {
-      return;
-    }
-
-    if (
-      !oldVDom.sameTypeWith(newVDom) ||
-      oldVDom.isEmptyNode() ||
-      newVDom.isEmptyNode()
-    ) {
-      oldVDom.patch = makeReplaceAction(newVDom);
-    } else if (oldVDom.isTextNode() && newVDom.isTextNode()) {
-      if (oldVDom.value !== newVDom.value) {
-        oldVDom.patch = makeReplaceAction(newVDom);
-      }
-    } else {
-      const {
-        tagType: oldTagType,
-        attributes: oldAttributes,
-        children: oldChildren,
-        events: oldEvents
-      } = oldVDom as VirtualNode;
-      const {
-        tagType: newTagType,
-        attributes: newAttributes,
-        children: newChildren,
-        events: newEvents
-      } = newVDom as VirtualNode;
-      if (oldTagType !== newTagType) {
-        oldVDom.patch = makeReplaceAction(newVDom);
-        return;
-      } else if (
-        !_.isEqualObject(oldAttributes, newAttributes) ||
-        !_.isEqualObject(oldEvents, newEvents) ||
-        (_.isUndefined(oldAttributes) &&
-          _.isUndefined(newAttributes) &&
-          _.isUndefined(oldEvents) &&
-          _.isUndefined(newEvents))
-      ) {
-        oldVDom.patch = makeUpdatePropsAction(newAttributes, newEvents);
-      }
-      if (oldVDom.isListNode() && newVDom.isListNode()) {
-        // oldVDom.patch = makeReorderActionBefore16(
-        //   VirtualNode.diffKeyedListBefore16(oldChildren, newChildren)
-        // );
-        oldVDom.patch = makeReorderAction(
-          VirtualNode.diffKeyedList(oldChildren, newChildren)
-        );
-      } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
-        VirtualNode.diffFreeList(oldChildren, newChildren);
-      } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {
-        const comp: Component = oldVDom.el as Component;
-        const prevProps: Riact.TObject = Object.assign({}, oldVDom.attributes);
-        oldVDom.attributes = newVDom.attributes;
-        oldVDom.events = newVDom.events;
-        if (!comp.isWaitingContextProviderUpdate()) {
-          comp.renderDom(prevProps);
-        }
-      }
-    }
-  }
-
   public tagType: string | Riact.TFuncComponent;
   public attributes?: Riact.TObject;
   public children?: Array<VirtualNode>;
@@ -469,10 +157,14 @@ class VirtualNode implements JSX.Element {
   public key?: string;
   public nextSibling?: VirtualNode;
   public parentNode?: VirtualNode;
-  public patch?: Riact.TPatch;
   public ref?: Riact.TRef;
   public reserved?: any;
   public value?: any;
+
+  // dependency injection
+  @DiffAlgorithmFactory(DiffAlgorithmLisBased)
+  private diffable: Diffable;
+  private patchable?: Patchable;
 
   constructor() {}
 
@@ -604,6 +296,26 @@ class VirtualNode implements JSX.Element {
     return targetNode && (targetNode.el as Node);
   }
 
+  public setDiffable(diffable: Diffable): void {
+    this.diffable = diffable;
+  }
+
+  public hasPatchable(): boolean {
+    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable)
+  }
+
+  public setPatchable(patchable: Patchable): void {
+    this.patchable = patchable;
+  }
+
+  public clearPatchable(): void {
+    delete this.patchable;
+  }
+
+  public diffThat(that: VirtualNode): void {
+    this.diffable.run(this, that);
+  }
+
   public reflectToDom(): VirtualNode {
     let el: Text | HTMLElement | Component = null;
     const { tagType, attributes, events } = this;
@@ -704,214 +416,13 @@ class VirtualNode implements JSX.Element {
       this,
       PROP_CHILDREN,
       (node: VirtualNode): boolean => {
-        if (_.isNull(node.patch) || _.isUndefined(node.patch)) {
+        if (_.isNull(node.patchable) || _.isUndefined(node.patchable)) {
           return true;
         }
-        const { type, payload }: Riact.TPatch = node.patch as Riact.TPatch;
-        if (type === ACTION_REPLACE) {
-          node.unmountFromDom();
-          if (node.isComponentNode()) {
-            (node.el as Component).unmount();
-          } else if (!node.isEmptyNode() && !node.isTextNode()) {
-            const comps: Array<Component> = node.getChildrenCompNodes();
-            for (const comp of comps) {
-              comp.unmount();
-            }
-          }
-          node.loadAttributes(payload as VirtualNode);
-          delete node.patch;
-          node.reflectToDom();
-          if (!node.isComponentNode() && _.isArray(node.children)) {
-            for (const child of node.children) {
-              child.reflectDescendantsToDom();
-            }
-          }
-          return false;
-        } else if (type === ACTION_UPDATE_PROPS) {
-          const isDomNode: boolean = node.isTaggedDomNode();
-          const isCompNode: boolean = node.isComponentNode();
-          if (isDomNode || isCompNode) {
-            const prevProps: Riact.TObject = Object.assign({}, node.attributes);
-            const { attributes, events }: Riact.TPatchUpdatePropsPayload = node
-              .patch.payload as Riact.TPatchUpdatePropsPayload;
-            for (const key in attributes as Riact.TObject) {
-              if (attributes.hasOwnProperty(key)) {
-                const value: any = (attributes as Riact.TObject)[key];
-                node.attributes[key] = value;
-                if (isDomNode) {
-                  if (key === PROP_STYLE) {
-                    loadStyle(
-                      node.el as HTMLElement,
-                      value,
-                      prevProps[PROP_STYLE]
-                    );
-                  } else if (key === PROP_VALUE) {
-                    (node.el as HTMLInputElement).value = value;
-                  } else if (key === PROP_DANGEROUS_HTML) {
-                    // children nodes will be disactive due to the dangerous inner html
-                    node.children = [];
-                    loadDangerousInnerHTML(node.el as HTMLElement, value);
-                  } else {
-                    (node.el as HTMLElement).setAttribute(key, value);
-                  }
-                }
-              }
-            }
-            if (isCompNode) {
-              (node.el as Component).forceRenderDom();
-            } else if (isDomNode) {
-              for (const key in events) {
-                if (events.hasOwnProperty(key)) {
-                  const eventHandler: Riact.TFunction = events[key];
-                  (node.el as HTMLElement)[key.toLowerCase()] = eventHandler;
-                }
-              }
-            }
-          }
-        } else if (type === ACTION_REORDER) {
-          let startNode: VirtualNode = node[PROP_CHILDREN][0];
-          for (const patch of payload as Array<Riact.TPatch>) {
-            const {
-              type: reorderAction,
-              payload: reorderPayload
-            }: Riact.TPatch = patch;
-            if (reorderAction === ACTION_INSERT) {
-              // handle insert
-              const {
-                index,
-                item,
-                to
-              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              if (!_.isUndefined(to)) {
-                item.nextSibling = to.nextSibling;
-                to.nextSibling = item;
-              } else if (index === 0) {
-                item.nextSibling = startNode;
-                startNode = item as VirtualNode;
-              }
-              (item as VirtualNode).parentNode = node;
-              (item as VirtualNode).reflectDescendantsToDom();
-            } else if (reorderAction === ACTION_REMOVE_NEXT) {
-              // handle remove
-              let toBeRemoved: VirtualNode;
-              if (_.isUndefined(reorderPayload)) {
-                toBeRemoved = node[PROP_CHILDREN][0];
-                startNode = node[PROP_CHILDREN][1];
-              } else {
-                toBeRemoved = (reorderPayload as VirtualNode).nextSibling;
-                (reorderPayload as VirtualNode).nextSibling = (reorderPayload as VirtualNode).nextSibling.nextSibling;
-              }
-              toBeRemoved.unmountFromDom();
-            } else if (reorderAction === ACTION_MOVE) {
-              // handle move
-              const {
-                item,
-                to
-              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              let target: VirtualNode;
-              // reorder child chain
-              if (_.isUndefined(item)) {
-                target = startNode;
-                startNode = startNode.nextSibling;
-              } else {
-                target = item.nextSibling as VirtualNode;
-                item.nextSibling = target.nextSibling;
-              }
-              if (_.isUndefined(to)) {
-                target.nextSibling = startNode;
-                startNode = target;
-              } else {
-                target.nextSibling = to.nextSibling as VirtualNode;
-                to.nextSibling = target;
-              }
-              // mount to dom
-              if (target.isListNode() || target.isComponentNode()) {
-                const domChildrenVNodes: Array<
-                  VirtualNode
-                > = target.getDomChildrenVNodes();
-                for (const vNode of domChildrenVNodes) {
-                  vNode.mountToDom();
-                }
-              } else {
-                target.mountToDom();
-              }
-            }
-          }
-          const newChildren: Array<VirtualNode> = [];
-          let pivot: VirtualNode = startNode;
-          while (pivot) {
-            newChildren.push(pivot);
-            pivot = pivot.nextSibling;
-          }
-          node.children = newChildren;
-        } else if (type === ACTION_REORDER_BEFORE_16) {
-          /**
-           * @decprecated
-           */
-          for (const patch of payload as Array<Riact.TPatch>) {
-            const {
-              type: reorderAction,
-              payload: reorderPayload
-            }: Riact.TPatch = patch;
-            if (reorderAction === ACTION_REMOVE) {
-              const {
-                index
-              }: Riact.TPatchRemovePayload = reorderPayload as Riact.TPatchRemovePayload;
-              const [toBeRemoved] = node.children.splice(
-                (reorderPayload as Riact.TPatchRemovePayload).index,
-                1
-              );
-              const prevSibling: VirtualNode = node.children[index - 1];
-              if (prevSibling) {
-                prevSibling.nextSibling = toBeRemoved.nextSibling;
-              }
-              toBeRemoved.unmountFromDom();
-            } else if (reorderAction === ACTION_INSERT) {
-              const {
-                index,
-                item
-              }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-              (item as VirtualNode).parentNode = node;
-              const prevSibling: VirtualNode = node.children[index - 1];
-              const nextSibling: VirtualNode = node.children[index];
-              if (prevSibling instanceof VirtualNode) {
-                prevSibling.nextSibling = item as VirtualNode;
-              }
-              if (nextSibling instanceof VirtualNode) {
-                (item as VirtualNode).nextSibling = nextSibling;
-              }
-              node.children.splice(index, 0, item as VirtualNode);
-              (item as VirtualNode).reflectDescendantsToDom();
-            }
-          }
-        }
-        delete node.patch;
+        node.patchable.run();
         return true;
       }
     );
-  }
-
-  public loadAttributes(that: VirtualNode): void {
-    this.tagType = that.tagType;
-    this.attributes = that.attributes || {};
-    this.children = that.children || [];
-    this.events = that.events || {};
-    if (_.isArray(this.children)) {
-      for (const child of this.children) {
-        child.parentNode = this;
-      }
-    }
-    if (that.reserved) {
-      this.reserved = that.reserved;
-    } else {
-      delete this.reserved;
-    }
-    if (!_.isUndefined(that.value) && !_.isNull(that.value)) {
-      this.value = that.value;
-    } else {
-      delete this.value;
-    }
-    delete this.el;
   }
 }
 
