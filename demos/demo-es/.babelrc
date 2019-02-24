@@ -4,8 +4,8 @@
   ],
   "plugins": [
     ["@babel/plugin-transform-react-jsx", {
-      "pragma": "F.createElement",
-      "pragmaFrag": "F.Fragment"
+      "pragma": "Riact.createElement",
+      "pragmaFrag": "Riact.Fragment"
     }],
     "@babel/plugin-syntax-dynamic-import",
     "@babel/plugin-syntax-import-meta",

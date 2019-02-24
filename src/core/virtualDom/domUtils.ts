@@ -4,8 +4,6 @@ import {
   ACTION_INSERT,
   ACTION_REPLACE,
   ACTION_UPDATE_PROPS,
-  ACTION_REORDER,
-  ACTION_REORDER_BEFORE_16
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
@@ -76,24 +74,6 @@ export const makeUpdatePropsAction = function(
       attributes,
       events
     }
-  };
-};
-
-export const makeReorderActionBefore16 = function(
-  patches: Array<Riact.TPatch>
-): Riact.TPatch {
-  return {
-    type: ACTION_REORDER_BEFORE_16,
-    payload: patches
-  };
-};
-
-export const makeReorderAction = function(
-  patches: Array<Riact.TPatch>
-): Riact.TPatch {
-  return {
-    type: ACTION_REORDER,
-    payload: patches
   };
 };
 

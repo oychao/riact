@@ -1,4 +1,4 @@
-import F, { useState, useEffect, useContext } from 'f';
+import Riact, { useState, useEffect, useContext } from 'riact';
 
 const useLifeCycleChecker = function(name) {
   // console.log(`${name} rendering`);
@@ -59,7 +59,7 @@ const themes = {
   light: { color: 'black', backgroundColor: 'white' },
   dark: { color: 'white', backgroundColor: 'black' }
 };
-const ThemeContext = F.createContext(themes.light);
+const ThemeContext = Riact.createContext(themes.light);
 
 const ThemedButton = function({ children, onClick }) {
   useLifeCycleChecker('ThemedButton');

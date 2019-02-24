@@ -114,7 +114,7 @@ abstract class Context {
     const InitContext: IContextComponent = args.pop();
     return ({ children, values }): JSX.Element =>
       args.reduceRight((Acc, Context, index): JSX.Element =>
-        VirtualNode.createElement(Context.Provider, { value: values[index] }, Acc),
+        VirtualNode.createElement(Context.Provider, {}, Acc),
       VirtualNode.createElement(InitContext.Provider, { value: values[args.length] }, ...children));
   };
 }
