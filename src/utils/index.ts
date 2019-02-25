@@ -119,12 +119,26 @@ export const omit = function(
   return result;
 };
 
+/**
+ * flatten a multiple demension array
+ * @param arr multiple demension array
+ * @deprecated
+ * !Array.prototype.flat is a better option
+ */
 export const flattenArray = function(arr: Array<any>): Array<any> {
   return arr.reduce((acc: Array<any>, sub: any): Array<any> => {
     return acc.concat(isArray(sub) ? flattenArray(sub) : sub);
   }, []);
 };
 
+/**
+ * depth first search algorithm
+ * @param node tree object
+ * @param key children key name
+ * @param handler hanlder function that will be run on every node
+ * @param index index of current node
+ * @param parentNode parent node
+ */
 export const dfsWalk = function(
   node: Riact.TObject,
   key: string,
@@ -160,7 +174,7 @@ export const calcLis = function(arr: Array<number>): Array<number> {
   let right: number;
   let mid: number;
   let len: number;
-  for (i = 0; i < arr.length; i++) {
+  for (i = 0, len = arr.length; i < len; i++) {
     // skip negative numbers
     if (arr[i] < 0) {
       continue;
@@ -186,4 +200,78 @@ export const calcLis = function(arr: Array<number>): Array<number> {
     i = P[i];
   }
   return S;
+};
+
+/**
+ * deep clone a object or an array
+ * @param o value to be cloned
+ */
+export function deepClone (o: any): any {
+  if (Array.isArray(o)) {
+    return o.map((v: any): any => deepClone(v));
+  } else if (typeof o === 'object') {
+    return deepCloneObject(o, new WeakSet<Riact.TObject>());
+  } else {
+    return o;
+  }
+};
+function deepCloneObject (o: Riact.TObject, ws: WeakSet<Riact.TObject>): Riact.TObject {
+  if (o === null) {
+    return null;
+  } else if (ws.has(o)) {
+    // break loop object
+    return undefined;
+  }
+  ws.add(o);
+  const C: Riact.TObject = {};
+  let k: string
+  let v: any;
+  for (k in o) {
+    if (Object.prototype.hasOwnProperty.call(o, k)) {
+      v = o[k];
+      C[k] = typeof v === 'object' ? deepCloneObject(v, ws) : deepClone(v);
+    }
+  }
+  return C;
+};
+
+/**
+ * breadth first search algorithm
+ * @param node tree object
+ * @param key children key name
+ * @param handler hanlder function that will be run on every node
+ */
+export const bfsWalk = function (node: Riact.TObject, key: string, handler: Riact.TFunction): void {
+  type TWrapperedNodeForBFS = {
+    node: Riact.TObject,
+    index: number,
+    parent: Riact.TObject
+  };
+  let i: number = 0;
+	const ws: WeakSet<Riact.TObject> = new WeakSet<Riact.TObject>();
+	const queue: Array<TWrapperedNodeForBFS> = [];
+	ws.add(node);
+  let currNode: TWrapperedNodeForBFS = {
+    node,
+    index: 0,
+    parent: null
+  };
+	queue.push(currNode);
+	while (currNode) {
+    if (handler.call(null, currNode.node, currNode.index, currNode.parent)) {
+      return;
+    }
+		if (Array.isArray(currNode.node[key])) {
+			currNode.node[key].forEach(({ node: subNode }: TWrapperedNodeForBFS, idx: number): void => {
+				if (!ws.has(subNode)) {
+					queue.push({
+            node: subNode,
+            index: idx,
+            parent: currNode
+          });
+				};
+			});
+    }
+    currNode = queue[++i];
+	}
 };
