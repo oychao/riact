@@ -112,6 +112,6 @@ export const DiffAlgorithmFactory = function(Algo: { new (...args: Array<any>): 
   return (target: VirtualNode, prop: string): void => {
     target[prop] = Diffable.getInstance(Algo);
   };
-};0
+};
 
 export default Diffable;

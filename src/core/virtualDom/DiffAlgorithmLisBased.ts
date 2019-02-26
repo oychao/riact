@@ -1,8 +1,15 @@
 import * as _ from '../../utils/index';
 import Diffable from './Diffable';
 import VirtualNode from './VirtualNode';
-import { PROP_KEY, ACTION_REMOVE_NEXT, ACTION_INSERT, ACTION_MOVE, ACTION_REORDER } from 'src/constants/index';
+import {
+  PROP_KEY,
+  ACTION_REORDER
+} from 'src/constants/index';
 
+/**
+ * Longest Increasing Subsequence based keyed list diff algorithm, LIS helped to make
+ * unneccesary node moves at maximum degree.
+ */
 export default class DiffAlgorithmLisBased extends Diffable {
   constructor() {
     super();
@@ -59,30 +66,27 @@ export default class DiffAlgorithmLisBased extends Diffable {
   ): Riact.TPatch {
     const { length: len1 }: Array<VirtualNode> = list1;
     const { length: len2 }: Array<VirtualNode> = list2;
-    const [sd, ed]: [number, number] = this.trimTwoLists(
-      list1,
-      list2,
-      key
-    );
-    const pHeaderIns: Array<VirtualNode> = []; // tail insertions
-    const pMovs: Array<Riact.TPatch> = []; // move patches
-    const pRmvs: Array<Riact.TPatch> = []; // remove patches
-    const pInss: Map<VirtualNode, Array<Riact.TPatch>> = new Map<
+    const [sd, ed]: [number, number] = this.trimTwoLists(list1, list2, key);
+    const pTailsIn: Array<VirtualNode> = []; // tail insertions
+    const pMovs: Array<{
+      item: JSX.Element;
+      to: JSX.Element;
+    }> = []; // move patches
+    const pRmvs: Array<VirtualNode> = []; // remove patches
+    const pInss: Map<VirtualNode, Array<VirtualNode>> = new Map<
       VirtualNode,
-      Array<Riact.TPatch>
+      Array<VirtualNode>
     >();
     const IM: Map<string, number> = new Map<string, number>(); // index map of length1
     const IT: Array<number> = new Array(len2 - sd - ed).fill(-1); // index table of length2
     let LIS: Array<number>; // longest increasing subsequence of index table
-    let P: Array<Riact.TPatch>; // all patches
     let shouldMoved: boolean = false; // no need to move if LIS.length == IT.length(positive numbers only)
     let i: number,
       j: number,
       k: number,
       end: number,
       last: number,
-      patches: Array<Riact.TPatch>,
-      len: number; // other temp variables
+      patches: Array<VirtualNode>;
     for (i = sd, end = len2 - ed; i < end; i++) {
       IM.set(list2[i].key, i);
     }
@@ -98,43 +102,39 @@ export default class DiffAlgorithmLisBased extends Diffable {
           last = j;
         }
       } else {
-        pRmvs.push({
-          type: ACTION_REMOVE_NEXT,
-          payload: list1[i - 1]
-        });
+        pRmvs.push(list1[i - 1]);
       }
     }
-    LIS = _.calcLis(IT);
+    LIS = _.calcLis(IT); // calculate LIS of old list index table
     last = IT.length;
     for (i = len2 - ed - 1, j = LIS.length - 1, end = sd - 1; i > end; i--) {
       k = i - sd;
       if (IT[k] === -1) {
-        if (LIS[j] !== undefined) {
+        if (last !== IT.length) {
           if (pInss.has(list1[IT[last]])) {
             patches = pInss.get(list1[IT[last]]);
           } else {
             patches = [];
             pInss.set(list1[IT[last]], patches);
           }
-          patches.push({
-            type: ACTION_INSERT,
-            payload: {
-              item: list2[i],
-              to: list1[IT[last] - 1]
-            }
-          });
+          patches.push(list2[i]);
+        } else if (ed !== 0) {
+          // put tail insertions into header node of trimed tail list
+          if (pInss.has(list1[len1 - ed])) {
+            patches = pInss.get(list1[len1 - ed]);
+          } else {
+            patches = [];
+            pInss.set(list1[len1 - ed], patches);
+          }
+          patches.push(list2[i]);
         } else {
-          pHeaderIns.push(list2[i]);
+          pTailsIn.push(list2[i]);
         }
       } else if (shouldMoved) {
         if (j < 0 || LIS[j] !== IT[k]) {
           pMovs.push({
-            type: ACTION_MOVE,
-            payload: {
-              to:
-                IT[last] === undefined ? list1[len1 - 1] : list1[IT[last] - 1],
-              item: list1[IT[i] - 1]
-            }
+            to: LIS[j] === undefined ? (sd === 0 ? undefined : list1[sd - 1]) : list1[LIS[j]],
+            item: list1[IT[k] - 1]
           });
         } else {
           j--;
@@ -142,27 +142,14 @@ export default class DiffAlgorithmLisBased extends Diffable {
       }
       last = IT[k] === -1 ? last : k;
     }
-
-    P = [...pMovs, ...pRmvs];
-    pInss.forEach((val: Array<Riact.TPatch>): void => {
-      for (i = 0, len = val.length; i < len; i++) {
-        P.push(val[i]);
-      }
-    });
-    for (i = 0, len = pHeaderIns.length; i < len; i++) {
-      P.push({
-        type: ACTION_INSERT,
-        payload: {
-          index: sd === 0 ? 0 : undefined,
-          item: pHeaderIns[i],
-          to: sd === 0 ? undefined : list1[sd - 1]
-        }
-      });
-    }
-    
     return {
       type: ACTION_REORDER,
-      payload: P
+      payload: {
+        removes: pRmvs,
+        moves: pMovs,
+        insertions: pInss,
+        tailsInss: pTailsIn
+      }
     };
   }
 }

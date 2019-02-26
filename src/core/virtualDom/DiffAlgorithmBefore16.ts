@@ -4,8 +4,8 @@ import { keyIdxMapFac, makeRemoveAction, makeInsertAction } from './domUtils';
 import { ACTION_REORDER_BEFORE_16 } from 'src/constants/index';
 
 /**
- * !meant to be keyed list diff algorithm before React 16, bad implementation with bugs
  * @deprecated
+ * !meant to be keyed list diff algorithm before React 16, bad implementation with bugs
  */
 export default class DiffAlgorithmBefore16 extends Diffable {
   constructor() {

@@ -12,7 +12,7 @@ Check the [demos][1].
 
 Currently function component supported only.
 
-```json
+```javascript
 // .babelrc
 {
   //...
@@ -21,7 +21,7 @@ Currently function component supported only.
       "pragma": "Riact.createElement",
       "pragmaFrag": "Riact.Fragment"
     }],
-    // ...
+    //...
   ]
 }
 ```
