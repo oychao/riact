@@ -22,10 +22,10 @@ export interface IContextComponent {
 abstract class Context {
   public static createContext(initialValue: any): IContextComponent {
     class Provider extends Component implements IContextProvider {
-      private decendantConsumers: Array<Consumer>;
+      private decendantConsumers: Set<Consumer>;
       constructor(context: AppContext, virtualNode: VirtualNode) {
         super(context, virtualNode);
-        this.decendantConsumers = [];
+        this.decendantConsumers = new Set<Consumer>();
       }
       public getValue(): any {
         const { attributes: { value } }: VirtualNode = this.virtualNode;
@@ -33,11 +33,9 @@ abstract class Context {
       }
       public subscribe(consumer: Consumer): Riact.TFunction {
         const { decendantConsumers }: Provider = this;
-        if (decendantConsumers.indexOf(consumer) === -1) {
-          decendantConsumers.push(consumer);
-        }
+        decendantConsumers.add(consumer);
         return (): void => {
-          decendantConsumers.splice(decendantConsumers.indexOf(consumer), 1);
+          decendantConsumers.delete(consumer);
         };
       }
       public renderDom(prevProps: Riact.TObject): void {

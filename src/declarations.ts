@@ -15,7 +15,16 @@ declare namespace Riact {
       }
     | Array<TPatch>
     | Array<JSX.Element>
-    | TPatchInsertPayload;
+    | TPatchReorderPayload;
+  export type TPatchReorderPayload = {
+    removes: Array<JSX.Element>,
+    moves: Array<{
+      item: JSX.Element,
+      to: JSX.Element
+    }>,
+    insertions: Map<JSX.Element, Array<JSX.Element>>,
+    tailsInss: Array<JSX.Element>
+  };
   export type TPatchUpdatePropsPayload = {
     attributes: TObject;
     events: TFuncValObject;

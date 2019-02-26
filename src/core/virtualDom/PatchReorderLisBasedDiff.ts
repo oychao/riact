@@ -2,92 +2,133 @@ import * as _ from '../../utils/index';
 
 import Patchable from './Patchable';
 import VirtualNode from './VirtualNode';
-import { PROP_CHILDREN, ACTION_INSERT, ACTION_REMOVE_NEXT, ACTION_MOVE } from 'src/constants/index';
+import { PROP_CHILDREN } from 'src/constants/index';
 
 export default class PatchReorderLisBasedDiff extends Patchable {
-  constructor () {
-    super();
+  constructor(target: VirtualNode, patchData: Riact.TPatch) {
+    super(target, patchData);
   }
 
   public run(): void {
-    const target: VirtualNode = this.target;
-    const { payload }: Riact.TPatch = this.patchData;
-    let startNode: VirtualNode = target[PROP_CHILDREN][0];
-    for (const patch of payload as Array<Riact.TPatch>) {
-      const {
-        type: reorderAction,
-        payload: reorderPayload
-      }: Riact.TPatch = patch;
-      if (reorderAction === ACTION_INSERT) {
-        // handle insert
-        const {
-          index,
-          item,
-          to
-        }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-        if (!_.isUndefined(to)) {
-          item.nextSibling = to.nextSibling;
-          to.nextSibling = item;
-        } else if (index === 0) {
-          item.nextSibling = startNode;
-          startNode = item as VirtualNode;
+    const listNode: VirtualNode = this.target;
+    const { removes, moves, insertions, tailsInss }: Riact.TPatchReorderPayload = this.patchData.payload as Riact.TPatchReorderPayload;
+    let startNode: VirtualNode = listNode[PROP_CHILDREN][0];
+    let target: VirtualNode;
+    let prevPivot: VirtualNode = null;
+    let pivot: VirtualNode;
+    let i: number, len: number;
+
+    const toBeMovedNodeList: Array<VirtualNode> = [];
+    const nodePrevNodeMap: WeakMap<VirtualNode, VirtualNode> = new WeakMap<VirtualNode, VirtualNode>();
+    for (i = 0, len = moves.length; i < len; i++) {
+      const { item } = moves[i];
+      target = (item === undefined ? startNode : item.nextSibling) as VirtualNode;
+      toBeMovedNodeList.push(target);
+      nodePrevNodeMap.set(target, item as VirtualNode);
+    }
+
+    // handle remove actions
+    while (removes.length) {
+      const prevNode: VirtualNode = removes.pop() as VirtualNode;
+      let toBeRemoved: VirtualNode;
+      if (_.isUndefined(prevNode)) {
+        toBeRemoved = listNode[PROP_CHILDREN][0];
+        startNode = startNode.nextSibling;
+        if (nodePrevNodeMap.has(startNode)) {
+          nodePrevNodeMap.set(startNode, null);
         }
-        (item as VirtualNode).parentNode = target;
-        (item as VirtualNode).reflectDescendantsToDom();
-      } else if (reorderAction === ACTION_REMOVE_NEXT) {
-        // handle remove
-        let toBeRemoved: VirtualNode;
-        if (_.isUndefined(reorderPayload)) {
-          toBeRemoved = target[PROP_CHILDREN][0];
-          startNode = target[PROP_CHILDREN][1];
-        } else {
-          toBeRemoved = (reorderPayload as VirtualNode).nextSibling;
-          (reorderPayload as VirtualNode).nextSibling = (reorderPayload as VirtualNode).nextSibling.nextSibling;
-        }
-        toBeRemoved.unmountFromDom();
-      } else if (reorderAction === ACTION_MOVE) {
-        // handle move
-        const {
-          item,
-          to
-        }: Riact.TPatchInsertPayload = reorderPayload as Riact.TPatchInsertPayload;
-        let target: VirtualNode;
-        // reorder child chain
-        if (_.isUndefined(item)) {
-          target = startNode;
-          startNode = startNode.nextSibling;
-        } else {
-          target = item.nextSibling as VirtualNode;
-          item.nextSibling = target.nextSibling;
-        }
-        if (_.isUndefined(to)) {
-          target.nextSibling = startNode;
-          startNode = target;
-        } else {
-          target.nextSibling = to.nextSibling as VirtualNode;
-          to.nextSibling = target;
-        }
-        // mount to dom
-        if (target.isListNode() || target.isComponentNode()) {
-          const domChildrenVNodes: Array<
-            VirtualNode
-          > = target.getDomChildrenVNodes();
-          for (const vNode of domChildrenVNodes) {
-            vNode.mountToDom();
-          }
-        } else {
-          target.mountToDom();
+      } else {
+        toBeRemoved = prevNode.nextSibling;
+        prevNode.nextSibling = prevNode.nextSibling.nextSibling;
+        if (nodePrevNodeMap.has(prevNode.nextSibling)) {
+          nodePrevNodeMap.set(prevNode.nextSibling, prevNode);
         }
       }
+      toBeRemoved.unmountFromDom();
     }
+
+    // handle move actions
+    for (i = 0, len = moves.length; i < len; i++) {
+      const { to } = moves[i];
+      const toBeMovedNode: VirtualNode = toBeMovedNodeList[i];
+      const prevNode: VirtualNode = nodePrevNodeMap.get(toBeMovedNode);
+
+      if (_.isUndefined(prevNode)) {
+        startNode = toBeMovedNode.nextSibling;
+      } else {
+        prevNode.nextSibling = prevNode.nextSibling.nextSibling;
+        if (nodePrevNodeMap.has(prevNode.nextSibling)) {
+          nodePrevNodeMap.set(prevNode.nextSibling, prevNode);
+        }
+      }
+      if (_.isUndefined(to)) {
+        toBeMovedNode.nextSibling = startNode;
+        startNode = toBeMovedNode;
+      } else {
+        toBeMovedNode.nextSibling = to.nextSibling as VirtualNode;
+        to.nextSibling = toBeMovedNode;
+      }
+      // mount to dom
+      if (toBeMovedNode.isListNode() || toBeMovedNode.isComponentNode()) {
+        const domChildrenVNodes: Array<
+          VirtualNode
+        > = toBeMovedNode.getDomChildrenVNodes();
+        for (const vNode of domChildrenVNodes) {
+          vNode.mountToDom();
+        }
+      } else {
+        toBeMovedNode.mountToDom();
+      }
+    }
+
+    // handle insertions between normal nodes
+    pivot = startNode;
+    while (pivot) {
+      const newNodes: Array<VirtualNode> = insertions.get(pivot) as Array<VirtualNode>;
+      if (newNodes && newNodes.length) {
+        newNodes[0].nextSibling = pivot;
+        newNodes[0].parentNode = listNode;
+        newNodes[0].reflectDescendantsToDom();
+        for (i = 1, len = newNodes.length; i < len; i++) {
+          newNodes[i].nextSibling = newNodes[i - 1];
+          newNodes[i].parentNode = listNode;
+          newNodes[i].reflectDescendantsToDom();
+        }
+        if (_.isNull(prevPivot)) {
+          startNode = newNodes[newNodes.length - 1];
+        } else {
+          prevPivot.nextSibling = newNodes[i - 1];
+        }
+      }
+      prevPivot = pivot;
+      pivot = pivot.nextSibling;
+    }
+
+    // handle tail insertions
+    // use prevPivot as the start node
+    for (i = tailsInss.length - 1, len = 0; i > len; i--) {
+      tailsInss[i].nextSibling = tailsInss[i - 1];
+      tailsInss[i].parentNode = listNode;
+      (tailsInss[i] as VirtualNode).reflectDescendantsToDom();
+    }
+    if (tailsInss.length) {
+      tailsInss[0].parentNode = listNode;
+      (tailsInss[0] as VirtualNode).reflectDescendantsToDom();
+      if (_.isNull(prevPivot)) {
+        startNode = tailsInss[tailsInss.length - 1] as VirtualNode;
+      } else {
+        prevPivot.nextSibling = tailsInss[tailsInss.length - 1] as VirtualNode;
+      }
+    }
+
     const newChildren: Array<VirtualNode> = [];
-    let pivot: VirtualNode = startNode;
+    pivot = startNode;
     while (pivot) {
       newChildren.push(pivot);
       pivot = pivot.nextSibling;
     }
-    target.children = newChildren;
+    listNode.children = newChildren;
 
-    target.clearPatchable();
+    listNode.clearPatchable();
   }
 }

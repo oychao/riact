@@ -168,64 +168,82 @@ const List = function() {
   );
 };
 
-const la = [
-  {
-    name: 'a',
-    email: 'a'
-  },
-  {
-    name: 'b',
-    email: 'b'
-  },
-  {
-    name: 'c',
-    email: 'c'
-  },
-  {
-    name: 'd',
-    email: 'd'
-  }
-];
-const lb = [
-  {
-    name: 'e',
-    email: 'e'
-  },
-  {
-    name: 'hahaha',
-    email: 'a'
-  },
-  {
-    name: 'd',
-    email: 'd'
-  },
-  {
-    name: 'b',
-    email: 'b'
-  },
-  {
-    name: 'c',
-    email: 'c'
-  }
-];
-const Item = function({ children }) {
-  useLifeCycleChecker('Item');
-  return (
-    <>
-      <li>{children}</li>
-    </>
-  );
-};
+// const la = [
+//   {
+//     name: 'a',
+//     email: 'a'
+//   },
+//   {
+//     name: 'b',
+//     email: 'b'
+//   },
+//   {
+//     name: 'c',
+//     email: 'c'
+//   },
+//   {
+//     name: 'd',
+//     email: 'd'
+//   }
+// ];
+// const lb = [
+//   {
+//     name: 'e',
+//     email: 'e'
+//   },
+//   {
+//     name: 'hahaha',
+//     email: 'a'
+//   },
+//   {
+//     name: 'd',
+//     email: 'd'
+//   },
+//   {
+//     name: 'b',
+//     email: 'b'
+//   },
+//   {
+//     name: 'c',
+//     email: 'c'
+//   }
+// ];
+// const Item = function({ children }) {
+//   useLifeCycleChecker('Item');
+//   return (
+//     <>
+//       <li>{children}</li>
+//     </>
+//   );
+// };
+// const ShowList = function() {
+//   useLifeCycleChecker('ShowList');
+//   const [list, setList] = useState(la);
+//   setTimeout(() => {
+//     setList(list === la ? lb : la);
+//   }, 1e3);
+//   return (
+//     <ol>
+//       {list.map(({ name, email }) => (
+//         <Item key={email}>{name}</Item>
+//       ))}
+//     </ol>
+//   );
+// };
+
+// const la = ['m', 'f', 'a', 'i', 'g', 'b', 'h'];
+// const lb = ['m', 'd', 'c', 'b', 'a', 'e', 'g', 'h'];
+const la = ['d', 'a', 'e', 'b', 'c'];
+const lb = ['a', 'b', 'c', 'd', 'e'];
 const ShowList = function() {
-  useLifeCycleChecker('ShowList');
   const [list, setList] = useState(la);
   setTimeout(() => {
     setList(list === la ? lb : la);
-  }, 1e3);
+  }, 2e3);
   return (
     <ol>
-      {list.map(({ name, email }) => (
-        <Item key={email}>{name}</Item>
+      {list.map(v => (
+        <li key={v}>{v}</li>
       ))}
     </ol>
   );
@@ -234,8 +252,8 @@ const ShowList = function() {
 const App = function() {
   useLifeCycleChecker('App');
   const [links, activeRoute] = useRouter([
-    ['list', <List />],
     ['show list', <ShowList />],
+    ['list', <List />],
     ['count', <Count />],
     ['profile', <Profile />]
   ]);

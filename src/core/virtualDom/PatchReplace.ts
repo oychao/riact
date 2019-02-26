@@ -5,8 +5,8 @@ import VirtualNode from './VirtualNode';
 import Component from '../component/Component';
 
 export default class PatchReplace extends Patchable {
-  constructor () {
-    super();
+  constructor(target: VirtualNode, patchData: Riact.TPatch) {
+    super(target, patchData);
   }
 
   public run (): void {

@@ -3,8 +3,8 @@ import VirtualNode from './VirtualNode';
 import { ACTION_INSERT, ACTION_REMOVE } from 'src/constants/index';
 
 export default class PatchReorderBefore16Diff extends Patchable {
-  constructor () {
-    super();
+  constructor(target: VirtualNode, patchData: Riact.TPatch) {
+    super(target, patchData);
   }
 
   public run (): void {

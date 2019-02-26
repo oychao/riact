@@ -7,8 +7,8 @@ import Component from '../component/Component';
 import { loadStyle, loadDangerousInnerHTML } from './domUtils';
 
 export default class PatchUpdateProps extends Patchable {
-  constructor () {
-    super();
+  constructor(target: VirtualNode, patchData: Riact.TPatch) {
+    super(target, patchData);
   }
 
   public run (): void {
