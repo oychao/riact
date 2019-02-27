@@ -16,8 +16,7 @@ export default class DiffAlgorithmLisBased extends Diffable {
   }
 
   /**
-   * trim same elements for two arrays, return deviation counts of beginning
-   * and ending
+   * trim same elements for two arrays, return deviation counts of beginning and ending
    * @param list1 array of object
    * @param list2 array of object
    * @param key key name for identification

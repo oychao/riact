@@ -312,7 +312,7 @@ class VirtualNode implements JSX.Element {
     delete this.patchable;
   }
 
-  public diffThat(that: VirtualNode): void {
+  public reconcile(that: VirtualNode): void {
     this.diffable.run(this, that);
   }
 
@@ -411,7 +411,7 @@ class VirtualNode implements JSX.Element {
     }
   }
 
-  public reconcile(): void {
+  public commit(): void {
     _.dfsWalk(
       this,
       PROP_CHILDREN,

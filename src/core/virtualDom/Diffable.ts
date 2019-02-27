@@ -6,7 +6,7 @@ import Component from '../component/Component';
 import Patchable from './Patchable';
 import PatchReplace from './PatchReplace';
 import PatchUpdateProps from './PatchUpdateProps';
-import PatchReorderLisBasedDiff from './PatchReorderLisBasedDiff';
+import PatchReorderLisBasedDiff from './PatchReorderLisBased';
 
 /**
  * Diffable abstract class, any class extends this class shall implement keyed list algorithm,

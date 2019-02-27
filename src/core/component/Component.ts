@@ -118,7 +118,7 @@ export default class Component implements Riact.IComponent {
       }
       // mount sub virtual dom tree to global virtual dom tree
       newVirtualDom.parentNode = this.virtualNode;
-      this.virtualNode.children[0].diffThat(newVirtualDom);
+      this.virtualNode.children[0].reconcile(newVirtualDom);
       StaticContext.clearCurrentInstance();
       this.initialized = true;
     }, this);
@@ -126,7 +126,7 @@ export default class Component implements Riact.IComponent {
 
   public reflectToDom(): void {
     if (!_.isNull(this.virtualNode)) {
-      this.virtualNode.children[0].reconcile();
+      this.virtualNode.children[0].commit();
     }
   }
 
