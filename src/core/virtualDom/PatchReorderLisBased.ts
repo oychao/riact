@@ -18,12 +18,16 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     let pivot: VirtualNode;
     let i: number, len: number;
 
+    // a list for move target nodes, a map for prev nodes of which and a list for destination nodes
+    // prev nodes could be updated while processing deleting and moving
     const toBeMovedNodeList: Array<VirtualNode> = [];
+    const destinationNodeList: Array<VirtualNode> = [];
     const nodePrevNodeMap: WeakMap<VirtualNode, VirtualNode> = new WeakMap<VirtualNode, VirtualNode>();
     for (i = 0, len = moves.length; i < len; i++) {
-      const { item } = moves[i];
+      const { item, to } = moves[i];
       target = (item === undefined ? startNode : item.nextSibling) as VirtualNode;
       toBeMovedNodeList.push(target);
+      destinationNodeList.push(to as VirtualNode);
       nodePrevNodeMap.set(target, item as VirtualNode);
     }
 
@@ -48,8 +52,8 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     }
 
     // handle move actions
-    for (i = 0, len = moves.length; i < len; i++) {
-      const { to } = moves[i];
+    for (i = 0, len = destinationNodeList.length; i < len; i++) {
+      const destination: VirtualNode = destinationNodeList[i];
       const toBeMovedNode: VirtualNode = toBeMovedNodeList[i];
       const prevNode: VirtualNode = nodePrevNodeMap.get(toBeMovedNode);
 
@@ -61,12 +65,15 @@ export default class PatchReorderLisBasedDiff extends Patchable {
           nodePrevNodeMap.set(prevNode.nextSibling, prevNode);
         }
       }
-      if (_.isUndefined(to)) {
+      if (_.isUndefined(destination)) {
         toBeMovedNode.nextSibling = startNode;
         startNode = toBeMovedNode;
       } else {
-        toBeMovedNode.nextSibling = to.nextSibling as VirtualNode;
-        to.nextSibling = toBeMovedNode;
+        toBeMovedNode.nextSibling = destination.nextSibling as VirtualNode;
+        if (nodePrevNodeMap.has(destination.nextSibling as VirtualNode)) {
+          nodePrevNodeMap.set(destination.nextSibling as VirtualNode, toBeMovedNode);
+        }
+        destination.nextSibling = toBeMovedNode;
       }
       // mount to dom
       if (toBeMovedNode.isListNode() || toBeMovedNode.isComponentNode()) {

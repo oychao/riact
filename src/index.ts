@@ -54,12 +54,12 @@ export default class Riact extends AppContext implements Riact.IComponent {
 
     this.batchingUpdate(() => {
       this.pushDirtyStateComponent(this);
-      emptyNode.diffThat(virtualNode);
+      emptyNode.reconcile(virtualNode);
     }, this);
   }
 
   public reflectToDom(): void {
-    this.virtualNode.children[0].reconcile();
+    this.virtualNode.children[0].commit();
   }
 
   public callEffectHooks(): void {}
