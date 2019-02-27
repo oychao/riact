@@ -233,8 +233,8 @@ const List = function() {
 
 // const la = ['m', 'f', 'a', 'i', 'g', 'b', 'h'];
 // const lb = ['m', 'd', 'c', 'b', 'a', 'e', 'g', 'h'];
-const la = ['d', 'a', 'e', 'b', 'c'];
-const lb = ['a', 'b', 'c', 'd', 'e'];
+const la = ['a', 'b', 'c', 'd', 'e'];
+const lb = ['e', 'a', 'b', 'c', 'd'];
 const ShowList = function() {
   const [list, setList] = useState(la);
   setTimeout(() => {
