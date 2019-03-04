@@ -8,7 +8,7 @@ type TransactionWrapper = {
 
 abstract class AppContext implements Riact.IAppContext {
   constructor() {
-    this.componentDeclarationMap = new Map<
+    this.componentDeclarationMap = new WeakMap<
       Riact.TFuncComponent,
       typeof Component
     >();
@@ -23,7 +23,7 @@ abstract class AppContext implements Riact.IAppContext {
   /**
    * register component declaration
    */
-  private componentDeclarationMap: Map<Riact.TFuncComponent, typeof Component>;
+  private componentDeclarationMap: WeakMap<Riact.TFuncComponent, typeof Component>;
   public getComponent(render: Riact.TFuncComponent): typeof Component {
     if (this.componentDeclarationMap.has(render)) {
       return this.componentDeclarationMap.get(render);
