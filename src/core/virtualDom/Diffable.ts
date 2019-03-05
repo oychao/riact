@@ -16,11 +16,18 @@ import PatchReorderLisBasedDiff from './PatchReorderLisBased';
  * This design is for code decoupling.
  */
 abstract class Diffable {
-  protected abstract diffKeyedList(list1: Array<VirtualNode>, list2: Array<VirtualNode>, key: string):
-    Riact.TPatch;
-  private static ClassInstMap: WeakMap<{ new (...args: Array<any>): Diffable }, Diffable>
-    = new WeakMap<{ new (...args: Array<any>): Diffable }, Diffable>();
-  public static getInstance(DiffableImpl: {new (...args: Array<any>): Diffable}): Diffable {
+  protected abstract diffKeyedList(
+    list1: Array<VirtualNode>,
+    list2: Array<VirtualNode>,
+    key: string
+  ): Riact.TPatch;
+  private static ClassInstMap: WeakMap<
+    { new (...args: Array<any>): Diffable },
+    Diffable
+  > = new WeakMap<{ new (...args: Array<any>): Diffable }, Diffable>();
+  public static getInstance(DiffableImpl: {
+    new (...args: Array<any>): Diffable;
+  }): Diffable {
     if (Diffable.ClassInstMap.has(DiffableImpl)) {
       return Diffable.ClassInstMap.get(DiffableImpl);
     }
@@ -45,7 +52,11 @@ abstract class Diffable {
     }
   }
 
-  public run(oldVDom: VirtualNode, newVDom: VirtualNode, key: string = 'key'): void {
+  public run(
+    oldVDom: VirtualNode,
+    newVDom: VirtualNode,
+    key: string = 'key'
+  ): void {
     if (oldVDom.isEmptyNode() && newVDom.isEmptyNode()) {
       return;
     }
@@ -60,10 +71,18 @@ abstract class Diffable {
       oldVDom.isEmptyNode() ||
       newVDom.isEmptyNode()
     ) {
-      oldVDom.setPatchable(Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom)));
+      oldVDom.setPatchable(
+        Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom))
+      );
     } else if (oldVDom.isTextNode() && newVDom.isTextNode()) {
       if (oldVDom.value !== newVDom.value) {
-        oldVDom.setPatchable(Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom)));
+        oldVDom.setPatchable(
+          Patchable.getInstance(
+            PatchReplace,
+            oldVDom,
+            makeReplaceAction(newVDom)
+          )
+        );
       }
     } else {
       const {
@@ -79,7 +98,13 @@ abstract class Diffable {
         events: newEvents
       } = newVDom as VirtualNode;
       if (oldTagType !== newTagType) {
-        oldVDom.setPatchable(Patchable.getInstance(PatchReplace, oldVDom, makeReplaceAction(newVDom)));
+        oldVDom.setPatchable(
+          Patchable.getInstance(
+            PatchReplace,
+            oldVDom,
+            makeReplaceAction(newVDom)
+          )
+        );
         return;
       } else if (
         !_.isEqualObject(oldAttributes, newAttributes) ||
@@ -89,10 +114,22 @@ abstract class Diffable {
           _.isUndefined(oldEvents) &&
           _.isUndefined(newEvents))
       ) {
-        oldVDom.setPatchable(Patchable.getInstance(PatchUpdateProps, oldVDom, makeUpdatePropsAction(newAttributes, newEvents)));
+        oldVDom.setPatchable(
+          Patchable.getInstance(
+            PatchUpdateProps,
+            oldVDom,
+            makeUpdatePropsAction(newAttributes, newEvents)
+          )
+        );
       }
       if (oldVDom.isListNode() && newVDom.isListNode()) {
-        oldVDom.setPatchable(Patchable.getInstance(PatchReorderLisBasedDiff, oldVDom, this.diffKeyedList(oldChildren, newChildren, key)));
+        oldVDom.setPatchable(
+          Patchable.getInstance(
+            PatchReorderLisBasedDiff,
+            oldVDom,
+            this.diffKeyedList(oldChildren, newChildren, key)
+          )
+        );
       } else if (!oldVDom.isComponentNode() && !newVDom.isComponentNode()) {
         this.diffFreeList(oldChildren, newChildren);
       } else if (oldVDom.isComponentNode() && newVDom.isComponentNode()) {
@@ -106,9 +143,11 @@ abstract class Diffable {
       }
     }
   }
-};
+}
 
-export const DiffAlgorithmFactory = function(Algo: { new (...args: Array<any>): Diffable }): PropertyDecorator {
+export const DiffAlgorithmFactory = function(Algo: {
+  new (...args: Array<any>): Diffable;
+}): PropertyDecorator {
   return (target: VirtualNode, prop: string): void => {
     target[prop] = Diffable.getInstance(Algo);
   };

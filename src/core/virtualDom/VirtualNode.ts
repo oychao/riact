@@ -13,10 +13,7 @@ import {
   PROP_EVENT_PREFIX,
   NODE_TYPE_FRAGMENT
 } from '../../constants/index';
-import {
-  loadStyle,
-  loadDangerousInnerHTML
-} from './domUtils';
+import { loadStyle, loadDangerousInnerHTML } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
 import Diffable, { DiffAlgorithmFactory } from './Diffable';
@@ -301,7 +298,7 @@ class VirtualNode implements JSX.Element {
   }
 
   public hasPatchable(): boolean {
-    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable)
+    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable);
   }
 
   public setPatchable(patchable: Patchable): void {

@@ -9,7 +9,7 @@ export default class PatchReplace extends Patchable {
     super(target, patchData);
   }
 
-  public run (): void {
+  public run(): void {
     const target: VirtualNode = this.target;
     const { payload }: Riact.TPatch = this.patchData;
     target.unmountFromDom();

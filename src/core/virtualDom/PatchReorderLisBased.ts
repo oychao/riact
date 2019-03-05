@@ -11,7 +11,13 @@ export default class PatchReorderLisBasedDiff extends Patchable {
 
   public run(): void {
     const listNode: VirtualNode = this.target;
-    const { removes, moves, insertions, tailsInss }: Riact.TPatchReorderPayload = this.patchData.payload as Riact.TPatchReorderPayload;
+    const {
+      removes,
+      moves,
+      insertions,
+      tailsInss
+    }: Riact.TPatchReorderPayload = this.patchData
+      .payload as Riact.TPatchReorderPayload;
     let startNode: VirtualNode = listNode[PROP_CHILDREN][0];
     let target: VirtualNode;
     let prevPivot: VirtualNode = null;
@@ -22,10 +28,15 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     // prev nodes could be updated while processing deleting and moving
     const toBeMovedNodeList: Array<VirtualNode> = [];
     const destinationNodeList: Array<VirtualNode> = [];
-    const nodePrevNodeMap: WeakMap<VirtualNode, VirtualNode> = new WeakMap<VirtualNode, VirtualNode>();
+    const nodePrevNodeMap: WeakMap<VirtualNode, VirtualNode> = new WeakMap<
+      VirtualNode,
+      VirtualNode
+    >();
     for (i = 0, len = moves.length; i < len; i++) {
       const { item, to } = moves[i];
-      target = (item === undefined ? startNode : item.nextSibling) as VirtualNode;
+      target = (item === undefined
+        ? startNode
+        : item.nextSibling) as VirtualNode;
       toBeMovedNodeList.push(target);
       destinationNodeList.push(to as VirtualNode);
       nodePrevNodeMap.set(target, item as VirtualNode);
@@ -71,7 +82,10 @@ export default class PatchReorderLisBasedDiff extends Patchable {
       } else {
         toBeMovedNode.nextSibling = destination.nextSibling as VirtualNode;
         if (nodePrevNodeMap.has(destination.nextSibling as VirtualNode)) {
-          nodePrevNodeMap.set(destination.nextSibling as VirtualNode, toBeMovedNode);
+          nodePrevNodeMap.set(
+            destination.nextSibling as VirtualNode,
+            toBeMovedNode
+          );
         }
         destination.nextSibling = toBeMovedNode;
       }
@@ -91,7 +105,9 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     // handle insertions between normal nodes
     pivot = startNode;
     while (pivot) {
-      const newNodes: Array<VirtualNode> = insertions.get(pivot) as Array<VirtualNode>;
+      const newNodes: Array<VirtualNode> = insertions.get(pivot) as Array<
+        VirtualNode
+      >;
       if (newNodes && newNodes.length) {
         newNodes[0].nextSibling = pivot;
         newNodes[0].parentNode = listNode;

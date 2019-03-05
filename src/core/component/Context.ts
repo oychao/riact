@@ -28,7 +28,9 @@ abstract class Context {
         this.decendantConsumers = new Set<Consumer>();
       }
       public getValue(): any {
-        const { attributes: { value } }: VirtualNode = this.virtualNode;
+        const {
+          attributes: { value }
+        }: VirtualNode = this.virtualNode;
         return _.isUndefined(value) ? initialValue : value;
       }
       public subscribe(consumer: Consumer): Riact.TFunction {
@@ -40,8 +42,12 @@ abstract class Context {
       }
       public renderDom(prevProps: Riact.TObject): void {
         this.appContext.batchingUpdate(() => {
-          const { attributes: { value } }: VirtualNode = this.virtualNode;
-          const shouldUpdate: boolean = this.isInitialized() && (!prevProps || !Object.is(prevProps.value, value));
+          const {
+            attributes: { value }
+          }: VirtualNode = this.virtualNode;
+          const shouldUpdate: boolean =
+            this.isInitialized() &&
+            (!prevProps || !Object.is(prevProps.value, value));
           if (shouldUpdate) {
             for (const decendantConsumer of this.decendantConsumers) {
               decendantConsumer.activateWaitingContextProviderUpdate();
@@ -87,11 +93,10 @@ abstract class Context {
     (providerRender as Riact.TObject).clazz = Provider;
 
     const consumerRender: Riact.TFuncComponent = function(): JSX.Element {
-      const fac: Riact.TFunction = this.virtualNode.attributes.children.children[0].tagType;
+      const fac: Riact.TFunction = this.virtualNode.attributes.children
+        .children[0].tagType;
       return fac(
-        this.ancestorProvider
-        ? this.ancestorProvider.getValue()
-        : initialValue
+        this.ancestorProvider ? this.ancestorProvider.getValue() : initialValue
       );
     };
     (consumerRender as Riact.TObject).clazz = Consumer;
@@ -105,16 +110,24 @@ abstract class Context {
     return contextComp;
   }
 
-  public static useContextComposer(...args: Array<IContextComponent>): Riact.TFuncComponent {
+  public static useContextComposer(
+    ...args: Array<IContextComponent>
+  ): Riact.TFuncComponent {
     if (args.length === 0) {
       return null;
     }
     const InitContext: IContextComponent = args.pop();
     return ({ children, values }): JSX.Element =>
-      args.reduceRight((Acc, Context, index): JSX.Element =>
-        VirtualNode.createElement(Context.Provider, {}, Acc),
-      VirtualNode.createElement(InitContext.Provider, { value: values[args.length] }, ...children));
-  };
+      args.reduceRight(
+        (Acc, Context, index): JSX.Element =>
+          VirtualNode.createElement(Context.Provider, {}, Acc),
+        VirtualNode.createElement(
+          InitContext.Provider,
+          { value: values[args.length] },
+          ...children
+        )
+      );
+  }
 }
 
 export default Context;

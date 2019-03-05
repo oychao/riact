@@ -1,6 +1,8 @@
-import { useState } from 'riact';
+import {
+  useState
+} from 'riact';
 
-const useInputModel = function(initValue) {
+const useInputModel = function (initValue) {
   const [value, setValue] = useState(initValue);
   return {
     model: {
