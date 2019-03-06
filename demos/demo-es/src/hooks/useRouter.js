@@ -1,28 +1,25 @@
-import Riact, { useState } from 'riact';
+import {
+  useState,
+  useEffect
+} from 'riact';
 
-const useRouter = function(routers) {
-  const [index, setIndex] = useState(0);
-  const activeRoute = routers[index];
-  return [
-    <div>
-      {routers.map(([name], curIdx) => (
-        <span key={curIdx}>
-          <a
-            key={curIdx}
-            style={curIdx === index ? { color: 'red' } : {}}
-            href="javascript:;"
-            onClick={() => {
-              setIndex(curIdx);
-            }}
-          >
-            {name}
-          </a>
-          &nbsp;
-        </span>
-      ))}
-    </div>,
-    activeRoute[1]
-  ];
+const useRouter = config => {
+  const [path, setPath] = useState('/');
+
+  const refresh = () => {
+    setPath(location.hash.slice(1) || '/');
+  };
+
+  useEffect(() => {
+    window.addEventListener('load', refresh, false);
+    window.addEventListener('hashchange', refresh, false);
+    return () => {
+      window.removeEventListener('load', refresh);
+      window.removeEventListener('hashchange', refresh);
+    };
+  }, []);
+
+  return config.get(`${path}`);
 };
 
 export default useRouter;

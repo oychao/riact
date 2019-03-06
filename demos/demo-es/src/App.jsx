@@ -13,12 +13,14 @@ import Profile from './components/Profile';
 
 const App = function() {
   useLifeCycleChecker('App');
-  const [links, activeRoute] = useRouter([
-    ['list', <List />],
-    ['count', <Count />],
-    ['show list', <ShowList />],
-    ['profile', <Profile />]
-  ]);
+  const activeRoute = useRouter(
+    new Map([
+      ['/', <List />],
+      ['/count', <Count />],
+      ['/show_list', <ShowList />],
+      ['/profile', <Profile />]
+    ])
+  );
   const [theme, setTheme] = useState(themes.light);
   return (
     <div>
@@ -28,7 +30,15 @@ const App = function() {
             setTheme(theme === themes.light ? themes.dark : themes.light);
           }}
         />
-        {links}
+        <div>
+          <a href="#/">List</a>
+          &nbsp;
+          <a href="#/count">Count</a>
+          &nbsp;
+          <a href="#/show_list">Show List</a>
+          &nbsp;
+          <a href="#/profile">Profile</a>
+        </div>
         <hr />
         {activeRoute}
       </ThemeContext.Provider>
