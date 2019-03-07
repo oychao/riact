@@ -7,7 +7,7 @@ const useInputModel = function (initValue) {
   return {
     model: {
       value,
-      onInput: e => {
+      onChange: e => {
         setValue(e.target.value);
       }
     },

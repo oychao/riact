@@ -28,9 +28,10 @@ const List = function() {
   });
   const { list } = state;
   useEffect(() => {
-    new Promise(resolve => {
+    let isCanceled = false;
+    const p = new Promise((resolve, reject) => {
       setTimeout(() => {
-        resolve([
+        isCanceled ? reject() : resolve([
           'pul@puezne.gg',
           'ike@opgal.an',
           'pat@afued.sz',
@@ -42,7 +43,8 @@ const List = function() {
         type: 'ADD',
         payload: data
       });
-    });
+    }).catch(() => {});
+    return () => { isCanceled = true; };
   }, []);
   return (
     <div>
