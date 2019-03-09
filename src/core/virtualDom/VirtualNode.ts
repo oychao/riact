@@ -273,6 +273,13 @@ class VirtualNode implements JSX.Element {
       }
     }
   }
+
+  /**
+   * TODO: fix the bug described below.
+   * ! if 'the most left dom node' does not found in the next sibling, it may exists in next
+   * ! sibling of next sibling, etc., here the method just look upon the ancestor nodes until the
+   * ! most-left-dom found or no more ancestors.
+   */
   public getNextDomSibling(): Node {
     let targetNode: VirtualNode = null;
     let currentNode: VirtualNode = this;
