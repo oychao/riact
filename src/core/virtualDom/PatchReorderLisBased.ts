@@ -68,7 +68,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
       const toBeMovedNode: VirtualNode = toBeMovedNodeList[i];
       const prevNode: VirtualNode = nodePrevNodeMap.get(toBeMovedNode);
 
-      if (_.isUndefined(prevNode)) {
+      if (_.isUndefined(prevNode) || _.isNull(prevNode)) {
         startNode = toBeMovedNode.nextSibling;
       } else {
         prevNode.nextSibling = prevNode.nextSibling.nextSibling;
