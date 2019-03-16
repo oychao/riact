@@ -11,18 +11,22 @@ export default class DiffAlgorithmBefore16 extends Diffable {
   constructor() {
     super();
   }
-  
-  protected diffKeyedList(list1: Array<VirtualNode>, list2: Array<VirtualNode>, key: string): Riact.TPatch {
+
+  protected diffKeyedList(
+    list1: Array<VirtualNode>,
+    list2: Array<VirtualNode>,
+    key: string
+  ): Riact.TPatch {
     const actions: Array<Riact.TPatch> = [];
-    
+
     const oldKeyIdxMap: Map<string, number> = keyIdxMapFac(list1, key);
     const newKeyIdxMap: Map<string, number> = keyIdxMapFac(list2, key);
-    
+
     const reservedOldList: Array<VirtualNode> = [];
-    
+
     let i: number;
     let j: number;
-    
+
     // remove all items which no longer exists in new list
     for (i = 0; i < list1.length; i++) {
       const item = list1[i];
@@ -32,19 +36,19 @@ export default class DiffAlgorithmBefore16 extends Diffable {
         actions.push(makeRemoveAction(i - actions.length));
       }
     }
-    
+
     i = 0;
     j = 0;
     while (i < list2.length) {
       const newItem = list2[i];
       const oldItem = reservedOldList[j];
       const nextOldItem = reservedOldList[j + 1];
-      
+
       if (!oldItem || !oldKeyIdxMap.has(newItem.key)) {
         actions.push(makeInsertAction(i++, newItem));
         continue;
       }
-      
+
       if (newItem.key === oldItem.key) {
         this.run(oldItem, newItem);
         j++;
@@ -58,12 +62,12 @@ export default class DiffAlgorithmBefore16 extends Diffable {
         }
       }
     }
-    
+
     while (j < reservedOldList.length) {
       actions.push(makeRemoveAction(j));
       j++;
     }
-    
+
     return {
       type: ACTION_REORDER_BEFORE_16,
       payload: actions

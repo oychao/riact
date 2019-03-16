@@ -1,4 +1,6 @@
-import { expect } from 'chai';
+import {
+  expect
+} from 'chai';
 import 'mocha-sinon';
 
 describe('your test cases', () => {

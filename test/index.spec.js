@@ -1,8 +1,10 @@
-import { expect } from 'chai';
+import {
+  expect
+} from 'chai';
 import 'mocha-sinon';
 
 describe('your test cases', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     this.sinon.stub(console, 'info');
   });
   it('should run correctly', done => {

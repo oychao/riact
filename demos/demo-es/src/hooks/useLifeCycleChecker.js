@@ -1,6 +1,6 @@
 // import { useEffect } from 'riact';
 
-const useLifeCycleChecker = function(name) {
+const useLifeCycleChecker = function (name) {
   // console.log(`${name} rendering`);
   // useEffect(() => {
   //   console.log(`${name} mounted`);
