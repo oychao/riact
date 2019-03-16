@@ -8,12 +8,15 @@ type TransactionWrapper = {
 
 abstract class AppContext implements Riact.IAppContext {
   constructor() {
-    this.componentDeclarationMap = new Map<
+    this.componentDeclarationMap = new WeakMap<
       Riact.TFuncComponent,
       typeof Component
     >();
     this.performing = false;
-    this.wrappers = [AppContext.BATCHING_UPDATE_STRATEGY, AppContext.BATCH_INVOKE_EFFECTS_STRATEGY];
+    this.wrappers = [
+      AppContext.BATCHING_UPDATE_STRATEGY,
+      AppContext.BATCH_INVOKE_EFFECTS_STRATEGY
+    ];
     this.dirtyStateComponentStack = [];
     this.dirtyStateComponentMap = new WeakMap<Component, boolean>();
     this.dirtyEffectComponentStack = [];
@@ -23,7 +26,10 @@ abstract class AppContext implements Riact.IAppContext {
   /**
    * register component declaration
    */
-  private componentDeclarationMap: Map<Riact.TFuncComponent, typeof Component>;
+  private componentDeclarationMap: WeakMap<
+    Riact.TFuncComponent,
+    typeof Component
+  >;
   public getComponent(render: Riact.TFuncComponent): typeof Component {
     if (this.componentDeclarationMap.has(render)) {
       return this.componentDeclarationMap.get(render);
@@ -84,7 +90,7 @@ abstract class AppContext implements Riact.IAppContext {
       }
       this.dirtyStateComponentMap = new WeakMap<Component, boolean>();
     }
-  }
+  };
   private static BATCH_INVOKE_EFFECTS_STRATEGY: TransactionWrapper = {
     before() {},
     after() {
@@ -96,7 +102,7 @@ abstract class AppContext implements Riact.IAppContext {
       }
       this.dirtyEffectComponentMap = new WeakMap<Component, boolean>();
     }
-  }
+  };
 
   /**
    * dirty components stack

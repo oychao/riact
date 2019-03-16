@@ -4,7 +4,8 @@ declare namespace Riact {
     type: Symbol;
     payload: TPatchPayload;
   };
-  export type TPatchPayload = JSX.Element
+  export type TPatchPayload =
+    | JSX.Element
     | {
         attributes: TObject;
         events: TFuncValObject;
@@ -17,13 +18,13 @@ declare namespace Riact {
     | Array<JSX.Element>
     | TPatchReorderPayload;
   export type TPatchReorderPayload = {
-    removes: Array<JSX.Element>,
+    removes: Array<JSX.Element>;
     moves: Array<{
-      item: JSX.Element,
-      to: JSX.Element
-    }>,
-    insertions: Map<JSX.Element, Array<JSX.Element>>,
-    tailsInss: Array<JSX.Element>
+      item: JSX.Element;
+      to: JSX.Element;
+    }>;
+    insertions: Map<JSX.Element, Array<JSX.Element>>;
+    tailsInss: Array<JSX.Element>;
   };
   export type TPatchUpdatePropsPayload = {
     attributes: TObject;

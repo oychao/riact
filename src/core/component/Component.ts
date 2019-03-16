@@ -98,7 +98,10 @@ export default class Component implements Riact.IComponent {
 
   public renderDom(prevProps: Riact.TObject): void {
     this.appContext.batchingUpdate(() => {
-      if (!this.shouldComponentUpdate(prevProps) || this.appContext.hasDirtyComponent(this)) {
+      if (
+        !this.shouldComponentUpdate(prevProps) ||
+        this.appContext.hasDirtyComponent(this)
+      ) {
         return;
       }
       StaticContext.setCurrentInstance(this);

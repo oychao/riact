@@ -8,6 +8,12 @@ A simplified React-like modern frontend framework.
 
 Check the [demos][1].
 
+Also, a boilerplate cli tool is provided to initiate a project.
+
+<p align="center">
+    <img src="./docs/install.png" width=600 alt="demo">
+</p>
+
 ### Component
 
 Currently function component supported only.

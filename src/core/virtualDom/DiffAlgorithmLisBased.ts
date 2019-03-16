@@ -1,10 +1,7 @@
 import * as _ from '../../utils/index';
 import Diffable from './Diffable';
 import VirtualNode from './VirtualNode';
-import {
-  PROP_KEY,
-  ACTION_REORDER
-} from 'src/constants/index';
+import { PROP_KEY, ACTION_REORDER } from 'src/constants/index';
 
 /**
  * Longest Increasing Subsequence based keyed list diff algorithm, LIS helped to make
@@ -132,7 +129,12 @@ export default class DiffAlgorithmLisBased extends Diffable {
       } else if (shouldMoved) {
         if (j < 0 || LIS[j] !== IT[k]) {
           pMovs.push({
-            to: LIS[j] === undefined ? (sd === 0 ? undefined : list1[sd - 1]) : list1[LIS[j]],
+            to:
+              LIS[j] === undefined
+                ? sd === 0
+                  ? undefined
+                  : list1[sd - 1]
+                : list1[LIS[j]],
             item: list1[IT[k] - 1]
           });
         } else {

@@ -3,7 +3,7 @@ import {
   ACTION_REMOVE,
   ACTION_INSERT,
   ACTION_REPLACE,
-  ACTION_UPDATE_PROPS,
+  ACTION_UPDATE_PROPS
 } from '../../constants/index';
 import VirtualNode from './VirtualNode';
 
@@ -103,7 +103,10 @@ export const loadStyle = (
   }
 };
 
-export const loadDangerousInnerHTML = (element: HTMLElement, value: any): void => {
+export const loadDangerousInnerHTML = (
+  element: HTMLElement,
+  value: any
+): void => {
   if (_.isString(value)) {
     (element as HTMLElement).innerHTML = value;
   } else if (_.isFunction(value)) {

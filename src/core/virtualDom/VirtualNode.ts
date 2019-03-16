@@ -13,10 +13,7 @@ import {
   PROP_EVENT_PREFIX,
   NODE_TYPE_FRAGMENT
 } from '../../constants/index';
-import {
-  loadStyle,
-  loadDangerousInnerHTML
-} from './domUtils';
+import { loadStyle, loadDangerousInnerHTML } from './domUtils';
 import Component from '../component/Component';
 import AppContext from '../context/AppContext';
 import Diffable, { DiffAlgorithmFactory } from './Diffable';
@@ -276,6 +273,13 @@ class VirtualNode implements JSX.Element {
       }
     }
   }
+
+  /**
+   * TODO: fix the bug described below.
+   * ! if 'the most left dom node' does not found in the next sibling, it may exists in next
+   * ! sibling of next sibling, etc., here the method just look upon the ancestor nodes until the
+   * ! most-left-dom found or no more ancestors.
+   */
   public getNextDomSibling(): Node {
     let targetNode: VirtualNode = null;
     let currentNode: VirtualNode = this;
@@ -301,7 +305,7 @@ class VirtualNode implements JSX.Element {
   }
 
   public hasPatchable(): boolean {
-    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable)
+    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable);
   }
 
   public setPatchable(patchable: Patchable): void {
