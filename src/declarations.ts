@@ -79,7 +79,6 @@ declare namespace JSX {
     key?: string;
     nextSibling?: Element;
     parentNode?: Element;
-    patch?: Riact.TPatch;
     ref?: Riact.TRef;
     reserved?: any;
     value?: any;
