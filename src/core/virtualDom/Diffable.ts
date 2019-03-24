@@ -109,10 +109,10 @@ abstract class Diffable {
       } else if (
         !_.isEqualObject(oldAttributes, newAttributes) ||
         !_.isEqualObject(oldEvents, newEvents) ||
-        (_.isUndefined(oldAttributes) &&
-          _.isUndefined(newAttributes) &&
-          _.isUndefined(oldEvents) &&
-          _.isUndefined(newEvents))
+        (_.isNil(oldAttributes) &&
+          _.isNil(newAttributes) &&
+          _.isNil(oldEvents) &&
+          _.isNil(newEvents))
       ) {
         oldVDom.setPatchable(
           Patchable.getInstance(

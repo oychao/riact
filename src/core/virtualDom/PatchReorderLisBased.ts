@@ -46,7 +46,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     while (removes.length) {
       const prevNode: VirtualNode = removes.pop() as VirtualNode;
       let toBeRemoved: VirtualNode;
-      if (_.isUndefined(prevNode)) {
+      if (_.isNil(prevNode)) {
         toBeRemoved = listNode[PROP_CHILDREN][0];
         startNode = startNode.nextSibling;
         if (nodePrevNodeMap.has(startNode)) {
@@ -68,7 +68,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
       const toBeMovedNode: VirtualNode = toBeMovedNodeList[i];
       const prevNode: VirtualNode = nodePrevNodeMap.get(toBeMovedNode);
 
-      if (_.isUndefined(prevNode) || _.isNull(prevNode)) {
+      if (_.isNil(prevNode)) {
         startNode = toBeMovedNode.nextSibling;
       } else {
         prevNode.nextSibling = prevNode.nextSibling.nextSibling;
@@ -76,7 +76,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
           nodePrevNodeMap.set(prevNode.nextSibling, prevNode);
         }
       }
-      if (_.isUndefined(destination)) {
+      if (_.isNil(destination)) {
         toBeMovedNode.nextSibling = startNode;
         startNode = toBeMovedNode;
       } else {
@@ -117,7 +117,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
           newNodes[i].parentNode = listNode;
           newNodes[i].reflectDescendantsToDom();
         }
-        if (_.isNull(prevPivot)) {
+        if (_.isNil(prevPivot)) {
           startNode = newNodes[newNodes.length - 1];
         } else {
           prevPivot.nextSibling = newNodes[i - 1];
@@ -137,7 +137,7 @@ export default class PatchReorderLisBasedDiff extends Patchable {
     if (tailsInss.length) {
       tailsInss[0].parentNode = listNode;
       (tailsInss[0] as VirtualNode).reflectDescendantsToDom();
-      if (_.isNull(prevPivot)) {
+      if (_.isNil(prevPivot)) {
         startNode = tailsInss[tailsInss.length - 1] as VirtualNode;
       } else {
         prevPivot.nextSibling = tailsInss[tailsInss.length - 1] as VirtualNode;

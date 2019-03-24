@@ -128,7 +128,7 @@ export default class Component implements Riact.IComponent {
   }
 
   public reflectToDom(): void {
-    if (!_.isNull(this.virtualNode)) {
+    if (!_.isNil(this.virtualNode)) {
       this.virtualNode.children[0].commit();
     }
   }
@@ -146,7 +146,7 @@ export default class Component implements Riact.IComponent {
       stateValue,
       (newState: T): void => {
         this.appContext.batchingUpdate(() => {
-          if (_.isNull(this.virtualNode)) {
+          if (_.isNil(this.virtualNode)) {
             return;
           }
           stateHooks[stateHookIndex] = newState;

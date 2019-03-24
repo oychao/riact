@@ -39,6 +39,10 @@ export const isNull = function(object: any): boolean {
   return object === null;
 };
 
+export const isNil = function(object: any): boolean {
+  return object === null || object === undefined;
+};
+
 export const isPlainObject = function(object: any) {
   return Object.prototype.toString.call(object) === '[object Object]';
 };
@@ -206,7 +210,7 @@ export const calcLis = function(arr: Array<number>): Array<number> {
  * deep clone a object or an array
  * @param o value to be cloned
  */
-export function deepClone (o: any): any {
+export function deepClone(o: any): any {
   if (Array.isArray(o)) {
     return o.map((v: any): any => deepClone(v));
   } else if (typeof o === 'object') {
@@ -214,8 +218,11 @@ export function deepClone (o: any): any {
   } else {
     return o;
   }
-};
-function deepCloneObject (o: Riact.TObject, ws: WeakSet<Riact.TObject>): Riact.TObject {
+}
+function deepCloneObject(
+  o: Riact.TObject,
+  ws: WeakSet<Riact.TObject>
+): Riact.TObject {
   if (o === null) {
     return null;
   } else if (ws.has(o)) {
@@ -224,7 +231,7 @@ function deepCloneObject (o: Riact.TObject, ws: WeakSet<Riact.TObject>): Riact.T
   }
   ws.add(o);
   const C: Riact.TObject = {};
-  let k: string
+  let k: string;
   let v: any;
   for (k in o) {
     if (Object.prototype.hasOwnProperty.call(o, k)) {
@@ -233,7 +240,7 @@ function deepCloneObject (o: Riact.TObject, ws: WeakSet<Riact.TObject>): Riact.T
     }
   }
   return C;
-};
+}
 
 /**
  * breadth first search algorithm
@@ -241,37 +248,44 @@ function deepCloneObject (o: Riact.TObject, ws: WeakSet<Riact.TObject>): Riact.T
  * @param key children key name
  * @param handler hanlder function that will be run on every node
  */
-export const bfsWalk = function (node: Riact.TObject, key: string, handler: Riact.TFunction): void {
+export const bfsWalk = function(
+  node: Riact.TObject,
+  key: string,
+  handler: Riact.TFunction
+): void {
   type TWrapperedNodeForBFS = {
-    node: Riact.TObject,
-    index: number,
-    parent: Riact.TObject
+    node: Riact.TObject;
+    index: number;
+    parent: Riact.TObject;
   };
+
   let i: number = 0;
-	const ws: WeakSet<Riact.TObject> = new WeakSet<Riact.TObject>();
-	const queue: Array<TWrapperedNodeForBFS> = [];
-	ws.add(node);
+  const ws: WeakSet<Riact.TObject> = new WeakSet<Riact.TObject>();
+  const queue: Array<TWrapperedNodeForBFS> = [];
+  ws.add(node);
   let currNode: TWrapperedNodeForBFS = {
     node,
     index: 0,
     parent: null
   };
-	queue.push(currNode);
-	while (currNode) {
+  queue.push(currNode);
+  while (currNode) {
     if (handler.call(null, currNode.node, currNode.index, currNode.parent)) {
       return;
     }
-		if (Array.isArray(currNode.node[key])) {
-			currNode.node[key].forEach(({ node: subNode }: TWrapperedNodeForBFS, idx: number): void => {
-				if (!ws.has(subNode)) {
-					queue.push({
-            node: subNode,
-            index: idx,
-            parent: currNode
-          });
-				};
-			});
+    if (Array.isArray(currNode.node[key])) {
+      currNode.node[key].forEach(
+        ({ node: subNode }: TWrapperedNodeForBFS, idx: number): void => {
+          if (!ws.has(subNode)) {
+            queue.push({
+              node: subNode,
+              index: idx,
+              parent: currNode
+            });
+          }
+        }
+      );
     }
     currNode = queue[++i];
-	}
+  }
 };

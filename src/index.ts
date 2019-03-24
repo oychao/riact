@@ -27,7 +27,7 @@ export default class Riact extends AppContext implements Riact.IComponent {
 
   constructor(virtualNode: VirtualNode, rootDom: HTMLElement) {
     super();
-    _.warning(!_.isNull(virtualNode), 'empty virtual dom');
+    _.warning(!_.isNil(virtualNode), 'empty virtual dom');
     _.warning(rootDom instanceof HTMLElement, 'invalid root dom element');
 
     this.appContext = this;
