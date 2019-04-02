@@ -1,13 +1,13 @@
 {
   "name": "riact",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "./bin/index.js",
   "typings": "./bin/index.d.ts",
   "author": {
     "name": "ouyang-chao",
     "email": "chao@ouyang.io"
   },
-  "license": "GLWTPL",
+  "license": "Anti-996",
   "repository": "https://github.com/oychao/riact",
   "keywords": [],
   "description": "A simplified React-like modern frontend framework",

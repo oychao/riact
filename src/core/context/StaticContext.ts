@@ -31,7 +31,7 @@ const StaticContext: IStaticContext = {
   },
   useEffect(effect: Riact.TFunction, relativeState?: Array<any>): void {
     _.warning(
-      _.isArray(relativeState) || _.isUndefined(relativeState),
+      _.isArray(relativeState) || _.isNil(relativeState),
       'relative state should be an array or an undefined value'
     );
     return StaticContext.currentInstance.useEffect(effect, relativeState);
