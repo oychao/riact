@@ -2,7 +2,7 @@
 
 A simplified React-like modern frontend framework.
 
-[![Build Status](https://travis-ci.org/oychao/riact.svg?branch=master)](https://travis-ci.org/oychao/riact)
+[![Build Status](https://travis-ci.org/oychao/riact.svg?branch=master)](https://travis-ci.org/oychao/riact) [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
 
 ## How to use
 
@@ -75,6 +75,6 @@ ReactDom.render(<Count></Count>, document.querySelector('#app'));
 
 ## LICENCE
 
-[GLWTPL](https://github.com/me-shaon/GLWTPL)
+[![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
 
 [1]: https://github.com/oychao/riact/tree/master/demos

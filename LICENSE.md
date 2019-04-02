@@ -1,47 +1,46 @@
-GLWT(Good Luck With That) Public License
-                Copyright (c) Everyone, except Author
+Copyright (c) 2019 Ouyang Chao
 
-Everyone is permitted to copy, distribute, modify, merge, sell, publish,
-sublicense or whatever they want with this software but at their OWN RISK.
+996 License Version 1.0 (Draft)
 
-                            Preamble
+Permission is hereby granted to any individual or legal entity
+obtaining a copy of this licensed work (including the source code,
+documentation and/or related items, hereinafter collectively referred
+to as the "licensed work"), free of charge, to deal with the licensed
+work for any purpose, including without limitation, the rights to use,
+reproduce, modify, prepare derivative works of, distribute, publish 
+and sublicense the licensed work, subject to the following conditions:
 
-The author has absolutely no clue what the code in this project does.
-It might just work or not, there is no third option.
+1. The individual or the legal entity must conspicuously display,
+without modification, this License and the notice on each redistributed 
+or derivative copy of the Licensed Work.
 
+2. The individual or the legal entity must strictly comply with all
+applicable laws, regulations, rules and standards of the jurisdiction
+relating to labor and employment where the individual is physically
+located or where the individual was born or naturalized; or where the
+legal entity is registered or is operating (whichever is stricter). In
+case that the jurisdiction has no such laws, regulations, rules and
+standards or its laws, regulations, rules and standards are
+unenforceable, the individual or the legal entity are required to
+comply with Core International Labor Standards.
 
-                GOOD LUCK WITH THAT PUBLIC LICENSE
-  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION, AND MODIFICATION
+3. The individual or the legal entity shall not induce or force its
+employee(s), whether full-time or part-time, or its independent
+contractor(s), in any methods, to agree in oral or written form, to
+directly or indirectly restrict, weaken or relinquish his or her
+rights or remedies under such laws, regulations, rules and standards
+relating to labor and employment as mentioned above, no matter whether
+such written or oral agreement are enforceable under the laws of the
+said jurisdiction, nor shall such individual or the legal entity
+limit, in any methods, the rights of its employee(s) or independent
+contractor(s) from reporting or complaining to the copyright holder or
+relevant authorities monitoring the compliance of the license about
+its violation(s) of the said license.
 
-  0. You just DO WHATEVER YOU WANT TO as long as you NEVER LEAVE A
-TRACE TO TRACK THE AUTHOR of the original product to blame for or hold
-responsible.
-
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-
-Good luck and Godspeed.
-
----
-GLWT（祝你好运）公共许可证
-版权所有（C）每个人，除了作者
-
-任何人都被允许复制、分发、修改、合并、销售、出版、再授权或
-任何其它操作，但风险自负。
-
-作者对这个项目中的代码一无所知。
-代码处于可用或不可用状态，没有第三种情况。
-
-
-                祝你好运公共许可证
-            复制、分发和修改的条款和条件
-
-0 ：在不导致作者被指责或承担责任的情况下，你可以做任何你想
-要做的事情。
-
-无论是在合同行为、侵权行为或其它因使用本软件产生的情形，作
-者不对任何索赔、损害承担责任。
-
-祖宗保佑。
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN ANY WAY CONNECTION WITH THE
+LICENSED WORK OR THE USE OR OTHER DEALINGS IN THE LICENSED WORK.
