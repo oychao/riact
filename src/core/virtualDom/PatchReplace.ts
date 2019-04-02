@@ -47,7 +47,7 @@ export default class PatchReplace extends Patchable {
     } else {
       delete target.reserved;
     }
-    if (!_.isUndefined(that.value) && !_.isNull(that.value)) {
+    if (!_.isNil(that.value)) {
       target.value = that.value;
     } else {
       delete target.value;

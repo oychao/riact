@@ -47,7 +47,7 @@ const normalizeVirtualNode = function(node: VirtualNode): void {
     } else if (_.isString(child) || _.isNumber(child)) {
       normalizedNode.tagType = NODE_TYPE_TEXT;
       normalizedNode.value = child;
-    } else if (_.isNull(child) || _.isUndefined(child)) {
+    } else if (_.isNil(child)) {
       normalizedNode.tagType = NODE_TYPE_EMPTY;
       normalizedNode.value = child;
     } else if (_.isFunction(child)) {
@@ -305,7 +305,7 @@ class VirtualNode implements JSX.Element {
   }
 
   public hasPatchable(): boolean {
-    return !_.isNull(this.patchable) && !_.isUndefined(this.patchable);
+    return !_.isNil(this.patchable);
   }
 
   public setPatchable(patchable: Patchable): void {
@@ -420,7 +420,7 @@ class VirtualNode implements JSX.Element {
       this,
       PROP_CHILDREN,
       (node: VirtualNode): boolean => {
-        if (_.isNull(node.patchable) || _.isUndefined(node.patchable)) {
+        if (_.isNil(node.patchable)) {
           return true;
         }
         node.patchable.run();

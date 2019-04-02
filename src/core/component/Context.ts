@@ -31,7 +31,7 @@ abstract class Context {
         const {
           attributes: { value }
         }: VirtualNode = this.virtualNode;
-        return _.isUndefined(value) ? initialValue : value;
+        return _.isNil(value) ? initialValue : value;
       }
       public subscribe(consumer: Consumer): Riact.TFunction {
         const { decendantConsumers }: Provider = this;
